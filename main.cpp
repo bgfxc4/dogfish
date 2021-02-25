@@ -23,23 +23,9 @@ int* tileNameToPosition(std::string tileName) {
 		std::cout << "[ERROR] tileName must be 2 characters long!" << std::endl;
 		return ret;
 	}
-	if (tileName[0] == 'a') ret[0] = 0;
-	else if (tileName[0] == 'b') ret[0] = 1;
-	else if (tileName[0] == 'c') ret[0] = 2;
-	else if (tileName[0] == 'd') ret[0] = 3;
-	else if (tileName[0] == 'e') ret[0] = 4;
-	else if (tileName[0] == 'f') ret[0] = 5;
-	else if (tileName[0] == 'g') ret[0] = 6;
-	else if (tileName[0] == 'h') ret[0] = 7;
+	ret[0] = 'k' - tileName[0];
+	ret[1] = '8' - tileName[1];
 
-	if (tileName[1] == '1') ret[1] = 7;
-	else if (tileName[1] == '2') ret[1] = 6;
-	else if (tileName[1] == '3') ret[1] = 5;
-	else if (tileName[1] == '4') ret[1] = 4;
-	else if (tileName[1] == '5') ret[1] = 3;
-	else if (tileName[1] == '6') ret[1] = 2;
-	else if (tileName[1] == '7') ret[1] = 1;
-	else if (tileName[1] == '8') ret[1] = 0;
 	return ret;
 }
 
@@ -129,7 +115,6 @@ class Board {
 			}
 		}
 		parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-		std::cout << halfMoves << " " << moveCount << std::endl;
 	}
 	~Board() {
 		for (std::array<Tile*, 8>& vec : tiles) {
@@ -273,8 +258,14 @@ class Board {
 	}
 };
 
+void testing() {
+	std::cout << tileNameToPosition("f4")[0] << " " << tileNameToPosition("f4")[1] << std::endl;
+}
+
 int main()
 {
+	testing();
+
     sf::RenderWindow window(sf::VideoMode(700, 700), "Cheess!", sf::Style::Resize);
 	window.setFramerateLimit(30);
 
