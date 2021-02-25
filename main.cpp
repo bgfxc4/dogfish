@@ -129,6 +129,7 @@ class Board {
 			}
 		}
 		parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+		std::cout << halfMoves << " " << moveCount << std::endl;
 	}
 	~Board() {
 		for (std::array<Tile*, 8>& vec : tiles) {
@@ -175,6 +176,9 @@ class Board {
 		int row = 0, col = 0;
 
 		char temp_char = 0;
+		std::string tempStr5thGroup = "";
+		std::string tempStr6thGroup = "";
+
 		for (char c : fenString) {
 			if (group == 1) {
 				if (c == '/') {
@@ -274,9 +278,27 @@ class Board {
 					return -1;
 				}
 			} else if (group == 5) {
-
+				if (c == ' ') {
+					halfMoves = std::stoi(tempStr5thGroup);
+					group ++;	
+				} else if (std::isdigit(c)) tempStr5thGroup += c; 
+				else {
+					std::cout << "[ERROR] invalid fen string at 5th group" << std::endl;
+					return -1;
+				}
+			} else if (group == 6) {
+				if (c == ' ') {
+					moveCount = std::stoi(tempStr6thGroup);
+					return 0;	
+				} else if (std::isdigit(c)) tempStr6thGroup += c; 
+				else {
+					std::cout << "[ERROR] invalid fen string at 6th group" << std::endl;
+					return -1;
+				}
+		
 			}
 		}
+		moveCount = std::stoi(tempStr6thGroup);
 		return 0;
 	}
 
