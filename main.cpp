@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <array>
 #include <cctype>
 #include <iterator>
@@ -60,6 +61,8 @@ void load_figure_textures() {
 
 class Figure {
 	public:
+	bool isDragged = false;
+
 	Figure(sf::Texture& texture) {
 		sprite = new sf::Sprite(texture);
 	}
@@ -96,7 +99,11 @@ class Tile {
 	}
 
 	void renderFigure(sf::RenderWindow& window) {
-		figure->sprite->setPosition(position[0] * 75, position[1] * 75);
+		if (!figure->isDragged) figure->sprite->setPosition(position[0] * 75, position[1] * 75);
+		else {
+			sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+			figure->sprite->setPosition(mousePos.x - 37.5f, mousePos.y - 37.5f);
+		} 
 		window.draw(*(figure->sprite));
 	}
 };
@@ -111,7 +118,10 @@ class Board {
 	bool whiteCanCastleShot = false;
 	bool blackCanCastleLong = false;
 	bool blackCanCastleShot = false;
-	
+
+	Figure* draggedFigure = nullptr;
+	sf::Vector2i dragStartPos;
+
 	Board() {
 		for (int i = 0; i < 8; i ++) {
 			for (int j = 0; j < 8; j ++) {
@@ -139,9 +149,25 @@ class Board {
 	}
 
 	void move(int startX, int startY, int endX, int endY) {
+		if (startX == endX && startY == endY) return;
 		delete tiles[endX][endY]->figure;
 		tiles[endX][endY]->setFigure(tiles[startX][startY]->figure);
 		tiles[startX][startY]->figure = nullptr;
+	}
+	
+	void startMouseClick(sf::Vector2i mousePos) {
+		if ((mousePos.x / 75) >= (int)tiles.size() || (mousePos.y / 75) >= (int)tiles[0].size()) return;
+		if (tiles[mousePos.x / 75][mousePos.y / 75]->figure == nullptr) return;
+		draggedFigure = tiles[mousePos.x / 75][mousePos.y / 75]->figure;
+		dragStartPos = mousePos;
+		draggedFigure->isDragged = true;
+	}
+
+	void endMouseClick(sf::Vector2i mousePos) {
+		if (draggedFigure == nullptr) return;
+		draggedFigure->isDragged = false;
+		move(dragStartPos.x / 75, dragStartPos.y / 75, mousePos.x / 75, mousePos.y / 75);
+		draggedFigure = nullptr;
 	}
 
 	int parseFEN(std::string fenString) {
@@ -278,11 +304,18 @@ int main()
         sf::Event event;
         while (window.pollEvent(event))
         {
-            if (event.type == sf::Event::Closed)
-                window.close();
+            if (event.type == sf::Event::Closed) window.close();
 			else if (event.type == sf::Event::Resized) {
 				sf::FloatRect visibleArea(0, 0, event.size.width, event.size.height);
 				window.setView(sf::View(visibleArea));
+			} else if (event.type == sf::Event::MouseButtonPressed) {
+				if (event.key.code == sf::Mouse::Left) {
+					board.startMouseClick(sf::Mouse::getPosition(window));
+				}
+			} else if (event.type == sf::Event::MouseButtonReleased) {
+				if (event.key.code == sf::Mouse::Left) {
+					board.endMouseClick(sf::Mouse::getPosition(window));
+				}
 			}
         }
 		
