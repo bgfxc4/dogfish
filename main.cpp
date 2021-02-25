@@ -181,65 +181,30 @@ class Board {
 
 		for (char c : fenString) {
 			if (group == 1) {
+				int i = -1;
 				if (c == '/') {
 					row ++;
 					col = 0;
-				} else if (std::isdigit(c)) {
-					col += c - '0';
-				} else if (c == 'R') {
-					Figure* figure = new Figure(figuresTextures[3]);
-					tiles[col][row]->setFigure(figure);
-					col ++;
-				} else if (c == 'N') {
-					Figure* figure = new Figure(figuresTextures[2]);
-					tiles[col][row]->setFigure(figure);
-					col ++;
-				} else if (c == 'B') {
-					Figure* figure = new Figure(figuresTextures[1]);
-					tiles[col][row]->setFigure(figure);
-					col ++;
-				} else if (c == 'Q') {
-					Figure* figure = new Figure(figuresTextures[4]);
-					tiles[col][row]->setFigure(figure);
-					col ++;
-				} else if (c == 'K') {
-					Figure* figure = new Figure(figuresTextures[5]);
-					tiles[col][row]->setFigure(figure);
-					col ++;
-				} else if (c == 'P') {
-					Figure* figure = new Figure(figuresTextures[0]);
-					tiles[col][row]->setFigure(figure);
-					col ++;
-				} else if (c == 'r') {
-					Figure* figure = new Figure(figuresTextures[9]);
-					tiles[col][row]->setFigure(figure);
-					col ++;
-				} else if (c == 'n') {
-					Figure* figure = new Figure(figuresTextures[8]);
-					tiles[col][row]->setFigure(figure);
-					col ++;
-				} else if (c == 'b') {
-					Figure* figure = new Figure(figuresTextures[7]);
-					tiles[col][row]->setFigure(figure);
-					col ++;
-				} else if (c == 'q') {
-					Figure* figure = new Figure(figuresTextures[10]);
-					tiles[col][row]->setFigure(figure);
-					col ++;
-				} else if (c == 'k') {
-					Figure* figure = new Figure(figuresTextures[11]);
-					tiles[col][row]->setFigure(figure);
-					col ++;
-				} else if (c == 'p') {
-					Figure* figure = new Figure(figuresTextures[6]);
-					tiles[col][row]->setFigure(figure);
-					col ++;
-				} else if (c == ' ') {
+				} else if (std::isdigit(c)) col += c - '0';
+				else if (c == 'R' || c == 'r') i = (c == 'R') ? 3 : 9;
+				else if (c == 'N' || c == 'n') i = (c == 'N') ? 2 : 8;
+				else if (c == 'B' || c == 'b') i = (c == 'B') ? 1 : 7;
+				else if (c == 'Q' || c == 'q') i = (c == 'Q') ? 4 : 10;
+				else if (c == 'K' || c == 'k') i = (c == 'K') ? 5 : 11;
+				else if (c == 'P' || c == 'p') i = (c == 'P') ? 0 : 6;
+				else if (c == ' ') {
 					group ++;
 				} else {
 					std::cout << "[ERROR] invalid fen string at 1st group c: " << c << std::endl;
 					return -1;
 				}
+				
+				if (i != -1) {
+					Figure* figure = new Figure(figuresTextures[i]);
+					tiles[col][row]->setFigure(figure);
+					col ++;
+				}
+
 			} else if (group == 2) {
 				if (c == 'w') toMove = Color::White;
 				else if (c == 'b') toMove = Color::Black;
