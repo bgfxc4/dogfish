@@ -1,4 +1,4 @@
-LDFLAGS ?= -lsfml-graphics -lsfml-window -lsfml-system
+LDFLAGS ?= -lsfml-graphics -lsfml-audio -lsfml-window -lsfml-system
 OBJECTS := main.o
 CXXFLAGS ?= -Wall -Wextra
 CXX ?= g++
