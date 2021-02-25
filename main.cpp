@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
-#include <SFML/System/Vector2.hpp>
+#include <SFML/Audio.hpp>
+#include <SFML/Audio/Sound.hpp>
 #include <array>
 #include <cctype>
 #include <iterator>
@@ -132,13 +133,18 @@ class Board {
 				tiles[x][y]->renderFigure(window);
 			}
 		}
+
+		if (draggedFigure == nullptr) return;
+		window.draw(*draggedFigure->sprite);
 	}
 
 	void move(int startX, int startY, int endX, int endY) {
 		if (startX == endX && startY == endY) return;
-		delete tiles[endX][endY]->figure;
-		tiles[endX][endY]->setFigure(tiles[startX][startY]->figure);
-		tiles[startX][startY]->figure = nullptr;
+		Tile* startTile = tiles[startX][startY];
+		Tile* endTile = tiles[endX][endY];
+		delete endTile->figure;
+		endTile->setFigure(startTile->figure);
+		startTile->figure = nullptr;
 	}
 	
 	void startMouseClick(sf::Vector2i mousePos) {
@@ -259,7 +265,6 @@ class Board {
 };
 
 void testing() {
-	std::cout << tileNameToPosition("f4")[0] << " " << tileNameToPosition("f4")[1] << std::endl;
 }
 
 int main()
