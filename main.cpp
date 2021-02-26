@@ -10,15 +10,32 @@
 #include <iostream>
 #include <ctype.h>
 
-enum class Pieces { Empty, WhitePawn, WhiteBishop, WiteKnight, WhiteRook, WhiteKing, WhiteQueen, BlackPawn, BlackBishop, BlackKnight, BlackRook, BlackKing, BlackQueen };
-enum class Color { White, Black};
+enum class Pieces { 
+	Empty,
+	WhitePawn,
+	WhiteBishop,
+	WiteKnight,
+	WhiteRook,
+	WhiteKing,
+	WhiteQueen,
+	BlackPawn,
+	BlackBishop,
+	BlackKnight, 
+	BlackRook,
+	BlackKing,
+	BlackQueen 
+};
+enum class Color { 
+	White, 
+	Black
+};
 
 //0-5 white, 6-11 black, 1. pawn, 2. bishop, 3. knight, 4. rook, 5. queen, 6.king
 sf::Texture figuresTextures[12];
 
 
 int* tileNameToPosition(std::string tileName) {
-	static int ret[2] = { -1, -1};
+	static int ret[2] = { -1, -1 };
 
 	if (tileName.size() != 2) {
 		std::cout << "[ERROR] tileName must be 2 characters long!" << std::endl;
@@ -47,7 +64,7 @@ void load_figure_textures() {
 
 
 class Figure {
-	public:
+   public:
 	bool isDragged = false;
 
 	Figure(sf::Texture& texture) {
@@ -86,7 +103,8 @@ class Tile {
 	}
 
 	void renderFigure(sf::RenderWindow& window) {
-		if (!figure->isDragged) figure->sprite->setPosition(position[0] * 75, position[1] * 75);
+		if (!figure->isDragged) 
+			figure->sprite->setPosition(position[0] * 75, position[1] * 75);
 		else {
 			sf::Vector2i mousePos = sf::Mouse::getPosition(window);
 			figure->sprite->setPosition(mousePos.x - 37.5f, mousePos.y - 37.5f);
@@ -110,8 +128,8 @@ class Board {
 	sf::Vector2i dragStartPos;
 
 	Board() {
-		for (int i = 0; i < 8; i ++) {
-			for (int j = 0; j < 8; j ++) {
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 8; j++) {
 				tiles[i][j] = new Tile(i, j);
 			}
 		}
@@ -127,19 +145,21 @@ class Board {
 	}
 
 	void renderBoard(sf::RenderWindow& window) {
-		for (int x = 0; x < (int)tiles.size(); x ++) {
-			for (int y = 0; y < (int)tiles[x].size(); y ++) {
+		for (int x = 0; x < (int)tiles.size(); x++) {
+			for (int y = 0; y < (int)tiles[x].size(); y++) {
 				if (tiles[x][y]->figure == nullptr) continue;
 				tiles[x][y]->renderFigure(window);
 			}
 		}
 
-		if (draggedFigure == nullptr) return;
+		if (draggedFigure == nullptr) 
+			return;
 		window.draw(*draggedFigure->sprite);
 	}
 
 	void move(int startX, int startY, int endX, int endY) {
-		if (startX == endX && startY == endY) return;
+		if (startX == endX && startY == endY) 
+			return;
 		Tile* startTile = tiles[startX][startY];
 		Tile* endTile = tiles[endX][endY];
 		delete endTile->figure;
@@ -148,15 +168,18 @@ class Board {
 	}
 	
 	void startMouseClick(sf::Vector2i mousePos) {
-		if ((mousePos.x / 75) >= (int)tiles.size() || (mousePos.y / 75) >= (int)tiles[0].size()) return;
-		if (tiles[mousePos.x / 75][mousePos.y / 75]->figure == nullptr) return;
+		if ((mousePos.x / 75) >= (int)tiles.size() || (mousePos.y / 75) >= (int)tiles[0].size()) 
+			return;
+		if (tiles[mousePos.x / 75][mousePos.y / 75]->figure == nullptr) 
+			return;
 		draggedFigure = tiles[mousePos.x / 75][mousePos.y / 75]->figure;
 		dragStartPos = mousePos;
 		draggedFigure->isDragged = true;
 	}
 
 	void endMouseClick(sf::Vector2i mousePos) {
-		if (draggedFigure == nullptr) return;
+		if (draggedFigure == nullptr) 
+			return;
 		draggedFigure->isDragged = false;
 		move(dragStartPos.x / 75, dragStartPos.y / 75, mousePos.x / 75, mousePos.y / 75);
 		draggedFigure = nullptr;
@@ -174,18 +197,25 @@ class Board {
 			if (group == 1) {
 				int i = -1;
 				if (c == '/') {
-					row ++;
+					row++;
 					col = 0;
-				} else if (std::isdigit(c)) col += c - '0';
-				else if (c == 'R' || c == 'r') i = (c == 'R') ? 3 : 9;
-				else if (c == 'N' || c == 'n') i = (c == 'N') ? 2 : 8;
-				else if (c == 'B' || c == 'b') i = (c == 'B') ? 1 : 7;
-				else if (c == 'Q' || c == 'q') i = (c == 'Q') ? 4 : 10;
-				else if (c == 'K' || c == 'k') i = (c == 'K') ? 5 : 11;
-				else if (c == 'P' || c == 'p') i = (c == 'P') ? 0 : 6;
-				else if (c == ' ') {
+				} else if (std::isdigit(c)) 
+					col += c - '0';
+				else if (c == 'R' || c == 'r') 
+					i = (c == 'R') ? 3 : 9;
+				else if (c == 'N' || c == 'n') 
+					i = (c == 'N') ? 2 : 8;
+				else if (c == 'B' || c == 'b') 
+					i = (c == 'B') ? 1 : 7;
+				else if (c == 'Q' || c == 'q') 
+					i = (c == 'Q') ? 4 : 10;
+				else if (c == 'K' || c == 'k') 
+					i = (c == 'K') ? 5 : 11;
+				else if (c == 'P' || c == 'p') 
+					i = (c == 'P') ? 0 : 6;
+				else if (c == ' ')
 					group ++;
-				} else {
+				else {
 					std::cout << "[ERROR] invalid fen string at 1st group c: " << c << std::endl;
 					return -1;
 				}
@@ -193,33 +223,43 @@ class Board {
 				if (i != -1) {
 					Figure* figure = new Figure(figuresTextures[i]);
 					tiles[col][row]->setFigure(figure);
-					col ++;
+					col++;
 				}
 
 			} else if (group == 2) {
-				if (c == 'w') toMove = Color::White;
-				else if (c == 'b') toMove = Color::Black;
-				else if (c == ' ') group ++;
+				if (c == 'w') 
+					toMove = Color::White;
+				else if (c == 'b') 
+					toMove = Color::Black;
+				else if (c == ' ') 
+					group++;
 				else {
 					std::cout << "[ERROR] invalid fen string at 2nd group" << std::endl;
 					return -1;
 				}
 			} else if (group == 3) {
-				if (c == 'Q') whiteCanCastleLong = true;
-				else if (c == 'K') whiteCanCastleShot = true;
-				else if (c == 'q') blackCanCastleLong = true;
-				else if (c == 'k') blackCanCastleShot = true;
-				else if (c == ' ') group ++;
+				if (c == 'Q') 
+					whiteCanCastleLong = true;
+				else if (c == 'K') 
+					whiteCanCastleShot = true;
+				else if (c == 'q') 
+					blackCanCastleLong = true;
+				else if (c == 'k') 
+					blackCanCastleShot = true;
+				else if (c == ' ') 
+					group++;
 				else {
 					std::cout << "[ERROR] invalid fen string at 3rd group" << std::endl;
 					return -1;
 				}
 			} else if (group == 4) {
-				if (c == '-') continue;
-				else if (c == ' ') group ++;
-				else if (!std::isdigit(c)) {
+				if (c == '-') 
+					continue;
+				else if (c == ' ') 
+					group++;
+				else if (!std::isdigit(c))
 					temp_char = c;
-				} else if (std::isdigit(c)) {
+				else if (std::isdigit(c)) {
 					if (temp_char == 0) {
 						std::cout << "[ERROR] invalid fen string at 4th group(1)" << std::endl;
 						return -1;
@@ -236,8 +276,9 @@ class Board {
 			} else if (group == 5) {
 				if (c == ' ') {
 					halfMoves = std::stoi(tempStr5thGroup);
-					group ++;	
-				} else if (std::isdigit(c)) tempStr5thGroup += c; 
+					group++;	
+				} else if (std::isdigit(c)) 
+					tempStr5thGroup += c; 
 				else {
 					std::cout << "[ERROR] invalid fen string at 5th group" << std::endl;
 					return -1;
@@ -246,12 +287,12 @@ class Board {
 				if (c == ' ') {
 					moveCount = std::stoi(tempStr6thGroup);
 					return 0;	
-				} else if (std::isdigit(c)) tempStr6thGroup += c; 
+				} else if (std::isdigit(c)) 
+					tempStr6thGroup += c; 
 				else {
 					std::cout << "[ERROR] invalid fen string at 6th group" << std::endl;
 					return -1;
-				}
-		
+				}	
 			}
 		}
 		moveCount = std::stoi(tempStr6thGroup);
@@ -267,8 +308,7 @@ class Board {
 void testing() {
 }
 
-int main()
-{
+int main() {
 	testing();
 
     sf::RenderWindow window(sf::VideoMode(700, 700), "Cheess!", sf::Style::Resize);
@@ -282,23 +322,19 @@ int main()
 
 	Board board;
 	
-    while (window.isOpen())
-    {
+    while (window.isOpen()) {
         sf::Event event;
-        while (window.pollEvent(event))
-        {
+        while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) window.close();
 			else if (event.type == sf::Event::Resized) {
 				sf::FloatRect visibleArea(0, 0, event.size.width, event.size.height);
 				window.setView(sf::View(visibleArea));
 			} else if (event.type == sf::Event::MouseButtonPressed) {
-				if (event.key.code == sf::Mouse::Left) {
+				if (event.key.code == sf::Mouse::Left) 
 					board.startMouseClick(sf::Mouse::getPosition(window));
-				}
 			} else if (event.type == sf::Event::MouseButtonReleased) {
-				if (event.key.code == sf::Mouse::Left) {
+				if (event.key.code == sf::Mouse::Left) 
 					board.endMouseClick(sf::Mouse::getPosition(window));
-				}
 			}
         }
 		
@@ -307,7 +343,6 @@ int main()
 		board.renderBoard(window);
 		window.display();
     }
-
     return 0;
 }
 
