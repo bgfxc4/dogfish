@@ -311,7 +311,7 @@ void testing() {
 int main() {
 	testing();
 
-    sf::RenderWindow window(sf::VideoMode(700, 700), "Cheess!", sf::Style::Resize);
+	sf::RenderWindow window(sf::VideoMode(700, 700), "Cheess!", sf::Style::Resize);
 	window.setFramerateLimit(30);
 
 	sf::Texture boardTexture;
@@ -323,9 +323,10 @@ int main() {
 	Board board;
 	
     while (window.isOpen()) {
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) window.close();
+		sf::Event event;
+		while (window.pollEvent(event)) {
+			if (event.type == sf::Event::Closed) 
+				window.close();
 			else if (event.type == sf::Event::Resized) {
 				sf::FloatRect visibleArea(0, 0, event.size.width, event.size.height);
 				window.setView(sf::View(visibleArea));
@@ -336,13 +337,11 @@ int main() {
 				if (event.key.code == sf::Mouse::Left) 
 					board.endMouseClick(sf::Mouse::getPosition(window));
 			}
-        }
-		
+		}
         window.clear();
         window.draw(boardSprite);
 		board.renderBoard(window);
 		window.display();
     }
-    return 0;
+	return 0;
 }
-
