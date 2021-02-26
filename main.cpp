@@ -1,6 +1,10 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <SFML/Audio/Sound.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Texture.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <array>
 #include <cctype>
 #include <iterator>
@@ -64,7 +68,10 @@ void load_figure_textures() {
 
 
 class Figure {
-   public:
+	public:	
+	sf::Sprite* sprite;
+	Pieces piece = Pieces::Empty;
+
 	bool isDragged = false;
 
 	Figure(sf::Texture& texture) {
@@ -73,9 +80,6 @@ class Figure {
 	~Figure() {
 		delete sprite;
 	}
-	
-	sf::Sprite* sprite;
-	Pieces piece = Pieces::Empty;
 };
 
 class Tile {
@@ -116,6 +120,7 @@ class Tile {
 class Board {
 	public:
 	std::array<std::array<Tile*, 8>, 8> tiles;
+	std::array<int, 2> selectedTile = { -1, -1 };
 	Color toMove = Color::White;
 	int halfMoves = 0; //moves in a row, where no pawn was moved or no pice was taken
 	int moveCount = 1; //starts at 1, +1 after black moved
@@ -123,11 +128,21 @@ class Board {
 	bool whiteCanCastleShot = false;
 	bool blackCanCastleLong = false;
 	bool blackCanCastleShot = false;
-
+	
+	sf::Texture selectedTileWhiteTexture = sf::Texture();
+	sf::Sprite selectedTileWhiteSprite;
+	sf::Texture selectedTileBlackTexture = sf::Texture();
+	sf::Sprite selectedTileBlackSprite;
+	
 	Figure* draggedFigure = nullptr;
 	sf::Vector2i dragStartPos;
 
 	Board() {
+		selectedTileWhiteTexture.loadFromFile("images/selectedTileWhite.png");
+		selectedTileBlackTexture.loadFromFile("images/selectedTileBlack.png");
+		selectedTileWhiteSprite = sf::Sprite(selectedTileWhiteTexture);
+		selectedTileBlackSprite = sf::Sprite(selectedTileBlackTexture);
+			
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 8; j++) {
 				tiles[i][j] = new Tile(i, j);
@@ -145,6 +160,23 @@ class Board {
 	}
 
 	void renderBoard(sf::RenderWindow& window) {
+		renderSelectedTiles(window);
+		renderFigures(window);
+	}
+	
+	void renderSelectedTiles(sf::RenderWindow& window) {
+		if (selectedTile[0] == -1 && selectedTile[1] == -1)
+			return;
+		if ((selectedTile[0] + selectedTile[1]) % 2 == 0) {
+			selectedTileWhiteSprite.setPosition(selectedTile[0] * 75, selectedTile[1] * 75);
+			window.draw(selectedTileWhiteSprite);
+		} else {
+			selectedTileBlackSprite.setPosition(selectedTile[0] * 75, selectedTile[1] * 75);
+			window.draw(selectedTileBlackSprite);
+		}
+	}
+
+	void renderFigures(sf::RenderWindow& window) {
 		for (int x = 0; x < (int)tiles.size(); x++) {
 			for (int y = 0; y < (int)tiles[x].size(); y++) {
 				if (tiles[x][y]->figure == nullptr) continue;
@@ -165,24 +197,32 @@ class Board {
 		delete endTile->figure;
 		endTile->setFigure(startTile->figure);
 		startTile->figure = nullptr;
+		selectedTile = { -1, -1 };
 	}
 	
 	void startMouseClick(sf::Vector2i mousePos) {
+		selectedTile = { -1, -1 };
 		if ((mousePos.x / 75) >= (int)tiles.size() || (mousePos.y / 75) >= (int)tiles[0].size()) 
 			return;
 		if (tiles[mousePos.x / 75][mousePos.y / 75]->figure == nullptr) 
 			return;
+		selectedTile[0] = mousePos.x / 75;
+		selectedTile[1] = mousePos.y / 75;
 		draggedFigure = tiles[mousePos.x / 75][mousePos.y / 75]->figure;
 		dragStartPos = mousePos;
 		draggedFigure->isDragged = true;
 	}
 
-	void endMouseClick(sf::Vector2i mousePos) {
+	void endMouseClick(sf::Vector2i mousePos) {		
 		if (draggedFigure == nullptr) 
 			return;
+
 		draggedFigure->isDragged = false;
-		move(dragStartPos.x / 75, dragStartPos.y / 75, mousePos.x / 75, mousePos.y / 75);
 		draggedFigure = nullptr;
+		
+		if ((mousePos.x / 75) >= (int)tiles.size() || (mousePos.y / 75) >= (int)tiles[0].size()) 
+			return;
+		move(dragStartPos.x / 75, dragStartPos.y / 75, mousePos.x / 75, mousePos.y / 75);
 	}
 
 	int parseFEN(std::string fenString) {
