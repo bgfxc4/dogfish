@@ -2,6 +2,7 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 
+#include "enums.hpp"
 #include "figure.hpp"
 #include "board.hpp"
 #include "graphics.hpp"
@@ -55,7 +56,7 @@ std::vector<sf::Vector2i> Tile::calculateAllMoves() {
 			}
 			if (position.x != 0) { //not completly left
 				if (tiles->at(position.x - 1).at(position.y - 1)->figure != nullptr) {
-					if (tiles->at(position.x - 1).at(position.y - 1)->figure->getColor() != Color::White) {
+					if (tiles->at(position.x - 1).at(position.y - 1)->figure->getColor() == Color::Black) {
 						possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y - 1));
 					}
 				} else if (tiles->at(position.x - 1).at(position.y - 1)->enPassantPossible)
@@ -63,11 +64,36 @@ std::vector<sf::Vector2i> Tile::calculateAllMoves() {
 			}
 			if (position.x != 7) { //not completly right
 				if (tiles->at(position.x + 1).at(position.y - 1)->figure != nullptr) {
-					if (tiles->at(position.x + 1).at(position.y - 1)->figure->getColor() != Color::White) {
+					if (tiles->at(position.x + 1).at(position.y - 1)->figure->getColor() == Color::Black) {
 						possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y - 1));
 					}
 				} else if (tiles->at(position.x + 1).at(position.y - 1)->enPassantPossible)
 					possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y - 1));
+			}
+		}
+	} else if (figure->type == Pieces::BlackPawn) { //calculate all moves for a black pawn
+		if (position.y != 7) {
+			if (tiles->at(position.x).at(position.y + 1)->figure == nullptr) {
+				possibleMoves.push_back(sf::Vector2i(position.x, position.y + 1));
+				if (position.y == 1 && tiles->at(position.x).at(3)->figure == nullptr) { //has not moved and next two squares are free
+					possibleMoves.push_back((sf::Vector2i(position.x, position.y + 2)));
+				}
+			}
+			if (position.x != 0) { //not completly left
+				if (tiles->at(position.x - 1).at(position.y + 1)->figure != nullptr) {
+					if (tiles->at(position.x - 1).at(position.y + 1)->figure->getColor() == Color::White) {
+						possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y + 1));
+					}
+				} else if (tiles->at(position.x - 1).at(position.y + 1)->enPassantPossible)
+					possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y + 1));
+			}
+			if (position.x != 7) { //not completly right
+				if (tiles->at(position.x + 1).at(position.y + 1)->figure != nullptr) {
+					if (tiles->at(position.x + 1).at(position.y + 1)->figure->getColor() == Color::White) {
+						possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y + 1));
+					}
+				} else if (tiles->at(position.x + 1).at(position.y + 1)->enPassantPossible)
+					possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y + 1));
 			}
 		}
 	}
