@@ -7,7 +7,7 @@
 #include "figure.hpp"
 #include "board.hpp"
 
-int* tileNameToPosition(std::string tileName) {
+int* tileNameToPosition(const std::string& tileName) {
 	static int ret[2] = { -1, -1 };
 
 	if (tileName.size() != 2) {
@@ -145,7 +145,7 @@ void Board::endMouseClick(sf::Vector2i mousePos) {
 	move(dragStartPos.x / 75, dragStartPos.y / 75, mousePos.x / 75, mousePos.y / 75);
 }
 
-int Board::parseFEN(std::string fenString) {
+int Board::parseFEN(const std::string& fenString) {
 	int group = 1;
 	int row = 0, col = 0;
 
@@ -224,7 +224,7 @@ int Board::parseFEN(std::string fenString) {
 					std::cout << "[ERROR] invalid fen string at 4th group(1)" << std::endl;
 					return -1;
 				} else {
-					std::string tileName = std::string() + temp_char + c;
+					std::string tileName = std::string(1, temp_char) + c;
 					int* enPassantTile = tileNameToPosition(tileName);
 					tiles[enPassantTile[0]][enPassantTile[1]]->enPassantPossible = true;
 					temp_char = 0;

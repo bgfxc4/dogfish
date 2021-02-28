@@ -1,5 +1,6 @@
 #pragma once
 
+//this order is important (see Figure::getColor)
 enum class Pieces {
 	Empty,
 	WhitePawn,

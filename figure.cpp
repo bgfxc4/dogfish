@@ -38,7 +38,7 @@ Figure::~Figure() {
 }
 
 Color Figure::getColor() {
-	if (type == Pieces::WhitePawn || type == Pieces::WhiteBishop || type == Pieces::WhiteKnight || type == Pieces::WhiteRook || type == Pieces::WhiteQueen || type == Pieces::WhiteKing) {
+	if (type >= Pieces::BlackPawn && type <= Pieces::BlackQueen) {
 		return Color::White;
 	} else if (type != Pieces::Empty) {
 		return Color::Black;
