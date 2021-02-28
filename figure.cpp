@@ -39,9 +39,9 @@ Figure::~Figure() {
 
 Color Figure::getColor() {
 	if (type >= Pieces::BlackPawn && type <= Pieces::BlackQueen) {
-		return Color::White;
-	} else if (type != Pieces::Empty) {
 		return Color::Black;
+	} else if (type != Pieces::Empty) {
+		return Color::White;
 	} else {
 		return Color::NoColor;
 	}
