@@ -18,7 +18,7 @@ enum class Pieces {
 	Empty,
 	WhitePawn,
 	WhiteBishop,
-	WiteKnight,
+	WhiteKnight,
 	WhiteRook,
 	WhiteKing,
 	WhiteQueen,
@@ -31,7 +31,8 @@ enum class Pieces {
 };
 enum class Color { 
 	White, 
-	Black
+	Black,
+	NoColor
 };
 
 //0-5 white, 6-11 black, 1. pawn, 2. bishop, 3. knight, 4. rook, 5. queen, 6.king
@@ -45,7 +46,7 @@ int* tileNameToPosition(std::string tileName) {
 		std::cout << "[ERROR] tileName must be 2 characters long!" << std::endl;
 		return ret;
 	}
-	ret[0] = 'k' - tileName[0];
+	ret[0] = tileName[0] - 'a';
 	ret[1] = '8' - tileName[1];
 
 	return ret;
@@ -70,45 +71,132 @@ void load_figure_textures() {
 class Figure {
 	public:	
 	sf::Sprite* sprite;
-	Pieces piece = Pieces::Empty;
+	Pieces type = Pieces::Empty;
 
 	bool isDragged = false;
 
-	Figure(sf::Texture& texture) {
-		sprite = new sf::Sprite(texture);
+	Figure(Pieces type) {
+		this->type = type;
+
+		if (type == Pieces::WhitePawn)
+			sprite = new sf::Sprite(figuresTextures[0]);
+		else if (type == Pieces::BlackPawn)
+			sprite = new sf::Sprite(figuresTextures[6]);
+		else if (type == Pieces::WhiteBishop)
+			sprite = new sf::Sprite(figuresTextures[1]);
+		else if (type == Pieces::BlackBishop)
+			sprite = new sf::Sprite(figuresTextures[7]);
+		else if (type == Pieces::WhiteKnight)
+			sprite = new sf::Sprite(figuresTextures[2]);
+		else if (type == Pieces::BlackKnight)
+			sprite = new sf::Sprite(figuresTextures[8]);
+		else if (type == Pieces::WhiteRook)
+			sprite = new sf::Sprite(figuresTextures[3]);
+		else if (type == Pieces::BlackRook)
+			sprite = new sf::Sprite(figuresTextures[9]);
+		else if (type == Pieces::WhiteQueen)
+			sprite = new sf::Sprite(figuresTextures[4]);
+		else if (type == Pieces::BlackQueen)
+			sprite = new sf::Sprite(figuresTextures[10]);
+		else if (type == Pieces::WhiteKing)
+			sprite = new sf::Sprite(figuresTextures[5]);
+		else if (type == Pieces::BlackKing)
+			sprite = new sf::Sprite(figuresTextures[11]);
 	}
 	~Figure() {
-		delete sprite;
+		if (sprite != nullptr)
+			delete sprite;
 	}
+
+	Color getColor() {
+		if (type == Pieces::WhitePawn || type == Pieces::WhiteBishop || type == Pieces::WhiteKnight || type == Pieces::WhiteRook || type == Pieces::WhiteQueen || type == Pieces::WhiteKing) {
+			return Color::White;
+		} else if (type != Pieces::Empty) {
+			return Color::Black;
+		} else {
+			return Color::NoColor;
+		}
+	}
+
 };
 
 class Tile {
 	public:
-	int position[2];
+	sf::Vector2i position;
+	std::array<std::array<Tile*, 8>, 8>* tiles;
 	std::vector<int[2]> possibleMoves;
 	bool enPassantPossible = false;
 	Figure* figure;
 
-	Tile(int x, int y) {
-		position[0] = x;
-		position[1] = y;
+	Tile(int x, int y, std::array<std::array<Tile*, 8>, 8>* tiles) {
+		position.x = x;
+		position.y = y;
+		this->tiles = tiles;
 		this->figure = nullptr;
 	}
 	~Tile() {
-		delete figure;
+		if (figure != nullptr)
+			delete figure;
 	}
 
 	void setFigure(Figure* toSet) {
 		figure = toSet;
 	}
 
-	void calculateAllMoves() {
-		//TODO
+	void move(Tile* startTile, Tile* endTile) {
+		if (startTile->figure->type == Pieces::WhitePawn && startTile->position.y - endTile->position.y == 2) { //white moved a pawn 2 tiles forward, en passant is possible
+			tiles->at(endTile->position.x).at(endTile->position.y + 1)->enPassantPossible = true;
+			if (position.y == endTile->position.y + 1 && position.x == endTile->position.x) {
+				enPassantPossible = true; //set enPassantPossible true on the tile between start and end
+			} else {
+				enPassantPossible = false; //on all others set enPassantPossible false
+			}
+		} else if (startTile->figure->type == Pieces::BlackPawn && endTile->position.y - startTile->position.y == 2) { //black moved a pawn 2 tiles forward, en passant is possible
+			tiles->at(endTile->position.x).at(endTile->position.y - 1)->enPassantPossible = true;
+			if (position.y == endTile->position.y - 1 && position.x == endTile->position.x) {
+				enPassantPossible = true; //set enPassantPossible true on the tile between start and end
+			} else {
+				enPassantPossible = false; //on all others set enPassantPossible false
+			}
+		} else {
+			enPassantPossible = false; //set enPassantPossible on all tiles false if no pawn was moved 2 tiles forward
+		}
+	}
+
+	std::vector<sf::Vector2i> calculateAllMoves() {
+		std::vector<sf::Vector2i> possibleMoves;
+		if (figure->type == Pieces::WhitePawn) { //calculate all moves for a white pawn
+			if (position.y != 0) {
+				if (tiles->at(position.x).at(position.y - 1)->figure == nullptr) {
+					possibleMoves.push_back(sf::Vector2i(position.x, position.y - 1));
+					if (position.y == 6 && tiles->at(position.x).at(4)->figure == nullptr) { //has not moved and next two squares are free
+						possibleMoves.push_back((sf::Vector2i(position.x, position.y - 2)));	
+					}
+				}
+				if (position.x != 0) { //not completly left
+					if (tiles->at(position.x - 1).at(position.y - 1)->figure != nullptr) {
+						if (tiles->at(position.x - 1).at(position.y - 1)->figure->getColor() != Color::White) {
+							possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y - 1));
+						}
+					} else if (tiles->at(position.x - 1).at(position.y - 1)->enPassantPossible)
+						possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y - 1));
+				}
+				if (position.x != 7) { //not completly right
+					if (tiles->at(position.x + 1).at(position.y - 1)->figure != nullptr) {
+						if (tiles->at(position.x + 1).at(position.y - 1)->figure->getColor() != Color::White) {
+							possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y - 1));
+						}
+					} else if (tiles->at(position.x + 1).at(position.y - 1)->enPassantPossible)
+						possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y - 1));
+				}
+			}
+		}
+		return possibleMoves;
 	}
 
 	void renderFigure(sf::RenderWindow& window) {
 		if (!figure->isDragged) 
-			figure->sprite->setPosition(position[0] * 75, position[1] * 75);
+			figure->sprite->setPosition(position.x * 75, position.y * 75);
 		else {
 			sf::Vector2i mousePos = sf::Mouse::getPosition(window);
 			figure->sprite->setPosition(mousePos.x - 37.5f, mousePos.y - 37.5f);
@@ -130,25 +218,33 @@ class Board {
 	bool blackCanCastleShot = false;
 	
 	sf::Texture selectedTileWhiteTexture = sf::Texture();
-	sf::Sprite selectedTileWhiteSprite;
 	sf::Texture selectedTileBlackTexture = sf::Texture();
+	sf::Texture possibleMoveTexture = sf::Texture();
+	sf::Texture possibleTakeTexture = sf::Texture();
+	sf::Sprite selectedTileWhiteSprite;
 	sf::Sprite selectedTileBlackSprite;
-	
+	sf::Sprite possibleMoveSprite;
+	sf::Sprite possibleTakeSprite;
+
 	Figure* draggedFigure = nullptr;
 	sf::Vector2i dragStartPos;
 
 	Board() {
 		selectedTileWhiteTexture.loadFromFile("images/selectedTileWhite.png");
 		selectedTileBlackTexture.loadFromFile("images/selectedTileBlack.png");
+		possibleMoveTexture.loadFromFile("images/possibleMove.png");
+		possibleTakeTexture.loadFromFile("images/possibleTake.png");
 		selectedTileWhiteSprite = sf::Sprite(selectedTileWhiteTexture);
 		selectedTileBlackSprite = sf::Sprite(selectedTileBlackTexture);
+		possibleMoveSprite = sf::Sprite(possibleMoveTexture);
+		possibleTakeSprite = sf::Sprite(possibleTakeTexture);
 			
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 8; j++) {
-				tiles[i][j] = new Tile(i, j);
+				tiles[i][j] = new Tile(i, j, &tiles);
 			}
 		}
-		parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+		parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq h6 0 1");
 	}
 	~Board() {
 		for (std::array<Tile*, 8>& vec : tiles) {
@@ -162,6 +258,8 @@ class Board {
 	void renderBoard(sf::RenderWindow& window) {
 		renderSelectedTiles(window);
 		renderFigures(window);
+		if (selectedTile[0] != -1 && selectedTile[1] != -1)
+			renderPossibleMoves(window);
 	}
 	
 	void renderSelectedTiles(sf::RenderWindow& window) {
@@ -175,6 +273,19 @@ class Board {
 			window.draw(selectedTileBlackSprite);
 		}
 	}
+	
+	void renderPossibleMoves(sf::RenderWindow& window) {
+		std::vector<sf::Vector2i> possibleMoves = tiles[selectedTile[0]][selectedTile[1]]->calculateAllMoves();
+		for (sf::Vector2i move : possibleMoves) {
+			if (tiles[move.x][move.y]->figure == nullptr && !tiles[move.x][move.y]->enPassantPossible) {
+				possibleMoveSprite.setPosition(move.x * 75, move.y * 75);
+				window.draw(possibleMoveSprite);
+			} else {
+				possibleTakeSprite.setPosition(move.x * 75, move.y * 75);
+				window.draw(possibleTakeSprite);
+			}
+		}
+	}
 
 	void renderFigures(sf::RenderWindow& window) {
 		for (int x = 0; x < (int)tiles.size(); x++) {
@@ -184,16 +295,36 @@ class Board {
 			}
 		}
 
-		if (draggedFigure == nullptr) 
+		if (draggedFigure == nullptr)
 			return;
 		window.draw(*draggedFigure->sprite);
 	}
 
 	void move(int startX, int startY, int endX, int endY) {
-		if (startX == endX && startY == endY) 
+		if (startX == endX && startY == endY)
 			return;
+
 		Tile* startTile = tiles[startX][startY];
 		Tile* endTile = tiles[endX][endY];
+
+		if (endTile->enPassantPossible) { //en Passant happened
+			std::cout << "en passant" << std::endl;
+			if (startTile->figure->type == Pieces::WhitePawn) {
+				delete tiles[endX][endY + 1]->figure;
+				tiles[endX][endY + 1]->figure = nullptr;
+			} else if (startTile->figure->type == Pieces::BlackPawn) {
+				delete tiles[endX][endY - 1]->figure;
+				tiles[endX][endY - 1]->figure = nullptr;
+			}
+
+		}
+
+		for (std::array<Tile*, 8>& vec : tiles) {
+			for (Tile* tile : vec) {
+				tile->move(startTile, endTile);
+			}
+		}
+		
 		delete endTile->figure;
 		endTile->setFigure(startTile->figure);
 		startTile->figure = nullptr;
@@ -214,7 +345,7 @@ class Board {
 	}
 
 	void endMouseClick(sf::Vector2i mousePos) {		
-		if (draggedFigure == nullptr) 
+		if (draggedFigure == nullptr)
 			return;
 
 		draggedFigure->isDragged = false;
@@ -235,24 +366,24 @@ class Board {
 
 		for (char c : fenString) {
 			if (group == 1) {
-				int i = -1;
+				Pieces type = Pieces::Empty;
 				if (c == '/') {
 					row++;
 					col = 0;
 				} else if (std::isdigit(c)) 
 					col += c - '0';
 				else if (c == 'R' || c == 'r') 
-					i = (c == 'R') ? 3 : 9;
+					type = (c == 'R') ? Pieces::WhiteRook : Pieces::BlackRook;
 				else if (c == 'N' || c == 'n') 
-					i = (c == 'N') ? 2 : 8;
+					type = (c == 'N') ? Pieces::WhiteKnight : Pieces::BlackKnight;
 				else if (c == 'B' || c == 'b') 
-					i = (c == 'B') ? 1 : 7;
+					type = (c == 'B') ? Pieces::WhiteBishop : Pieces::BlackBishop;
 				else if (c == 'Q' || c == 'q') 
-					i = (c == 'Q') ? 4 : 10;
+					type = (c == 'Q') ? Pieces::WhiteQueen :Pieces::BlackQueen;
 				else if (c == 'K' || c == 'k') 
-					i = (c == 'K') ? 5 : 11;
+					type = (c == 'K') ? Pieces::WhiteKing : Pieces::BlackKing;
 				else if (c == 'P' || c == 'p') 
-					i = (c == 'P') ? 0 : 6;
+					type = (c == 'P') ? Pieces::WhitePawn : Pieces::BlackPawn;
 				else if (c == ' ')
 					group ++;
 				else {
@@ -260,8 +391,8 @@ class Board {
 					return -1;
 				}
 				
-				if (i != -1) {
-					Figure* figure = new Figure(figuresTextures[i]);
+				if (type != Pieces::Empty) {
+					Figure* figure = new Figure(type);
 					tiles[col][row]->setFigure(figure);
 					col++;
 				}
