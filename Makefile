@@ -1,9 +1,9 @@
 LDFLAGS ?= -lsfml-graphics -lsfml-audio -lsfml-window -lsfml-system
-OBJECTS := main.o
+OBJECTS := main.o tile.o figure.o board.o graphics.o
 CXXFLAGS ?= -Wall -Wextra
 CXX ?= g++
 
-HEADERS :=
+HEADERS := tile.hpp figure.hpp board.hpp graphics.hpp
 EXECUTABLE := main
 
 debug : CXXFLAGS += -Og -g -pg
