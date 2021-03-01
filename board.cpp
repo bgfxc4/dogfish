@@ -146,117 +146,143 @@ void Board::endMouseClick(sf::Vector2i mousePos) {
 }
 
 int Board::parseFEN(const std::string& fenString) {
-	int group = 1;
+	char temp_char = 0; // declaration can't be after first goto
+
+	const char* c = fenString.c_str() - 1;
+
+	// positions
 	int row = 0, col = 0;
+	while (1) {
+		if (!*++c)
+			goto err;
+		Pieces type = Pieces::Empty;
+		if (*c == '/') {
+			row++;
+			col = 0;
+		} else if (std::isdigit(*c))
+			col += *c - '0';
+		else if (*c == 'R' || *c == 'r')
+			type = (*c == 'R') ? Pieces::WhiteRook : Pieces::BlackRook;
+		else if (*c == 'N' || *c == 'n')
+			type = (*c == 'N') ? Pieces::WhiteKnight : Pieces::BlackKnight;
+		else if (*c == 'B' || *c == 'b')
+			type = (*c == 'B') ? Pieces::WhiteBishop : Pieces::BlackBishop;
+		else if (*c == 'Q' || *c == 'q')
+			type = (*c == 'Q') ? Pieces::WhiteQueen :Pieces::BlackQueen;
+		else if (*c == 'K' || *c == 'k')
+			type = (*c == 'K') ? Pieces::WhiteKing : Pieces::BlackKing;
+		else if (*c == 'P' || *c == 'p')
+			type = (*c == 'P') ? Pieces::WhitePawn : Pieces::BlackPawn;
+		else if (*c == ' ')
+			break;
+		else {
+			std::cout << "[ERROR] invalid fen string at 1st group c: " << c << std::endl;
+			return -1;
+		}
 
-	char temp_char = 0;
-	std::string tempStr5thGroup = "";
-	std::string tempStr6thGroup = "";
-
-	for (char c : fenString) {
-		if (group == 1) {
-			Pieces type = Pieces::Empty;
-			if (c == '/') {
-				row++;
-				col = 0;
-			} else if (std::isdigit(c))
-				col += c - '0';
-			else if (c == 'R' || c == 'r')
-				type = (c == 'R') ? Pieces::WhiteRook : Pieces::BlackRook;
-			else if (c == 'N' || c == 'n')
-				type = (c == 'N') ? Pieces::WhiteKnight : Pieces::BlackKnight;
-			else if (c == 'B' || c == 'b')
-				type = (c == 'B') ? Pieces::WhiteBishop : Pieces::BlackBishop;
-			else if (c == 'Q' || c == 'q')
-				type = (c == 'Q') ? Pieces::WhiteQueen :Pieces::BlackQueen;
-			else if (c == 'K' || c == 'k')
-				type = (c == 'K') ? Pieces::WhiteKing : Pieces::BlackKing;
-			else if (c == 'P' || c == 'p')
-				type = (c == 'P') ? Pieces::WhitePawn : Pieces::BlackPawn;
-			else if (c == ' ')
-				group ++;
-			else {
-				std::cout << "[ERROR] invalid fen string at 1st group c: " << c << std::endl;
-				return -1;
-			}
-
-			if (type != Pieces::Empty) {
-				Figure* figure = new Figure(type);
-				tiles[col][row]->setFigure(figure);
-				col++;
-			}
-
-		} else if (group == 2) {
-			if (c == 'w')
-				toMove = Color::White;
-			else if (c == 'b')
-				toMove = Color::Black;
-			else if (c == ' ')
-				group++;
-			else {
-				std::cout << "[ERROR] invalid fen string at 2nd group" << std::endl;
-				return -1;
-			}
-		} else if (group == 3) {
-			if (c == 'Q')
-				whiteCanCastleLong = true;
-			else if (c == 'K')
-				whiteCanCastleShot = true;
-			else if (c == 'q')
-				blackCanCastleLong = true;
-			else if (c == 'k')
-				blackCanCastleShot = true;
-			else if (c == ' ')
-				group++;
-			else {
-				std::cout << "[ERROR] invalid fen string at 3rd group" << std::endl;
-				return -1;
-			}
-		} else if (group == 4) {
-			if (c == '-')
-				continue;
-			else if (c == ' ')
-				group++;
-			else if (!std::isdigit(c))
-				temp_char = c;
-			else if (std::isdigit(c)) {
-				if (temp_char == 0) {
-					std::cout << "[ERROR] invalid fen string at 4th group(1)" << std::endl;
-					return -1;
-				} else {
-					std::string tileName = std::string(1, temp_char) + c;
-					int* enPassantTile = tileNameToPosition(tileName);
-					tiles[enPassantTile[0]][enPassantTile[1]]->enPassantPossible = true;
-					temp_char = 0;
-				}
-			} else {
-				std::cout << "[ERROR] invalid fen string at 4th group(2)" << std::endl;
-				return -1;
-			}
-		} else if (group == 5) {
-			if (c == ' ') {
-				halfMoves = std::stoi(tempStr5thGroup);
-				group++;
-			} else if (std::isdigit(c))
-				tempStr5thGroup += c;
-			else {
-				std::cout << "[ERROR] invalid fen string at 5th group" << std::endl;
-				return -1;
-			}
-		} else if (group == 6) {
-			if (c == ' ') {
-				moveCount = std::stoi(tempStr6thGroup);
-				return 0;
-			} else if (std::isdigit(c))
-				tempStr6thGroup += c;
-			else {
-				std::cout << "[ERROR] invalid fen string at 6th group" << std::endl;
-				return -1;
-			}
+		if (type != Pieces::Empty) {
+			Figure* figure = new Figure(type);
+			tiles[col][row]->setFigure(figure);
+			col++;
 		}
 	}
-	moveCount = std::stoi(tempStr6thGroup);
+
+	// who moves next
+	while (1) {
+		if (!*++c)
+			goto err;
+		if (*c == 'w')
+			toMove = Color::White;
+		else if (*c == 'b')
+			toMove = Color::Black;
+		else if (*c == ' ')
+			break;
+		else {
+			std::cout << "[ERROR] invalid fen string at 2nd group" << std::endl;
+			return -1;
+		}
+	}
+
+	// who can castle
+	while (1) {
+		if (!*++c)
+			goto err;
+		if (*c == 'Q')
+			whiteCanCastleLong = true;
+		else if (*c == 'K')
+			whiteCanCastleShot = true;
+		else if (*c == 'q')
+			blackCanCastleLong = true;
+		else if (*c == 'k')
+			blackCanCastleShot = true;
+		else if (*c == ' ')
+			break;
+		else {
+			std::cout << "[ERROR] invalid fen string at 3rd group" << std::endl;
+			return -1;
+		}
+	}
+
+	// possible en passant positions
+	while (1) {
+		if (!*++c)
+			goto err;
+		if (*c == '-')
+			continue;
+		else if (*c == ' ')
+			break;
+		else if (!std::isdigit(*c))
+			temp_char = *c;
+		else if (std::isdigit(*c)) {
+			if (temp_char == 0) {
+				std::cout << "[ERROR] invalid fen string at 4th group(1)" << std::endl;
+				return -1;
+			} else {
+				std::string tileName = std::string(1, temp_char) + *c;
+				int* enPassantTile = tileNameToPosition(tileName);
+				tiles[enPassantTile[0]][enPassantTile[1]]->enPassantPossible = true;
+				temp_char = 0;
+			}
+		} else {
+			std::cout << "[ERROR] invalid fen string at 4th group(2)" << std::endl;
+			return -1;
+		}
+	}
+
+	// half-move counter
+	halfMoves = 0;
+	while (1) {
+		if (!*++c)
+			goto err;
+
+		if (std::isdigit(*c))
+			halfMoves = halfMoves * 10 + (*c - '0');
+		else if (*c == ' ')
+			break;
+		else {
+			std::cout << "[ERROR] invalid fen string at 5th group" << std::endl;
+			return -1;
+		}
+	}
+
+	// move counter
+	moveCount = 0;
+	while (1) {
+		if (!*++c || !(*c-' ')) // mega kek
+			break;
+		else if (std::isdigit(*c))
+			moveCount = moveCount * 10 + (*c - '0');
+		else {
+			std::cout << "[ERROR] invalid fen string at 6th group" << std::endl;
+			return -1;
+		}
+	}
+
 	return 0;
+
+err:
+	std::cout << "[ERROR] fen string too short" << std::endl;
+	return -1;
 }
 
 std::string Board::getFEN() {
