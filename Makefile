@@ -1,6 +1,7 @@
-LDFLAGS ?= -lsfml-graphics -lsfml-audio -lsfml-window -lsfml-system
+LDFLAGS += -lsfml-graphics -lsfml-audio -lsfml-window -lsfml-system
 OBJECTS := main.o tile.o figure.o board.o graphics.o
-CXXFLAGS ?= -Wall -Wextra -std=c++2a
+CXXFLAGS ?= -Wall -Wextra
+CXXFLAGS += -std=c++2a
 CXX ?= g++
 
 HEADERS := tile.hpp figure.hpp board.hpp graphics.hpp
