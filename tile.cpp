@@ -44,7 +44,7 @@ void Tile::move(Tile* startTile, Tile* endTile) {
 	}
 }
 
-std::vector<sf::Vector2i> Tile::calculateAllMoves() {
+std::vector<sf::Vector2i> calculateAllPawnMoves(Figure* figure, std::array<std::array<Tile*, 8>, 8>* tiles, sf::Vector2i& position) {
 	std::vector<sf::Vector2i> possibleMoves;
 	if (figure->type == Pieces::WhitePawn) { //calculate all moves for a white pawn
 		if (position.y != 0) {
@@ -59,16 +59,22 @@ std::vector<sf::Vector2i> Tile::calculateAllMoves() {
 					if (tiles->at(position.x - 1).at(position.y - 1)->figure->getColor() == Color::Black) {
 						possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y - 1));
 					}
-				} else if (tiles->at(position.x - 1).at(position.y - 1)->enPassantPossible)
-					possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y - 1));
+				} else if (tiles->at(position.x - 1).at(position.y - 1)->enPassantPossible) {
+					if (tiles->at(position.x - 1).at(position.y)->figure != nullptr) {
+						if (tiles->at(position.x - 1).at(position.y)->figure->getColor() == Color::Black) possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y - 1));
+					}
+				}
 			}
 			if (position.x != 7) { //not completly right
 				if (tiles->at(position.x + 1).at(position.y - 1)->figure != nullptr) {
 					if (tiles->at(position.x + 1).at(position.y - 1)->figure->getColor() == Color::Black) {
 						possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y - 1));
 					}
-				} else if (tiles->at(position.x + 1).at(position.y - 1)->enPassantPossible)
-					possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y - 1));
+				} else if (tiles->at(position.x + 1).at(position.y - 1)->enPassantPossible) {
+					if (tiles->at(position.x + 1).at(position.y)->figure != nullptr) {
+						if (tiles->at(position.x + 1).at(position.y)->figure->getColor() == Color::Black) possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y - 1));
+					}
+				}
 			}
 		}
 	} else if (figure->type == Pieces::BlackPawn) { //calculate all moves for a black pawn
@@ -84,18 +90,32 @@ std::vector<sf::Vector2i> Tile::calculateAllMoves() {
 					if (tiles->at(position.x - 1).at(position.y + 1)->figure->getColor() == Color::White) {
 						possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y + 1));
 					}
-				} else if (tiles->at(position.x - 1).at(position.y + 1)->enPassantPossible)
-					possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y + 1));
+				} else if (tiles->at(position.x - 1).at(position.y + 1)->enPassantPossible) {
+					if (tiles->at(position.x + 1).at(position.y)->figure != nullptr) {
+						if (tiles->at(position.x + 1).at(position.y)->figure->getColor() == Color::White) possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y + 1));
+					}
+				}
 			}
 			if (position.x != 7) { //not completly right
 				if (tiles->at(position.x + 1).at(position.y + 1)->figure != nullptr) {
 					if (tiles->at(position.x + 1).at(position.y + 1)->figure->getColor() == Color::White) {
 						possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y + 1));
 					}
-				} else if (tiles->at(position.x + 1).at(position.y + 1)->enPassantPossible)
-					possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y + 1));
+				} else if (tiles->at(position.x + 1).at(position.y + 1)->enPassantPossible) {
+					if (tiles->at(position.x + 1).at(position.y)->figure != nullptr) {
+						if (tiles->at(position.x + 1).at(position.y)->figure->getColor() == Color::White) possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y + 1));
+					}
+				}
 			}
 		}
+	}
+	return possibleMoves;
+}
+
+std::vector<sf::Vector2i> Tile::calculateAllMoves() {
+	std::vector<sf::Vector2i> possibleMoves;
+	if (figure->type == Pieces::WhitePawn || figure->type == Pieces::BlackPawn) {
+		possibleMoves = calculateAllPawnMoves(figure, tiles, position);	
 	}
 	return possibleMoves;
 }
