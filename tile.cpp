@@ -1,3 +1,4 @@
+#include <SFML/System/Vector2.hpp>
 #include <array>
 #include <vector>
 #include <SFML/Graphics.hpp>
@@ -112,10 +113,49 @@ std::vector<sf::Vector2i> calculateAllPawnMoves(Figure* figure, std::array<std::
 	return possibleMoves;
 }
 
+std::vector<sf::Vector2i> calculateAllKnightMoves(std::array<std::array<Tile*, 8>, 8>* tiles, sf::Vector2i& position) {
+	std::vector<sf::Vector2i> possibleMoves;
+	if (position.x >= 1) {
+		if (position.y <= 5) {
+			possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y + 2));
+		}
+		if (position.y >= 2) {
+			possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y - 2));
+		}
+	}
+	if (position.x >= 2) {
+		if (position.y <= 6) {
+			possibleMoves.push_back(sf::Vector2i(position.x - 2, position.y + 1));
+		}
+		if (position.y >= 1) {
+			possibleMoves.push_back(sf::Vector2i(position.x - 2, position.y - 1));
+		}
+	}
+	if (position.x <= 6) {
+		if (position.y <= 5) {
+			possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y + 2));
+		}
+		if (position.y >= 2) {
+			possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y - 2));
+		}
+	}
+	if (position.x <= 5) {
+		if (position.y <= 6) {
+			possibleMoves.push_back(sf::Vector2i(position.x + 2, position.y + 1));
+		}
+		if (position.y >= 1) {
+			possibleMoves.push_back(sf::Vector2i(position.x + 2, position.y - 1));
+		}
+	}
+	return possibleMoves;
+}
+
 std::vector<sf::Vector2i> Tile::calculateAllMoves() {
 	std::vector<sf::Vector2i> possibleMoves;
 	if (figure->type == Pieces::WhitePawn || figure->type == Pieces::BlackPawn) {
 		possibleMoves = calculateAllPawnMoves(figure, tiles, position);	
+	} else if (figure->type == Pieces::WhiteKnight || figure->type == Pieces::BlackKnight) {
+		possibleMoves = calculateAllKnightMoves(tiles, position);
 	}
 	return possibleMoves;
 }
