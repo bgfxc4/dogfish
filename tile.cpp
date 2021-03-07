@@ -125,39 +125,23 @@ std::vector<sf::Vector2i> calculateAllBlackPawnMoves(std::array<std::array<Tile*
 }
 
 std::vector<sf::Vector2i> calculateAllKnightMoves(std::array<std::array<Tile*, 8>, 8>* tiles, sf::Vector2i& position) {
+	std::vector<sf::Vector2i> tmp;
+	tmp.push_back(sf::Vector2i(position.x - 1, position.y + 2));
+	tmp.push_back(sf::Vector2i(position.x - 1, position.y - 2));
+	tmp.push_back(sf::Vector2i(position.x - 2, position.y + 1));
+	tmp.push_back(sf::Vector2i(position.x - 2, position.y - 1));
+	tmp.push_back(sf::Vector2i(position.x + 1, position.y + 2));
+	tmp.push_back(sf::Vector2i(position.x + 1, position.y - 2));
+	tmp.push_back(sf::Vector2i(position.x + 2, position.y + 1));
+	tmp.push_back(sf::Vector2i(position.x + 2, position.y - 1));
+
 	std::vector<sf::Vector2i> possibleMoves;
-	if (position.x >= 1) {
-		if (position.y <= 5) {
-			possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y + 2));
-		}
-		if (position.y >= 2) {
-			possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y - 2));
+	for (sf::Vector2i& m : tmp) {
+		if (m.x >= 0 && m.x < 8 && m.y >= 0 && m.y < 8) {
+			possibleMoves.push_back(std::move(m));
 		}
 	}
-	if (position.x >= 2) {
-		if (position.y <= 6) {
-			possibleMoves.push_back(sf::Vector2i(position.x - 2, position.y + 1));
-		}
-		if (position.y >= 1) {
-			possibleMoves.push_back(sf::Vector2i(position.x - 2, position.y - 1));
-		}
-	}
-	if (position.x <= 6) {
-		if (position.y <= 5) {
-			possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y + 2));
-		}
-		if (position.y >= 2) {
-			possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y - 2));
-		}
-	}
-	if (position.x <= 5) {
-		if (position.y <= 6) {
-			possibleMoves.push_back(sf::Vector2i(position.x + 2, position.y + 1));
-		}
-		if (position.y >= 1) {
-			possibleMoves.push_back(sf::Vector2i(position.x + 2, position.y - 1));
-		}
-	}
+
 	return possibleMoves;
 }
 
