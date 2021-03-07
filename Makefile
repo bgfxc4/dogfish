@@ -8,7 +8,7 @@ HEADERS := tile.hpp figure.hpp board.hpp graphics.hpp
 EXECUTABLE := main
 
 debug : CXXFLAGS += -Og -g -pg
-release : CXXFLAGS += -O3
+release : CXXFLAGS += -O3 -fno-exceptions
 debug : LDFLAGS +=
 release : LDFLAGS += -O -s
 
