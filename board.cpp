@@ -35,7 +35,7 @@ Board::Board() {
 			tiles[i][j] = new Tile(i, j, &tiles);
 		}
 	}
-	parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq h6 0 1");
+	parseFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 }
 Board::~Board() {
 	for (std::array<Tile*, 8>& vec : tiles) {

@@ -47,20 +47,17 @@ void Tile::move(Tile* startTile, Tile* endTile) {
 
 std::vector<sf::Vector2i> calculateAllWhitePawnMoves(std::array<std::array<Tile*, 8>, 8>* tiles, const sf::Vector2i& position) {
 	std::vector<sf::Vector2i> possibleMoves;
-	if (position.y == 0) {
-		// pawn is at the top of the board; no further moves
+	if (position.y == 0) // pawn is at the top of the board; no further moves
 		return {};
-	}
 
 	if ((*tiles)[position.x][position.y - 1]->figure == nullptr) {
 		possibleMoves.emplace_back(position.x, position.y - 1);
 
-		if (position.y == 6 && (*tiles)[position.x][4]->figure == nullptr) {
-			// first move; can move 2 squares
+		if (position.y == 6 && (*tiles)[position.x][4]->figure == nullptr) { // first move; can move 2 squares
 			possibleMoves.emplace_back(position.x, position.y - 2);
 		}
 	}
-	if (position.x != 0) { //not completly left
+	if (position.x != 0) { //not completely left
 		if ((*tiles)[position.x - 1][position.y - 1]->figure != nullptr) {
 			if ((*tiles)[position.x - 1][position.y - 1]->figure->getColor() == Color::Black) {
 				possibleMoves.emplace_back(position.x - 1, position.y - 1);
@@ -73,7 +70,7 @@ std::vector<sf::Vector2i> calculateAllWhitePawnMoves(std::array<std::array<Tile*
 			}
 		}
 	}
-	if (position.x != 7) { //not completly right
+	if (position.x != 7) { //not completely right
 		if ((*tiles)[position.x + 1][position.y - 1]->figure != nullptr) {
 			if ((*tiles)[position.x + 1][position.y - 1]->figure->getColor() == Color::Black) {
 				possibleMoves.emplace_back(position.x + 1, position.y - 1);
@@ -92,31 +89,31 @@ std::vector<sf::Vector2i> calculateAllWhitePawnMoves(std::array<std::array<Tile*
 std::vector<sf::Vector2i> calculateAllBlackPawnMoves(std::array<std::array<Tile*, 8>, 8>* tiles, sf::Vector2i& position) {
 	std::vector<sf::Vector2i> possibleMoves;
 	if (position.y != 7) {
-		if (tiles->at(position.x).at(position.y + 1)->figure == nullptr) {
+		if ((*tiles)[position.x][position.y + 1]->figure == nullptr) {
 			possibleMoves.push_back(sf::Vector2i(position.x, position.y + 1));
-			if (position.y == 1 && tiles->at(position.x).at(3)->figure == nullptr) { //has not moved and next two squares are free
+			if (position.y == 1 && (*tiles)[position.x][3]->figure == nullptr) { //has not moved and next two squares are free
 				possibleMoves.push_back((sf::Vector2i(position.x, position.y + 2)));
 			}
 		}
-		if (position.x != 0) { //not completly left
-			if (tiles->at(position.x - 1).at(position.y + 1)->figure != nullptr) {
-				if (tiles->at(position.x - 1).at(position.y + 1)->figure->getColor() == Color::White) {
+		if (position.x != 0) { //not completely left
+			if ((*tiles)[position.x - 1][position.y + 1]->figure != nullptr) {
+				if ((*tiles)[position.x - 1][position.y + 1]->figure->getColor() == Color::White) {
 					possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y + 1));
 				}
-			} else if (tiles->at(position.x - 1).at(position.y + 1)->enPassantPossible) {
-				if (tiles->at(position.x + 1).at(position.y)->figure != nullptr) {
-					if (tiles->at(position.x + 1).at(position.y)->figure->getColor() == Color::White) possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y + 1));
+			} else if ((*tiles)[position.x - 1][position.y + 1]->enPassantPossible) {
+				if ((*tiles)[position.x + 1][position.y]->figure != nullptr) {
+					if ((*tiles)[position.x + 1][position.y]->figure->getColor() == Color::White) possibleMoves.push_back(sf::Vector2i(position.x - 1, position.y + 1));
 				}
 			}
 		}
-		if (position.x != 7) { //not completly right
-			if (tiles->at(position.x + 1).at(position.y + 1)->figure != nullptr) {
-				if (tiles->at(position.x + 1).at(position.y + 1)->figure->getColor() == Color::White) {
+		if (position.x != 7) { //not completely right
+			if ((*tiles)[position.x + 1][position.y + 1]->figure != nullptr) {
+				if ((*tiles)[position.x + 1][position.y + 1]->figure->getColor() == Color::White) {
 					possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y + 1));
 				}
-			} else if (tiles->at(position.x + 1).at(position.y + 1)->enPassantPossible) {
-				if (tiles->at(position.x + 1).at(position.y)->figure != nullptr) {
-					if (tiles->at(position.x + 1).at(position.y)->figure->getColor() == Color::White) possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y + 1));
+			} else if ((*tiles)[position.x + 1][position.y + 1]->enPassantPossible) {
+				if ((*tiles)[position.x + 1][position.y]->figure != nullptr) {
+					if ((*tiles)[position.x + 1][position.y]->figure->getColor() == Color::White) possibleMoves.push_back(sf::Vector2i(position.x + 1, position.y + 1));
 				}
 			}
 		}
@@ -143,6 +140,10 @@ std::vector<sf::Vector2i> calculateAllKnightMoves(std::array<std::array<Tile*, 8
 	}
 
 	return possibleMoves;
+}
+
+std::vector<sf::Vector2i> calculateAllBishopMoves(std::array<std::array<Tile*, 8>, 8>* tiles, sf::Vector2i& position) {
+
 }
 
 std::vector<sf::Vector2i> Tile::calculateAllMoves() {
