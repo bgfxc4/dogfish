@@ -135,6 +135,11 @@ std::vector<sf::Vector2i> calculateAllKnightMoves(std::array<std::array<Tile*, 8
 	std::vector<sf::Vector2i> possibleMoves;
 	for (sf::Vector2i& m : tmp) {
 		if (m.x >= 0 && m.x < 8 && m.y >= 0 && m.y < 8) {
+			if ((*tiles)[m.x][m.y]->figure != nullptr) {
+				if ((*tiles)[m.x][m.y]->figure->getColor() == (*tiles)[position.x][position.y]->figure->getColor()) {
+					continue;
+				}
+			}
 			possibleMoves.push_back(std::move(m));
 		}
 	}
