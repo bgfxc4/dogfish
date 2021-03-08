@@ -4,7 +4,7 @@
 #include <vector>
 #include <array>
 
-#include "figure.hpp"
+#include "piece.hpp"
 
 class Tile {
 	public:

@@ -5,7 +5,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "tile.hpp"
-#include "figure.hpp"
+#include "piece.hpp"
 #include "enums.hpp"
 
 class Board {

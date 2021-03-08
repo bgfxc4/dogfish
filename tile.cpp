@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "enums.hpp"
-#include "figure.hpp"
+#include "piece.hpp"
 #include "board.hpp"
 #include "graphics.hpp"
 #include "tile.hpp"

@@ -2,7 +2,7 @@
 
 #include "enums.hpp"
 #include "graphics.hpp"
-#include "figure.hpp"
+#include "piece.hpp"
 
 Figure::Figure(Pieces type) {
 	this->type = type;

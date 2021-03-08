@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "tile.hpp"
-#include "figure.hpp"
+#include "piece.hpp"
 #include "board.hpp"
 
 int* tileNameToPosition(const std::string& tileName) {
