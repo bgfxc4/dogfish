@@ -1,6 +1,5 @@
 #pragma once
 
-// this order is important
 enum class Pieces {
 	Empty,
 	Pawn,
@@ -9,6 +8,9 @@ enum class Pieces {
 	Rook,
 	Queen,
 	King,
+
+	// has to be <= 8. otherwise, the binary format of BoardContent.bits would no
+	// longer be correct
 	NumPieces
 };
 
