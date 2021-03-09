@@ -1,37 +1,39 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 
+#include "constants.hpp"
+
 //0-5 white, 6-11 black, 1. pawn, 2. bishop, 3. knight, 4. rook, 5. queen, 6.king
-sf::Texture figuresTextures[12];
-sf::Sprite figuresSprites[12];
+sf::Texture figuresTextures[13];
+sf::Sprite figuresSprites[13];
 sf::Sprite boardSprite;
 sf::Texture boardTexture;
 
 void load_figure_textures() {
-	figuresTextures[0].loadFromFile("images/figures/pawn_white.png");
-	figuresSprites[0].setTexture(figuresTextures[0]);
-	figuresTextures[1].loadFromFile("images/figures/bishop_white.png");
-	figuresSprites[1].setTexture(figuresTextures[1]);
-	figuresTextures[2].loadFromFile("images/figures/knight_white.png");
-	figuresSprites[2].setTexture(figuresTextures[2]);
-	figuresTextures[3].loadFromFile("images/figures/rook_white.png");
-	figuresSprites[3].setTexture(figuresTextures[3]);
-	figuresTextures[4].loadFromFile("images/figures/queen_white.png");
-	figuresSprites[4].setTexture(figuresTextures[4]);
-	figuresTextures[5].loadFromFile("images/figures/king_white.png");
-	figuresSprites[5].setTexture(figuresTextures[5]);
-	figuresTextures[6].loadFromFile("images/figures/pawn_black.png");
-	figuresSprites[6].setTexture(figuresTextures[6]);
-	figuresTextures[7].loadFromFile("images/figures/bishop_black.png");
-	figuresSprites[7].setTexture(figuresTextures[7]);
-	figuresTextures[8].loadFromFile("images/figures/knight_black.png");
-	figuresSprites[8].setTexture(figuresTextures[8]);
-	figuresTextures[9].loadFromFile("images/figures/rook_black.png");
-	figuresSprites[9].setTexture(figuresTextures[9]);
-	figuresTextures[10].loadFromFile("images/figures/queen_black.png");
-	figuresSprites[10].setTexture(figuresTextures[10]);
-	figuresTextures[11].loadFromFile("images/figures/king_black.png");
-	figuresSprites[11].setTexture(figuresTextures[11]);
+	figuresTextures[(int)Pieces::Pawn].loadFromFile("images/figures/pawn_white.png");
+	figuresSprites[(int)Pieces::Pawn].setTexture(figuresTextures[(int)Pieces::Pawn]);
+	figuresTextures[(int)Pieces::Bishop].loadFromFile("images/figures/bishop_white.png");
+	figuresSprites[(int)Pieces::Bishop].setTexture(figuresTextures[(int)Pieces::Bishop]);
+	figuresTextures[(int)Pieces::Knight].loadFromFile("images/figures/knight_white.png");
+	figuresSprites[(int)Pieces::Knight].setTexture(figuresTextures[(int)Pieces::Knight]);
+	figuresTextures[(int)Pieces::Rook].loadFromFile("images/figures/rook_white.png");
+	figuresSprites[(int)Pieces::Rook].setTexture(figuresTextures[(int)Pieces::Rook]);
+	figuresTextures[(int)Pieces::Queen].loadFromFile("images/figures/queen_white.png");
+	figuresSprites[(int)Pieces::Queen].setTexture(figuresTextures[(int)Pieces::Queen]);
+	figuresTextures[(int)Pieces::King].loadFromFile("images/figures/king_white.png");
+	figuresSprites[(int)Pieces::King].setTexture(figuresTextures[(int)Pieces::King]);
+	figuresTextures[(int)Pieces::Pawn + 6].loadFromFile("images/figures/pawn_black.png");
+	figuresSprites[(int)Pieces::Pawn + 6].setTexture(figuresTextures[(int)Pieces::Pawn + 6]);
+	figuresTextures[(int)Pieces::Bishop + 6].loadFromFile("images/figures/bishop_black.png");
+	figuresSprites[(int)Pieces::Bishop + 6].setTexture(figuresTextures[(int)Pieces::Bishop + 6]);
+	figuresTextures[(int)Pieces::Knight + 6].loadFromFile("images/figures/knight_black.png");
+	figuresSprites[(int)Pieces::Knight + 6].setTexture(figuresTextures[(int)Pieces::Knight + 6]);
+	figuresTextures[(int)Pieces::Rook + 6].loadFromFile("images/figures/rook_black.png");
+	figuresSprites[(int)Pieces::Rook + 6].setTexture(figuresTextures[(int)Pieces::Rook + 6]);
+	figuresTextures[(int)Pieces::Queen + 6].loadFromFile("images/figures/queen_black.png");
+	figuresSprites[(int)Pieces::Queen + 6].setTexture(figuresTextures[(int)Pieces::Queen + 6]);
+	figuresTextures[(int)Pieces::King + 6].loadFromFile("images/figures/king_black.png");
+	figuresSprites[(int)Pieces::King + 6].setTexture(figuresTextures[(int)Pieces::King + 6]);
 }
 
 sf::RenderWindow& startGraphics() {

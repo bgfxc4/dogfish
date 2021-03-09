@@ -75,10 +75,10 @@ void BoardUI::renderPieces(sf::RenderWindow& window, Board& boardToRender) {
 			if (toRender.type == 0) continue;
 			int offset = toRender.is_white ? 0 : 6;
 			if (dragStartPos.x == x && dragStartPos.y == y) {
-				draggedSpriteIndex = offset + (toRender.type - 1);
+				draggedSpriteIndex = offset + (toRender.type);
 			} else {
-				figuresSprites[offset + (toRender.type - 1)].setPosition(x * 75, y * 75);
-				window.draw(figuresSprites[offset + (toRender.type - 1)]);
+				figuresSprites[offset + (toRender.type)].setPosition(x * 75, y * 75);
+				window.draw(figuresSprites[offset + (toRender.type)]);
 
 			}
 		}
