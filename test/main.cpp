@@ -2,8 +2,17 @@
 
 #include "board.hpp"
 
+void print_moves(Board& board, int x, int y) {
+	printf("%d, %d:\n", x, y);
+	auto moves = board.get_moves(x, y);
+	for (auto& move : moves) {
+		printf("-> %d, %d\n", std::get<0>(move), std::get<1>(move));
+	}
+	puts("");
+}
+
 int main() {
-	Board board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq f3 23 21");
+	Board board("rnbqkbnr/pppppppp/8/R3n3/8/8/PPPPPPPP/RNBQKBNR w KQkq f3 23 21");
 
 	printf("Board size: %zu\n\n", sizeof(board));
 
@@ -14,4 +23,7 @@ int main() {
 		}
 		puts("");
 	}
+
+	puts("");
+	print_moves(board, 0, 3);
 }

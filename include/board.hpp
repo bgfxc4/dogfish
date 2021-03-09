@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 #include <tuple>
+#include <vector>
 
 #include "piece.hpp"
 
@@ -28,8 +29,13 @@ public:
 	void clear_en_passant_pos();
 	Piece getPiece(int x, int y);
 
+	std::vector<std::pair<int, int>> get_moves(int x, int y);
+	bool is_check();
+
+	void move_raw(int from_x, int from_y, int to_x, int to_y); // semi-private; don't use
+
 private:
-	// order of these fields is important for alignment. total size should bd 36 bytes
+	// order of these fields is important for alignment. total size should be 36 bytes
 	BoardContent bc;
 	uint8_t _en_passant_pos : 7;
 	uint8_t white_to_move : 1;
@@ -43,4 +49,5 @@ private:
 	uint8_t black_castle_long : 1;
 
 	int parseFenString(const std::string& fenString);
+	std::vector<std::pair<int, int>> get_moves_raw(int x, int y);
 };

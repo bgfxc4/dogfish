@@ -213,3 +213,75 @@ err:
 	std::cout << "[ERROR] fen string too short" << std::endl;
 	return -1;
 }
+
+std::vector<std::pair<int, int>> Board::get_moves(int x, int y) {
+	Piece from = bc.get(x, y);
+	if (from.type == (uint8_t)Pieces::Empty || white_to_move != from.is_white) {
+		// quick return on degenerate cases
+		return {};
+	}
+
+	std::vector<std::pair<int, int>> raw_moves = get_moves_raw(x, y);
+
+	std::vector<std::pair<int, int>> moves_no_friendly_fire;
+	for (std::pair<int, int> move : raw_moves) {
+		int to_x = std::get<0>(move), to_y = std::get<1>(move);
+		Piece to = bc.get(to_x, to_y);
+
+		if (to.type == (uint8_t)Pieces::Empty || to.is_white != from.is_white) {
+			moves_no_friendly_fire.push_back(move);
+		}
+	}
+
+	std::vector<std::pair<int, int>> res;
+	for (std::pair<int, int> move : moves_no_friendly_fire) {
+		Board tmp(*this);
+		tmp.move_raw(x, y, std::get<0>(move), std::get<1>(move));
+
+		if (!tmp.is_check()) {
+			res.push_back(move);
+		}
+	}
+
+	return res;
+}
+
+bool Board::is_check() {
+	return false;
+}
+
+void Board::move_raw(int from_x, int from_y, int to_x, int to_y) {
+	// TODO: castling
+	bc.set(to_x, to_y, bc.get(from_x, from_y));
+	bc.set(from_x, from_y, Piece(Pieces::Empty, 0));
+}
+
+std::vector<std::pair<int, int>> Board::get_moves_raw(int x, int y) {
+	Piece p = bc.get(x, y);
+	std::vector<std::pair<int, int>> res;
+	switch ((Pieces)p.type) {
+	case Pieces::Rook:
+		for (int _x = x - 1; _x >= 0; _x--) {
+			res.push_back(std::make_pair(_x, y));
+			if (bc.get(_x, y).type != (uint8_t)Pieces::Empty) break;
+		}
+		for (int _x = x + 1; _x < 8; _x++) {
+			res.push_back(std::make_pair(_x, y));
+			if (bc.get(_x, y).type != (uint8_t)Pieces::Empty) break;
+		}
+		for (int _y = y - 1; _y >= 0; _y--) {
+			res.push_back(std::make_pair(x, _y));
+			if (bc.get(x, _y).type != (uint8_t)Pieces::Empty) break;
+		}
+		for (int _y = y + 1; _y < 8; _y++) {
+			res.push_back(std::make_pair(x, _y));
+			if (bc.get(x, _y).type != (uint8_t)Pieces::Empty) break;
+		}
+		break;
+
+	default:
+		break;
+	}
+
+	return res;
+}
