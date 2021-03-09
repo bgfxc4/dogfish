@@ -94,16 +94,26 @@ void BoardUI::startMouseClick(sf::Vector2i mousePos, Board& board) {
 	dragStartPos = { -1, -1 };
 	if ((mousePos.x / 75) >= 8 || (mousePos.y / 75) >= 8)
 		return;
-	if (board.getPiece(mousePos.x / 75, mousePos.y / 75).type == 0)
+	if (board.getPiece(mousePos.x / 75, mousePos.y / 75).type == 0) {
 		return;
+	}
 	dragStartPos.x = mousePos.x / 75;
-	dragStartPos.y = mousePos.y / 75;	
+	dragStartPos.y = mousePos.y / 75;
 }
 
 void BoardUI::endMouseClick(sf::Vector2i mousePos, Board& board) {
-	dragStartPos = { -1, -1 };
-
-	if ((mousePos.x / 75) >= 8 || (mousePos.y / 75) >= 8)
+	if ((mousePos.x / 75) >= 8 || (mousePos.y / 75) >= 8) {
+		dragStartPos = { -1, -1 };
 		return;
-	//move(dragStartPos.x / 75, dragStartPos.y / 75, mousePos.x / 75, mousePos.y / 75);
+	}
+	if (dragStartPos.x < 0 || dragStartPos.y < 0) {
+		dragStartPos = { -1, -1 };
+		return;
+	}
+	if (dragStartPos.x == mousePos.x / 75 && dragStartPos.y == mousePos.y / 75) {
+		dragStartPos = { -1, -1 };
+		return;
+	}
+	board.move_raw(dragStartPos.x, dragStartPos.y, mousePos.x / 75, mousePos.y / 75);
+	dragStartPos = { -1, -1 };
 }
