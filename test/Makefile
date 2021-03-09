@@ -17,7 +17,7 @@ $(EXECUTABLE): $(OBJECTS) $(HEADERS) $(BOARD_LIB)
 .PHONY: clean $(BOARD_LIB)
 
 $(BOARD_LIB):
-	$(MAKE) -C ../lib $(BUILD_TYPE)
+	$(MAKE) -C ../lib debug
 
 clean:
 	$(RM) $(EXECUTABLE) $(OBJECTS)

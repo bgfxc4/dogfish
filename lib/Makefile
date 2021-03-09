@@ -7,8 +7,8 @@ OBJECTS := board.o piece.o
 HEADERS := ../include/board.hpp ../include/piece.hpp
 LIBRARY := board.a
 
-debug : CFLAGS += -Og -g -pg
-release : CFLAGS += -O3 -fno-exceptions
+debug : CXXFLAGS += -Og -g -pg
+release : CXXFLAGS += -O3 -fno-exceptions
 debug : LDFLAGS +=
 release : LDFLAGS += -O -s
 
