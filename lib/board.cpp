@@ -136,7 +136,7 @@ int Board::parseFenString(const std::string& fenString) {
 				return -1;
 			}
 
-			set_en_passant_pos(std::make_pair(x, y));
+			set_en_passant_pos({x, y});
 		} else {
 			std::cout << "[ERROR] invalid fen string at 4th group(2)" << std::endl;
 			return -1;
