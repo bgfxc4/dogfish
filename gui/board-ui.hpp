@@ -20,7 +20,8 @@ class BoardUI {
 	sf::Sprite possibleMoveSprite;
 	sf::Sprite possibleTakeSprite;
 
-	sf::Vector2i dragStartPos;
+	sf::Vector2i dragStartPos = {-1, -1};
+	sf::Sprite* draggedSprite;
 
 	BoardUI();
 	~BoardUI();
@@ -30,6 +31,6 @@ class BoardUI {
 	void renderPossibleMoves(sf::RenderWindow& window);
 	void renderPieces(sf::RenderWindow& window, Board& boardToRender);
 
-	void startMouseClick(sf::Vector2i mousePos);
-	void endMouseClick(sf::Vector2i mousePos);
+	void startMouseClick(sf::Vector2i mousePos, Board& board);
+	void endMouseClick(sf::Vector2i mousePos, Board& board);
 };

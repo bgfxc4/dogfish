@@ -32,10 +32,10 @@ int main() {
 				window.setView(sf::View(visibleArea));
 			} else if (event.type == sf::Event::MouseButtonPressed) {
 				if ((sf::Mouse::Button)event.key.code == sf::Mouse::Left)
-					boardUI.startMouseClick(sf::Mouse::getPosition(window));
+					boardUI.startMouseClick(sf::Mouse::getPosition(window), board);
 			} else if (event.type == sf::Event::MouseButtonReleased) {
 				if ((sf::Mouse::Button)event.key.code == sf::Mouse::Left)
-					boardUI.endMouseClick(sf::Mouse::getPosition(window));
+					boardUI.endMouseClick(sf::Mouse::getPosition(window), board);
 			}
 		}
         window.clear();

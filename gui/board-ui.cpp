@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <array>
 #include <vector>
 #include <iostream>
@@ -67,48 +68,42 @@ void BoardUI::renderPossibleMoves(sf::RenderWindow& window) {
 }
 
 void BoardUI::renderPieces(sf::RenderWindow& window, Board& boardToRender) {
+	int draggedSpriteIndex = -1;
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
 			Piece toRender = boardToRender.getPiece(x, y);
 			if (toRender.type == 0) continue;
 			int offset = toRender.is_white ? 0 : 6;
-			figuresSprites[offset + (toRender.type - 1)].setPosition(x * 75, y * 75);
-			window.draw(figuresSprites[offset + (toRender.type - 1)]);
+			if (dragStartPos.x == x && dragStartPos.y == y) {
+				draggedSpriteIndex = offset + (toRender.type - 1);
+			} else {
+				figuresSprites[offset + (toRender.type - 1)].setPosition(x * 75, y * 75);
+				window.draw(figuresSprites[offset + (toRender.type - 1)]);
+
+			}
 		}
 	}
-/*	for (int x = 0; x < (int)tiles.size(); x++) {
-		for (int y = 0; y < (int)tiles[x].size(); y++) {
-			if (tiles[x][y]->figure == nullptr) continue;
-			tiles[x][y]->renderFigure(window);
-		}
+	if (draggedSpriteIndex != -1) {
+		sf::Vector2i mousepPos = sf::Mouse::getPosition(window);
+		figuresSprites[draggedSpriteIndex].setPosition(mousepPos.x - (75/2), mousepPos.y - (75/2));
+		window.draw(figuresSprites[draggedSpriteIndex]);
 	}
-
-	if (draggedFigure == nullptr)
-		return;
-	window.draw(*draggedFigure->sprite);*/
 }
 
-void BoardUI::startMouseClick(sf::Vector2i mousePos) {
-	/*selectedTile = { -1, -1 };
-	if ((mousePos.x / 75) >= (int)tiles.size() || (mousePos.y / 75) >= (int)tiles[0].size())
+void BoardUI::startMouseClick(sf::Vector2i mousePos, Board& board) {
+	dragStartPos = { -1, -1 };
+	if ((mousePos.x / 75) >= 8 || (mousePos.y / 75) >= 8)
 		return;
-	if (tiles[mousePos.x / 75][mousePos.y / 75]->figure == nullptr)
+	if (board.getPiece(mousePos.x / 75, mousePos.y / 75).type == 0)
 		return;
-	selectedTile[0] = mousePos.x / 75;
-	selectedTile[1] = mousePos.y / 75;
-	draggedFigure = tiles[mousePos.x / 75][mousePos.y / 75]->figure;
-	dragStartPos = mousePos;
-	draggedFigure->isDragged = true;*/
+	dragStartPos.x = mousePos.x / 75;
+	dragStartPos.y = mousePos.y / 75;	
 }
 
-void BoardUI::endMouseClick(sf::Vector2i mousePos) {
-	/*if (draggedFigure == nullptr)
-		return;
+void BoardUI::endMouseClick(sf::Vector2i mousePos, Board& board) {
+	dragStartPos = { -1, -1 };
 
-	draggedFigure->isDragged = false;
-	draggedFigure = nullptr;
-
-	if ((mousePos.x / 75) >= (int)tiles.size() || (mousePos.y / 75) >= (int)tiles[0].size())
+	if ((mousePos.x / 75) >= 8 || (mousePos.y / 75) >= 8)
 		return;
-	move(dragStartPos.x / 75, dragStartPos.y / 75, mousePos.x / 75, mousePos.y / 75);*/
+	//move(dragStartPos.x / 75, dragStartPos.y / 75, mousePos.x / 75, mousePos.y / 75);
 }
