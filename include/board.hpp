@@ -29,9 +29,13 @@ public:
 	Piece getPiece(int x, int y);
 
 private:
+	// order of these fields is important for alignment. total size should bd 36 bytes
 	BoardContent bc;
 	uint8_t _en_passant_pos : 7;
 	uint8_t white_to_move : 1;
+
+	uint8_t num_half_moves;
+	uint16_t num_moves : 12;
 
 	uint8_t white_castle_short : 1;
 	uint8_t white_castle_long : 1;

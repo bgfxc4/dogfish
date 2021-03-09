@@ -178,34 +178,34 @@ int Board::parseFenString(const std::string& fenString) {
 		}
 	}
 
-//	// half-move counter
-//	halfMoves = 0;
-//	while (1) {
-//		if (!*++c)
-//			goto err;
-//
-//		if (std::isdigit(*c))
-//			halfMoves = halfMoves * 10 + (*c - '0');
-//		else if (*c == ' ')
-//			break;
-//		else {
-//			std::cout << "[ERROR] invalid fen string at 5th group" << std::endl;
-//			return -1;
-//		}
-//	}
-//
-//	// move counter
-//	moveCount = 0;
-//	while (1) {
-//		if (!*++c || !(*c-' ')) // mega kek
-//			break;
-//		else if (std::isdigit(*c))
-//			moveCount = moveCount * 10 + (*c - '0');
-//		else {
-//			std::cout << "[ERROR] invalid fen string at 6th group" << std::endl;
-//			return -1;
-//		}
-//	}
+	// half-move counter
+	num_half_moves = 0;
+	while (1) {
+		if (!*++c)
+			goto err;
+
+		if (std::isdigit(*c))
+			num_half_moves = num_half_moves * 10 + (*c - '0');
+		else if (*c == ' ')
+			break;
+		else {
+			std::cout << "[ERROR] invalid fen string at 5th group" << std::endl;
+			return -1;
+		}
+	}
+
+	// move counter
+	num_moves = 0;
+	while (1) {
+		if (!*++c || *c == ' ') // mega kek
+			break;
+		else if (std::isdigit(*c))
+			num_moves = num_moves * 10 + (*c - '0');
+		else {
+			std::cout << "[ERROR] invalid fen string at 6th group" << std::endl;
+			return -1;
+		}
+	}
 
 	return 0;
 

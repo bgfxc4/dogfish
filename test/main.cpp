@@ -3,7 +3,9 @@
 #include "board.hpp"
 
 int main() {
-	Board board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq f3 0 1");
+	Board board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq f3 23 21");
+
+	printf("Board size: %zu\n\n", sizeof(board));
 
 	for (int y = 0; y < 8; y++) {
 		for (int x = 0; x < 8; x++) {
