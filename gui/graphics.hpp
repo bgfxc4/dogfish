@@ -3,6 +3,7 @@
 #include <SFML/Graphics.hpp>
 
 extern sf::Texture figuresTextures[12];
+extern sf::Sprite figuresSprites[12];
 extern sf::Texture boardTexture;
 extern sf::Sprite boardSprite;
 

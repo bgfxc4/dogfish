@@ -10,7 +10,7 @@
 #include <ctype.h>
 
 #include "graphics.hpp"
-#include "board.hpp"
+#include "board-ui.hpp"
 
 void testing() {
 }
@@ -19,7 +19,8 @@ int main() {
 	testing();
 
 	sf::RenderWindow& window = startGraphics();
-	Board board;
+	Board board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	BoardUI boardUI;
 
     while (window.isOpen()) {
 		sf::Event event;
@@ -31,15 +32,15 @@ int main() {
 				window.setView(sf::View(visibleArea));
 			} else if (event.type == sf::Event::MouseButtonPressed) {
 				if ((sf::Mouse::Button)event.key.code == sf::Mouse::Left)
-					board.startMouseClick(sf::Mouse::getPosition(window));
+					boardUI.startMouseClick(sf::Mouse::getPosition(window));
 			} else if (event.type == sf::Event::MouseButtonReleased) {
 				if ((sf::Mouse::Button)event.key.code == sf::Mouse::Left)
-					board.endMouseClick(sf::Mouse::getPosition(window));
+					boardUI.endMouseClick(sf::Mouse::getPosition(window));
 			}
 		}
         window.clear();
         window.draw(boardSprite);
-		board.renderBoard(window);
+		boardUI.renderBoard(window, board);
 		window.display();
     }
 	delete &window;
