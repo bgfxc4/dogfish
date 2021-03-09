@@ -22,6 +22,7 @@ private:
 class Board {
 public:
 	Board(const std::string& fenString);
+	Board() : Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {}
 	std::optional<std::pair<int, int>> get_en_passant_pos();
 	void set_en_passant_pos(std::pair<int, int> pos);
 	void clear_en_passant_pos();
@@ -31,5 +32,11 @@ private:
 	BoardContent bc;
 	uint8_t _en_passant_pos : 7;
 	uint8_t white_to_move : 1;
+
+	uint8_t white_castle_short : 1;
+	uint8_t white_castle_long : 1;
+	uint8_t black_castle_short : 1;
+	uint8_t black_castle_long : 1;
+
 	int parseFenString(const std::string& fenString);
 };

@@ -3,8 +3,13 @@
 #include "board.hpp"
 
 int main() {
-	Board board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	Board board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq f3 0 1");
 
-	Piece p = board.getPiece(0, 0);
-	printf("%hhu, %hhu\n", p.type, p.is_white);
+	for (int y = 0; y < 8; y++) {
+		for (int x = 0; x < 8; x++) {
+			Piece p = board.getPiece(x, y);
+			printf("% 2hhu ", p.type + 8 * p.is_white);
+		}
+		puts("");
+	}
 }

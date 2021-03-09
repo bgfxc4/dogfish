@@ -42,9 +42,14 @@ void BoardContent::set(uint8_t n, uint8_t p) {
 }
 
 Board::Board(const std::string& fenString) {
-	std::cout << "asd" << std::endl;
 	_en_passant_pos = 0;
 	white_to_move = 1;
+
+	white_castle_short = 1;
+	white_castle_long = 1;
+	black_castle_short = 1;
+	black_castle_long = 1;
+
 	parseFenString(fenString);
 }
 
@@ -111,68 +116,68 @@ int Board::parseFenString(const std::string& fenString) {
 		col++;
 	}
 
-//	// who moves next
-//	while (1) {
-//		if (!*++c)
-//			goto err;
-//		if (*c == 'w')
-//			toMove = Color::White;
-//		else if (*c == 'b')
-//			toMove = Color::Black;
-//		else if (*c == ' ')
-//			break;
-//		else {
-//			std::cout << "[ERROR] invalid fen string at 2nd group" << std::endl;
-//			return -1;
-//		}
-//	}
-//
-//	// who can castle
-//	while (1) {
-//		if (!*++c)
-//			goto err;
-//		if (*c == 'Q')
-//			whiteCanCastleLong = true;
-//		else if (*c == 'K')
-//			whiteCanCastleShot = true;
-//		else if (*c == 'q')
-//			blackCanCastleLong = true;
-//		else if (*c == 'k')
-//			blackCanCastleShot = true;
-//		else if (*c == ' ')
-//			break;
-//		else {
-//			std::cout << "[ERROR] invalid fen string at 3rd group" << std::endl;
-//			return -1;
-//		}
-//	}
-//
-//	// possible en passant positions
-//	while (1) {
-//		if (!*++c)
-//			goto err;
-//		if (*c == '-')
-//			continue;
-//		else if (*c == ' ')
-//			break;
-//		else if (!std::isdigit(*c))
-//			temp_char = *c;
-//		else if (std::isdigit(*c)) {
-//			if (temp_char == 0) {
-//				std::cout << "[ERROR] invalid fen string at 4th group(1)" << std::endl;
-//				return -1;
-//			} else {
-//				std::string tileName = std::string(1, temp_char) + *c;
-//				int* enPassantTile = tileNameToPosition(tileName);
-//				tiles[enPassantTile[0]][enPassantTile[1]]->enPassantPossible = true;
-//				temp_char = 0;
-//			}
-//		} else {
-//			std::cout << "[ERROR] invalid fen string at 4th group(2)" << std::endl;
-//			return -1;
-//		}
-//	}
-//
+	// who moves next
+	while (1) {
+		if (!*++c)
+			goto err;
+		if (*c == 'w')
+			white_to_move = 1;
+		else if (*c == 'b')
+			white_to_move = 0;
+		else if (*c == ' ')
+			break;
+		else {
+			std::cout << "[ERROR] invalid fen string at 2nd group" << std::endl;
+			return -1;
+		}
+	}
+
+	// who can castle
+	while (1) {
+		if (!*++c)
+			goto err;
+		if (*c == 'Q')
+			white_castle_long = true;
+		else if (*c == 'K')
+			white_castle_short = true;
+		else if (*c == 'q')
+			white_castle_long = true;
+		else if (*c == 'k')
+			white_castle_short = true;
+		else if (*c == ' ')
+			break;
+		else {
+			std::cout << "[ERROR] invalid fen string at 3rd group" << std::endl;
+			return -1;
+		}
+	}
+
+	// possible en passant positions
+	while (1) {
+		if (!*++c)
+			goto err;
+		if (*c == '-') {
+			clear_en_passant_pos();
+			continue;
+		}
+		else if (*c == ' ')
+			break;
+		else if (!std::isdigit(*c))
+			temp_char = *c;
+		else if (std::isdigit(*c)) {
+			int x = temp_char - 'a', y = *c - '0';
+			if (x < 0 || x >= 8 || y < 0 || y >= 8) {
+				std::cout << "[ERROR] invalid fen string at 4th group(2)" << std::endl;
+				return -1;
+			}
+
+			set_en_passant_pos(std::make_pair(x, y));
+		} else {
+			std::cout << "[ERROR] invalid fen string at 4th group(2)" << std::endl;
+			return -1;
+		}
+	}
+
 //	// half-move counter
 //	halfMoves = 0;
 //	while (1) {
