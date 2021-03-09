@@ -12,7 +12,7 @@ void print_moves(Board& board, int x, int y) {
 }
 
 int main() {
-	Board board("rnbqkbnr/pppppppp/8/R3n3/4B3/3b4/PPPPPPPP/RNBQKBNR w KQkq f3 23 21");
+	Board board("rnbqkbnr/pppppppp/8/R3n3/4BKQ1/3b4/PPPPPPPP/RNBQKBNR w KQkq f3 23 21");
 
 	printf("Board size: %zu\n\n", sizeof(board));
 
@@ -27,4 +27,6 @@ int main() {
 	puts("");
 	print_moves(board, 0, 3);
 	print_moves(board, 4, 4);
+	print_moves(board, 5, 4);
+	print_moves(board, 6, 4);
 }
