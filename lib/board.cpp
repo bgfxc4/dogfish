@@ -3,43 +3,8 @@
 #include <array>
 #include <vector>
 #include <iostream>
-#include <cstring>
 
 #include "constants.hpp"
-
-BoardContent::BoardContent() {
-	memset(bits, 0, sizeof(bits));
-}
-
-Piece BoardContent::get(int x, int y) {
-	return get(y * 8 + x);
-}
-
-void BoardContent::set(int x, int y, Piece p) {
-	set(y * 8 + x, p.type | (p.is_white << 3));
-}
-
-Piece BoardContent::get(uint8_t n) {
-	uint8_t byte = bits[n >> 1];
-	if (n & 1) {
-		byte >>= 4;
-	}
-	else {
-		byte &= 0x0F;
-	}
-	return { (uint8_t)(byte & 0x07), (uint8_t)(byte >> 3) };
-}
-
-void BoardContent::set(uint8_t n, uint8_t p) {
-	if (n & 1) {
-		bits[n >> 1] &= 0x0F;
-		bits[n >> 1] |= p << 4;
-	}
-	else {
-		bits[n >> 1] &= 0xF0;
-		bits[n >> 1] |= p;
-	}
-}
 
 Board::Board(const std::string& fenString) {
 	_en_passant_pos = 0;
@@ -257,31 +222,5 @@ void Board::move_raw(int from_x, int from_y, int to_x, int to_y) {
 }
 
 std::vector<std::pair<int, int>> Board::get_moves_raw(int x, int y) {
-	Piece p = bc.get(x, y);
-	std::vector<std::pair<int, int>> res;
-	switch ((Pieces)p.type) {
-	case Pieces::Rook:
-		for (int _x = x - 1; _x >= 0; _x--) {
-			res.push_back(std::make_pair(_x, y));
-			if (bc.get(_x, y).type != (uint8_t)Pieces::Empty) break;
-		}
-		for (int _x = x + 1; _x < 8; _x++) {
-			res.push_back(std::make_pair(_x, y));
-			if (bc.get(_x, y).type != (uint8_t)Pieces::Empty) break;
-		}
-		for (int _y = y - 1; _y >= 0; _y--) {
-			res.push_back(std::make_pair(x, _y));
-			if (bc.get(x, _y).type != (uint8_t)Pieces::Empty) break;
-		}
-		for (int _y = y + 1; _y < 8; _y++) {
-			res.push_back(std::make_pair(x, _y));
-			if (bc.get(x, _y).type != (uint8_t)Pieces::Empty) break;
-		}
-		break;
-
-	default:
-		break;
-	}
-
-	return res;
+	return bc.get(x, y).get_moves_raw(*this, x, y);
 }

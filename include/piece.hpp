@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
+
+class Board;
 
 class Piece {
 public:
@@ -11,4 +14,6 @@ public:
 
 	template<typename A, typename B>
 	Piece(A _type, B _is_white) : Piece((uint8_t)_type, (uint8_t)_is_white) {}
+
+	std::vector<std::pair<int, int>> get_moves_raw(Board& board, int x, int y);
 };

@@ -3,7 +3,7 @@ LDFLAGS ?=
 CXX ?= g++
 INCLUDES := -I ../include
 
-OBJECTS := board.o piece.o
+OBJECTS := board.o board-content.o piece.o
 HEADERS := ../include/board.hpp ../include/piece.hpp
 LIBRARY := board.a
 
