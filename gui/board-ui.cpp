@@ -36,7 +36,7 @@ BoardUI::~BoardUI() {
 
 void BoardUI::renderBoard(sf::RenderWindow& window, Board& boardToRender) {
 	renderSelectedTiles(window);
-	renderFigures(window, boardToRender);
+	renderPieces(window, boardToRender);
 	if (selectedTile[0] != -1 && selectedTile[1] != -1)
 		renderPossibleMoves(window);
 }
@@ -66,7 +66,7 @@ void BoardUI::renderPossibleMoves(sf::RenderWindow& window) {
 	}*/
 }
 
-void BoardUI::renderFigures(sf::RenderWindow& window, Board& boardToRender) {
+void BoardUI::renderPieces(sf::RenderWindow& window, Board& boardToRender) {
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
 			Piece toRender = boardToRender.getPiece(x, y);
