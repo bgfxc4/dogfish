@@ -1,9 +1,11 @@
+#include "board.hpp"
+
 #include <array>
 #include <vector>
 #include <iostream>
 #include <cstring>
 
-#include "board.hpp"
+#include "constants.hpp"
 
 BoardContent::BoardContent() {
 	memset(bits, 0, sizeof(bits));
@@ -69,5 +71,140 @@ Piece Board::getPiece(int x, int y) {
 }
 
 int Board::parseFenString(const std::string& fenString) {
-	std::cout << "Would parse: " << fenString.c_str() << std::endl;
+	char temp_char = 0; // declaration can't be after first goto
+
+	const char* c = fenString.c_str() - 1;
+
+	// positions
+	int row = 0, col = 0;
+	while (1) {
+		if (!*++c)
+			goto err;
+		if (*c == '/') {
+			row++;
+			col = 0;
+			continue;
+		} else if (std::isdigit(*c)) {
+			col += *c - '0';
+			continue;
+		}
+
+		if (*c == 'R' || *c == 'r')
+			bc.set(col, row, Piece(Pieces::Rook, (*c == 'R')));
+		else if (*c == 'N' || *c == 'n')
+			bc.set(col, row, Piece(Pieces::Knight, (*c == 'N')));
+		else if (*c == 'B' || *c == 'b')
+			bc.set(col, row, Piece(Pieces::Bishop, (*c == 'B')));
+		else if (*c == 'Q' || *c == 'q')
+			bc.set(col, row, Piece(Pieces::Queen, (*c == 'Q')));
+		else if (*c == 'K' || *c == 'k')
+			bc.set(col, row, Piece(Pieces::King, (*c == 'K')));
+		else if (*c == 'P' || *c == 'p')
+			bc.set(col, row, Piece(Pieces::Pawn, (*c == 'P')));
+		else if (*c == ' ')
+			break;
+		else {
+			std::cout << "[ERROR] invalid fen string at 1st group c: " << c << std::endl;
+			return -1;
+		}
+
+		col++;
+	}
+
+//	// who moves next
+//	while (1) {
+//		if (!*++c)
+//			goto err;
+//		if (*c == 'w')
+//			toMove = Color::White;
+//		else if (*c == 'b')
+//			toMove = Color::Black;
+//		else if (*c == ' ')
+//			break;
+//		else {
+//			std::cout << "[ERROR] invalid fen string at 2nd group" << std::endl;
+//			return -1;
+//		}
+//	}
+//
+//	// who can castle
+//	while (1) {
+//		if (!*++c)
+//			goto err;
+//		if (*c == 'Q')
+//			whiteCanCastleLong = true;
+//		else if (*c == 'K')
+//			whiteCanCastleShot = true;
+//		else if (*c == 'q')
+//			blackCanCastleLong = true;
+//		else if (*c == 'k')
+//			blackCanCastleShot = true;
+//		else if (*c == ' ')
+//			break;
+//		else {
+//			std::cout << "[ERROR] invalid fen string at 3rd group" << std::endl;
+//			return -1;
+//		}
+//	}
+//
+//	// possible en passant positions
+//	while (1) {
+//		if (!*++c)
+//			goto err;
+//		if (*c == '-')
+//			continue;
+//		else if (*c == ' ')
+//			break;
+//		else if (!std::isdigit(*c))
+//			temp_char = *c;
+//		else if (std::isdigit(*c)) {
+//			if (temp_char == 0) {
+//				std::cout << "[ERROR] invalid fen string at 4th group(1)" << std::endl;
+//				return -1;
+//			} else {
+//				std::string tileName = std::string(1, temp_char) + *c;
+//				int* enPassantTile = tileNameToPosition(tileName);
+//				tiles[enPassantTile[0]][enPassantTile[1]]->enPassantPossible = true;
+//				temp_char = 0;
+//			}
+//		} else {
+//			std::cout << "[ERROR] invalid fen string at 4th group(2)" << std::endl;
+//			return -1;
+//		}
+//	}
+//
+//	// half-move counter
+//	halfMoves = 0;
+//	while (1) {
+//		if (!*++c)
+//			goto err;
+//
+//		if (std::isdigit(*c))
+//			halfMoves = halfMoves * 10 + (*c - '0');
+//		else if (*c == ' ')
+//			break;
+//		else {
+//			std::cout << "[ERROR] invalid fen string at 5th group" << std::endl;
+//			return -1;
+//		}
+//	}
+//
+//	// move counter
+//	moveCount = 0;
+//	while (1) {
+//		if (!*++c || !(*c-' ')) // mega kek
+//			break;
+//		else if (std::isdigit(*c))
+//			moveCount = moveCount * 10 + (*c - '0');
+//		else {
+//			std::cout << "[ERROR] invalid fen string at 6th group" << std::endl;
+//			return -1;
+//		}
+//	}
+
+	return 0;
+
+err:
+	std::cout << "[ERROR] fen string too short" << std::endl;
+	return -1;
 }

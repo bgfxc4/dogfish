@@ -7,7 +7,7 @@ INCLUDES := -I ../include
 
 BOARD_LIB := ../lib/board.a
 
-HEADERS := board-ui.hpp graphics.hpp ../include/board.hpp ../include/piece.hpp
+HEADERS := board-ui.hpp graphics.hpp ../include/board.hpp ../include/piece.hpp ../include/constants.hpp
 EXECUTABLE := main
 
 debug : CXXFLAGS += -Og -g -pg
