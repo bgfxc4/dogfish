@@ -19,7 +19,7 @@ int main() {
 	testing();
 
 	sf::RenderWindow& window = startGraphics();
-	Board board();
+	Board board;
 	BoardUI boardUI;
 
     while (window.isOpen()) {

@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "piece.hpp"
-#include "enums.hpp"
+#include "constants.hpp"
 #include "board.hpp"
 
 class BoardUI {
