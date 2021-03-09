@@ -71,8 +71,8 @@ void BoardUI::renderFigures(sf::RenderWindow& window, Board& boardToRender) {
 		for (int y = 0; y < 8; y++) {
 			Piece toRender = boardToRender.getPiece(x, y);
 			if (toRender.type == 0) continue;
-			int offset = toRender.is_white ? 5 : 0;
-			figuresSprites[offset + toRender.type].setPosition(x * 75, y * 75);
+			int offset = toRender.is_white ? 0 : 6;
+			figuresSprites[offset + (toRender.type - 1)].setPosition(x * 75, y * 75);
 			window.draw(figuresSprites[offset + (toRender.type - 1)]);
 		}
 	}
