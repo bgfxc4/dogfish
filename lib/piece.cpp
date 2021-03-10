@@ -97,7 +97,7 @@ std::vector<std::pair<int, int>> Piece::get_moves_raw(Board& board, int x, int y
 	case Pieces::King: {
 		std::vector<std::pair<int, int>> mods = {
 			{-1, -1}, {-1, 0}, {-1, 1},
-			{ 0, -1}, { 0, 0}, { 0, 1},
+			{ 0, -1},          { 0, 1},
 			{ 1, -1}, { 1, 0}, { 1, 1},
 		};
 

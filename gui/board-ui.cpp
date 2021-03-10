@@ -39,6 +39,8 @@ void BoardUI::renderBoard(sf::RenderWindow& window, Board& boardToRender) {
 	renderSelectedTiles(window);
 	renderPieces(window, boardToRender);
 	renderPossibleMoves(window, boardToRender);
+
+	std::cout << boardToRender.is_check() << std::endl;
 }
 
 void BoardUI::renderSelectedTiles(sf::RenderWindow& window) {
