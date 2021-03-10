@@ -55,7 +55,7 @@ void BoardUI::renderSelectedTiles(sf::RenderWindow& window) {
 
 void BoardUI::renderPossibleMoves(sf::RenderWindow& window, Board& board) {
 	if (selectedTile[0] < 0 || selectedTile[1] < 0) return;
-	std::vector<std::pair<int, int>> possibleMoves = board.getPiece(selectedTile[0], selectedTile[1]).get_moves_raw(board, selectedTile[0], selectedTile[1]);
+	std::vector<std::pair<int, int>> possibleMoves = board.get_moves(selectedTile[0], selectedTile[1]);
 	for (std::pair<int, int> move : possibleMoves) {
 		if (board.getPiece(move.first, move.second).type == (int)Pieces::Empty) {
 			possibleMoveSprite.setPosition(move.first * 75, move.second * 75);
