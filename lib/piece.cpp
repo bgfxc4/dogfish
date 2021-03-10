@@ -48,6 +48,19 @@ static void add_bishop_moves(Board& board, int x, int y,
 	}
 }
 
+static void add_knight_moves(Board& board, int x, int y,
+		std::vector<std::pair<int, int>>& res)
+{
+	std::vector<std::pair<int, int>> moves = { {2, 1}, {2, -1}, {-2, 1}, {-2, -1}, 
+												{1, 2}, {1, -2}, {-1, 2}, {-1, -2}};
+	for (std::pair<int,int> move : moves) {
+		if (x + move.first > 7 || x + move.first < 0 || y + move.second > 7 || y + move.second < 0) continue;
+		Piece p = board.getPiece(x + move.first, y + move.second);
+		if (p.is_white == board.getPiece(x, y).is_white) continue;
+		res.push_back({x + move.first, y + move.second});
+	}
+}
+
 static void add_pawn_moves(Board& board, int x, int y, std::vector<std::pair<int, int>>& res) {
 	int mod = (board.getPiece(x, y).is_white) ? -1 : 1;
 	if ((mod == -1 && y <= 0) || (mod == 1 && y >= 7)) return;
@@ -81,12 +94,17 @@ std::vector<std::pair<int, int>> Piece::get_moves_raw(Board& board, int x, int y
 	case Pieces::Pawn:
 		add_pawn_moves(board, x, y, res);
 		break;
-	case Pieces::Rook:
-		add_rook_moves(board, x, y, res);
+
+	case Pieces::Knight:
+		add_knight_moves(board, x, y, res);
 		break;
 
 	case Pieces::Bishop:
 		add_bishop_moves(board, x, y, res);
+		break;
+
+	case Pieces::Rook:
+		add_rook_moves(board, x, y, res);
 		break;
 
 	case Pieces::Queen:
