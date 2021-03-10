@@ -31,6 +31,7 @@ public:
 
 	std::vector<std::pair<int, int>> get_moves(int x, int y);
 	bool is_check();
+	bool is_check_straight_diagonal();
 
 	void move_raw(int from_x, int from_y, int to_x, int to_y); // semi-private; don't use
 

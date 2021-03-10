@@ -1,5 +1,6 @@
-#include "piece.hpp"
+#include <iostream>
 
+#include "piece.hpp"
 #include "board.hpp"
 #include "constants.hpp"
 
@@ -47,9 +48,39 @@ static void add_bishop_moves(Board& board, int x, int y,
 	}
 }
 
+static void add_pawn_moves(Board& board, int x, int y, std::vector<std::pair<int, int>>& res) {
+	int mod = (board.getPiece(x, y).is_white) ? -1 : 1;
+	if ((mod == -1 && y <= 0) || (mod == 1 && y >= 7)) return;
+	if (board.getPiece(x, y + mod).type == (int)Pieces::Empty) { // Push pawn one tile
+		res.push_back({x, y + mod});
+	    if ((mod == -1 && y == 6) || (mod == 1 && y == 1)) { // pawn is on start tile
+			if (board.getPiece(x, y + 2 * mod).type == (int)Pieces::Empty) { // 2nd tile in front is free
+			res.push_back({x, y + 2 * mod});
+			}
+		}
+	}
+	if (x <= 6) {
+		if (board.getPiece(x + 1, y + mod).type != (int)Pieces::Empty &&
+			board.getPiece(x + 1, y + mod).is_white != board.getPiece(x, y).is_white)
+		{
+			res.push_back({x + 1, y + mod});
+		}
+	}
+	if (x >= 1) {
+		if (board.getPiece(x - 1, y + mod).type != (int)Pieces::Empty &&
+			board.getPiece(x - 1, y + mod).is_white != board.getPiece(x, y).is_white)
+		{
+			res.push_back({x - 1, y + mod});
+		}
+	}
+}
+
 std::vector<std::pair<int, int>> Piece::get_moves_raw(Board& board, int x, int y) {
 	std::vector<std::pair<int, int>> res;
 	switch ((Pieces)type) {
+	case Pieces::Pawn:
+		add_pawn_moves(board, x, y, res);
+		break;
 	case Pieces::Rook:
 		add_rook_moves(board, x, y, res);
 		break;

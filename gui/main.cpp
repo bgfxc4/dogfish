@@ -21,7 +21,7 @@ int main() {
 	sf::RenderWindow& window = startGraphics();
 	Board board;
 	BoardUI boardUI;
-
+	
     while (window.isOpen()) {
 		sf::Event event;
 		while (window.pollEvent(event)) {
