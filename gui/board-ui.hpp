@@ -28,7 +28,7 @@ class BoardUI {
 
 	void renderBoard(sf::RenderWindow& window, Board& boardToRender);
 	void renderSelectedTiles(sf::RenderWindow& window);
-	void renderPossibleMoves(sf::RenderWindow& window);
+	void renderPossibleMoves(sf::RenderWindow& window, Board& board);
 	void renderPieces(sf::RenderWindow& window, Board& boardToRender);
 
 	void startMouseClick(sf::Vector2i mousePos, Board& board);

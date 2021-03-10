@@ -38,12 +38,11 @@ BoardUI::~BoardUI() {
 void BoardUI::renderBoard(sf::RenderWindow& window, Board& boardToRender) {
 	renderSelectedTiles(window);
 	renderPieces(window, boardToRender);
-	if (selectedTile[0] != -1 && selectedTile[1] != -1)
-		renderPossibleMoves(window);
+	renderPossibleMoves(window, boardToRender);
 }
 
 void BoardUI::renderSelectedTiles(sf::RenderWindow& window) {
-	if (selectedTile[0] == -1 && selectedTile[1] == -1)
+	if (selectedTile[0] < 0 || selectedTile[1] < 0)
 		return;
 	if ((selectedTile[0] + selectedTile[1]) % 2 == 0) {
 		selectedTileWhiteSprite.setPosition(selectedTile[0] * 75, selectedTile[1] * 75);
@@ -54,17 +53,18 @@ void BoardUI::renderSelectedTiles(sf::RenderWindow& window) {
 	}
 }
 
-void BoardUI::renderPossibleMoves(sf::RenderWindow& window) {
-	/*std::vector<sf::Vector2i> possibleMoves = tiles[selectedTile[0]][selectedTile[1]]->calculateAllMoves();
-	for (sf::Vector2i move : possibleMoves) {
-		if (tiles[move.x][move.y]->figure == nullptr && !tiles[move.x][move.y]->enPassantPossible) {
-			possibleMoveSprite.setPosition(move.x * 75, move.y * 75);
+void BoardUI::renderPossibleMoves(sf::RenderWindow& window, Board& board) {
+	if (selectedTile[0] < 0 || selectedTile[1] < 0) return;
+	std::vector<std::pair<int, int>> possibleMoves = board.getPiece(selectedTile[0], selectedTile[1]).get_moves_raw(board, selectedTile[0], selectedTile[1]);
+	for (std::pair<int, int> move : possibleMoves) {
+		if (board.getPiece(move.first, move.second).type == (int)Pieces::Empty) {
+			possibleMoveSprite.setPosition(move.first * 75, move.second * 75);
 			window.draw(possibleMoveSprite);
 		} else {
-			possibleTakeSprite.setPosition(move.x * 75, move.y * 75);
+			possibleTakeSprite.setPosition(move.first * 75, move.second * 75);
 			window.draw(possibleTakeSprite);
 		}
-	}*/
+	}
 }
 
 void BoardUI::renderPieces(sf::RenderWindow& window, Board& boardToRender) {
@@ -72,14 +72,13 @@ void BoardUI::renderPieces(sf::RenderWindow& window, Board& boardToRender) {
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
 			Piece toRender = boardToRender.getPiece(x, y);
-			if (toRender.type == 0) continue;
+			if (toRender.type == (int)Pieces::Empty) continue;
 			int offset = toRender.is_white ? 0 : 6;
 			if (dragStartPos.x == x && dragStartPos.y == y) {
 				draggedSpriteIndex = offset + (toRender.type);
 			} else {
 				figuresSprites[offset + (toRender.type)].setPosition(x * 75, y * 75);
 				window.draw(figuresSprites[offset + (toRender.type)]);
-
 			}
 		}
 	}
@@ -92,8 +91,15 @@ void BoardUI::renderPieces(sf::RenderWindow& window, Board& boardToRender) {
 
 void BoardUI::startMouseClick(sf::Vector2i mousePos, Board& board) {
 	dragStartPos = { -1, -1 };
+	selectedTile = { -1, -1 };
 	if ((mousePos.x / 75) >= 8 || (mousePos.y / 75) >= 8)
 		return;
+
+	if (board.getPiece(mousePos.x / 75, mousePos.y / 75).type != (int)Pieces::Empty) {
+		selectedTile[0] = mousePos.x / 75;
+		selectedTile[1] = mousePos.y / 75;
+	}
+
 	if (board.getPiece(mousePos.x / 75, mousePos.y / 75).type == 0) {
 		return;
 	}
