@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <array>
+#include <sys/types.h>
 #include <vector>
 #include <iostream>
 
@@ -27,18 +28,20 @@ BoardUI::BoardUI() {
 	selectedTileBlackTexture.loadFromFile("images/selectedTileBlack.png");
 	possibleMoveTexture.loadFromFile("images/possibleMove.png");
 	possibleTakeTexture.loadFromFile("images/possibleTake.png");
+	isCheckTileTexture.loadFromFile("images/isCheckTile.png");
 	selectedTileWhiteSprite = sf::Sprite(selectedTileWhiteTexture);
 	selectedTileBlackSprite = sf::Sprite(selectedTileBlackTexture);
 	possibleMoveSprite = sf::Sprite(possibleMoveTexture);
 	possibleTakeSprite = sf::Sprite(possibleTakeTexture);
+	isCheckTileSprite = sf::Sprite(isCheckTileTexture);
 }
 BoardUI::~BoardUI() {
 }
 
 void BoardUI::renderBoard(sf::RenderWindow& window, Board& boardToRender) {
 	renderSelectedTiles(window);
-	renderPieces(window, boardToRender);
 	renderPossibleMoves(window, boardToRender);
+	renderPieces(window, boardToRender);
 }
 
 void BoardUI::renderSelectedTiles(sf::RenderWindow& window) {
@@ -67,12 +70,17 @@ void BoardUI::renderPossibleMoves(sf::RenderWindow& window, Board& board) {
 	}
 }
 
-void BoardUI::renderPieces(sf::RenderWindow& window, Board& boardToRender) {
+void BoardUI::renderPieces(sf::RenderWindow& window, Board& board) {
 	int draggedSpriteIndex = -1;
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
-			Piece toRender = boardToRender.getPiece(x, y);
+			Piece toRender = board.getPiece(x, y);
 			if (toRender.type == (int)Pieces::Empty) continue;
+			if (toRender.type == (u_int8_t)Pieces::King && toRender.is_white == board.white_to_move && isCheck) {
+				isCheckTileSprite.setPosition(x * 75, y * 75);
+				window.draw(isCheckTileSprite);
+			}
+
 			int offset = toRender.is_white ? 0 : 6;
 			if (dragStartPos.x == x && dragStartPos.y == y) {
 				draggedSpriteIndex = offset + (toRender.type);
@@ -120,6 +128,11 @@ void BoardUI::endMouseClick(sf::Vector2i mousePos, Board& board) {
 		dragStartPos = { -1, -1 };
 		return;
 	}
-	board.move_raw(dragStartPos.x, dragStartPos.y, mousePos.x / 75, mousePos.y / 75);
-	dragStartPos = { -1, -1 };
+	tryMove(board, dragStartPos.x, dragStartPos.y, mousePos.x / 75, mousePos.y / 75);
+	dragStartPos = { -1, -1 };	
+}
+
+void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
+	board.move_raw(fromX, fromY, toX, toY);
+	isCheck = board.is_check();
 }
