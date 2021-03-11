@@ -55,8 +55,6 @@ static void add_knight_moves(Board& board, int x, int y,
 												{1, 2}, {1, -2}, {-1, 2}, {-1, -2}};
 	for (std::pair<int,int> move : moves) {
 		if (x + move.first > 7 || x + move.first < 0 || y + move.second > 7 || y + move.second < 0) continue;
-		Piece p = board.getPiece(x + move.first, y + move.second);
-		if (p.is_white == board.getPiece(x, y).is_white) continue;
 		res.push_back({x + move.first, y + move.second});
 	}
 }

@@ -183,7 +183,7 @@ std::vector<std::pair<int, int>> Board::get_moves(int x, int y) {
 	Piece from = bc.get(x, y);
 	if (from.type == (uint8_t)Pieces::Empty || white_to_move != from.is_white) {
 		// quick return on degenerate cases
-		//return {};
+		return {};
 	}
 
 	std::vector<std::pair<int, int>> raw_moves = get_moves_raw(x, y);
@@ -324,6 +324,59 @@ void Board::move_raw(int from_x, int from_y, int to_x, int to_y) {
 	// TODO: castling
 	bc.set(to_x, to_y, bc.get(from_x, from_y));
 	bc.set(from_x, from_y, Piece(Pieces::Empty, 0));
+}
+
+void Board::move(int from_x, int from_y, int to_x, int to_y) {
+	Piece toMove = bc.get(from_x, from_y);
+	std::vector<std::pair<int, int>> possibleMoves = get_moves(from_x, from_y);
+	bool legalMove = false;
+	for (std::pair<int, int> move : possibleMoves) {
+		if (move.first == to_x && move.second == to_y) {
+			legalMove = true;
+			break;
+		}
+	}
+	if (!legalMove) return;
+
+	if (toMove.type == (int)Pieces::Rook) { // you cant castle anymore if you move a rook
+		if (from_y == 7 && white_to_move == 1) {
+			if (from_x == 0)
+				white_castle_long = false;
+			else if (from_x == 7)
+				white_castle_short = false;
+		} else if (from_y == 0 && white_to_move == 0) {
+			if (from_x == 0)
+				black_castle_long = false;
+			else if (from_x == 7)
+				black_castle_short = false;
+		}
+	} else if (toMove.type == (int)Pieces::King) { 
+
+		if (from_x == 4 && from_y == 7 && white_to_move == 1) { // player tried to castle
+			if (to_x == 2 && to_y == 7 && white_castle_long) {
+				move_raw(0, 7, 3, 7);
+			} else if (to_x == 6 && to_y == 7 && white_castle_short) {
+				move_raw(7, 7, 5, 7);
+			}
+		} else if (from_x == 4 && from_y == 0 && white_to_move == 0) {
+			if (to_x == 2 && to_y == 0 && black_castle_long) {
+				move_raw(0, 0, 3, 0);
+			} else if (to_x == 6 && to_y == 0 && black_castle_short) {
+				move_raw(7, 0, 5, 0);
+			}
+		}
+
+		if (white_to_move == 1) { // you cant castle anymore if you move your king
+			white_castle_short = false;
+			white_castle_long = false;
+		} else {
+			black_castle_short = false;
+			black_castle_long = false;
+		}
+	} //TODO en passant
+
+	move_raw(from_x, from_y, to_x, to_y);
+	white_to_move = !white_to_move;
 }
 
 std::vector<std::pair<int, int>> Board::get_moves_raw(int x, int y) {

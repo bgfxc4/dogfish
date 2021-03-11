@@ -133,6 +133,6 @@ void BoardUI::endMouseClick(sf::Vector2i mousePos, Board& board) {
 }
 
 void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
-	board.move_raw(fromX, fromY, toX, toY);
+	board.move(fromX, fromY, toX, toY);
 	isCheck = board.is_check();
 }
