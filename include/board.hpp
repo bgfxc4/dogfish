@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bits/stdint-uintn.h>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -24,6 +25,11 @@ class Board {
 public:
 	uint8_t white_to_move : 1;
 	
+	uint8_t white_castle_short : 1;
+	uint8_t white_castle_long : 1;
+	uint8_t black_castle_short : 1;
+	uint8_t black_castle_long : 1;
+	
 	Board(const std::string& fenString);
 	Board() : Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {}
 	std::optional<std::pair<int, int>> get_en_passant_pos();
@@ -32,8 +38,9 @@ public:
 	Piece getPiece(int x, int y);
 
 	std::vector<std::pair<int, int>> get_moves(int x, int y);
+	bool tile_is_attacked(uint8_t color /* white: 0, black: 1 */, int x, int y);
 	bool is_check();
-	bool is_check_straight_diagonal();
+	bool tile_is_attacked_straight_diagonal(uint8_t color /* white: 0, black: 1 */, int x, int y);
 
 	void move_raw(int from_x, int from_y, int to_x, int to_y); // semi-private; don't use
 
@@ -44,11 +51,6 @@ private:
 
 	uint8_t num_half_moves;
 	uint16_t num_moves : 12;
-
-	uint8_t white_castle_short : 1;
-	uint8_t white_castle_long : 1;
-	uint8_t black_castle_short : 1;
-	uint8_t black_castle_long : 1;
 
 	int parseFenString(const std::string& fenString);
 	std::vector<std::pair<int, int>> get_moves_raw(int x, int y);

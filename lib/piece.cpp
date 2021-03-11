@@ -88,6 +88,41 @@ static void add_pawn_moves(Board& board, int x, int y, std::vector<std::pair<int
 	}
 }
 
+static void add_king_moves(Board& board, int x, int y, std::vector<std::pair<int, int>>& res) {
+	std::vector<std::pair<int, int>> mods = {
+		{-1, -1}, {-1, 0}, {-1, 1},
+		{ 0, -1},          { 0, 1},
+		{ 1, -1}, { 1, 0}, { 1, 1},
+	};
+
+	for (std::pair<int, int>& mod : mods) {
+		int dx = std::get<0>(mod), dy = std::get<1>(mod);
+		int _x = x + dx, _y = y + dy;
+
+		if (_x >= 0 && _x < 8 && _y >= 0 && _y < 8) {
+			res.push_back({_x, _y});
+		}
+	}
+	
+	Piece p = board.getPiece(x, y);
+	if (p.is_white) {
+		if (board.white_castle_long) {
+			// three pieces to the left of the king are empty
+			if (board.getPiece(1, 7).type + board.getPiece(2, 7).type + board.getPiece(3, 7).type == (int)Pieces::Empty) {
+
+			}
+		}
+		if (board.white_castle_short) {
+			// two pieces to the right of the king are empty
+			if (board.getPiece(5, 7).type + board.getPiece(6, 7).type == (int)Pieces::Empty) {
+
+			}
+		}
+	} else {
+
+	}
+}
+
 std::vector<std::pair<int, int>> Piece::get_moves_raw(Board& board, int x, int y) {
 	std::vector<std::pair<int, int>> res;
 	switch ((Pieces)type) {
@@ -112,22 +147,8 @@ std::vector<std::pair<int, int>> Piece::get_moves_raw(Board& board, int x, int y
 		add_bishop_moves(board, x, y, res);
 		break;
 
-	case Pieces::King: {
-		std::vector<std::pair<int, int>> mods = {
-			{-1, -1}, {-1, 0}, {-1, 1},
-			{ 0, -1},          { 0, 1},
-			{ 1, -1}, { 1, 0}, { 1, 1},
-		};
-
-		for (std::pair<int, int>& mod : mods) {
-			int dx = std::get<0>(mod), dy = std::get<1>(mod);
-			int _x = x + dx, _y = y + dy;
-
-			if (_x >= 0 && _x < 8 && _y >= 0 && _y < 8) {
-				res.push_back({_x, _y});
-			}
-		}
-	}
+	case Pieces::King: 
+		add_king_moves(board, x, y, res);
 		break;
 
 	default:

@@ -212,10 +212,6 @@ std::vector<std::pair<int, int>> Board::get_moves(int x, int y) {
 }
 
 bool Board::is_check() {
-	if (is_check_straight_diagonal()) {
-		return true;
-	}
-
 	Piece king(0, 0);
 	std::pair<int, int> kingPos;
 	for (int x = 0; x < 8; x++) {
@@ -228,48 +224,48 @@ bool Board::is_check() {
 		}
 	}
 
+	if (tile_is_attacked_straight_diagonal(!king.is_white, kingPos.first, kingPos.second)) {
+		return true;
+	}
+	if (tile_is_attacked(!king.is_white, kingPos.first, kingPos.second)) {
+		return true;
+	}
+	return false;
+}
+
+bool Board::tile_is_attacked(uint8_t color, int tileX, int tileY) {
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
 			Piece p = bc.get(x, y);
 			if (p.type != (int)Pieces::Empty) {
-				if (p.is_white == white_to_move) continue;
-				if (p.type == (int)Pieces::Pawn || p.type == (int)Pieces::Knight) {
+				if (p.is_white != color) continue;
+				if (p.type == (int)Pieces::Pawn || p.type == (int)Pieces::Knight || p.type == (int)Pieces::King) {
 					std::vector<std::pair<int, int>> moves = get_moves_raw(x ,y);
 					for (std::pair<int, int> move : moves) {
-						if ((move.first == kingPos.first) && (move.second == kingPos.second)) return true;
+						if ((move.first == tileX) && (move.second == tileY)) return true;
 					}
 				}
 			}
 		}
 	}
 	return false;
+
 }
 
-bool Board::is_check_straight_diagonal() {
-	Piece king(0, 0);
-	std::pair<int, int> kingPos;
-	for (int x = 0; x < 8; x++) {
-		for (int y = 0; y < 8; y++) {
-			Piece p = bc.get(x, y);
-			if (p.type == (int)Pieces::King && p.is_white == white_to_move) {
-				king = p; // find king of the player who has to move
-				kingPos = { x, y };
-			}
-		}
-	}
+bool Board::tile_is_attacked_straight_diagonal(uint8_t color, int tileX, int tileY) {
 	
 	std::vector<std::pair<int, int>> mods = { {-1, -1}, {-1, 1}, {1, -1}, {1, 1} };
 
-	for (std::pair<int, int> mod : mods) { // check all diagonals of king
+	for (std::pair<int, int> mod : mods) { // check all diagonals of tile
 		int dx = std::get<0>(mod), dy = std::get<1>(mod);
-		for (int y = kingPos.second + dy, x = kingPos.first + dx;
+		for (int y = tileY + dy, x = tileX + dx;
 				y >= 0 && y < 8 && x >= 0 && x < 8;
 				y += dy, x += dx)
 		{
 			Piece p = bc.get(x, y);
 			if (p.type != (uint8_t)Pieces::Empty) {
-				// piece on diagonal is from opponent an can hit over diagonals
-				if (p.is_white != white_to_move && (p.type == (int)Pieces::Bishop || p.type == (int)Pieces::Queen)) {
+				// first piece on diagonal is from opponent an can hit over diagonals
+				if (p.is_white == color && (p.type == (int)Pieces::Bishop || p.type == (int)Pieces::Queen)) {
 					return true;
 				}
 				break;
@@ -281,14 +277,14 @@ bool Board::is_check_straight_diagonal() {
 
 	for (std::pair<int, int> mod : mods) { // check file and row of king
 		int dx = std::get<0>(mod), dy = std::get<1>(mod);
-		for (int y = kingPos.second + dy, x = kingPos.first + dx;
+		for (int y = tileY + dy, x = tileX + dx;
 				y >= 0 && y < 8 && x >= 0 && x < 8;
 				y += dy, x += dx)
 		{
 			Piece p = bc.get(x, y);
 			if (p.type != (uint8_t)Pieces::Empty) {
 				// piece on file or row is from opponent an can hit over 
-				if (p.is_white != white_to_move && (p.type == (int)Pieces::Rook || p.type == (int)Pieces::Queen)) {
+				if (p.is_white == color && (p.type == (int)Pieces::Rook || p.type == (int)Pieces::Queen)) {
 					return true;
 				}
 				break;
