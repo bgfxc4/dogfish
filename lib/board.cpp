@@ -224,9 +224,6 @@ bool Board::is_check() {
 		}
 	}
 
-	if (tile_is_attacked_straight_diagonal(!king.is_white, kingPos.first, kingPos.second)) {
-		return true;
-	}
 	if (tile_is_attacked(!king.is_white, kingPos.first, kingPos.second)) {
 		return true;
 	}
@@ -234,6 +231,10 @@ bool Board::is_check() {
 }
 
 bool Board::tile_is_attacked(uint8_t color, int tileX, int tileY) {
+	if (tile_is_attacked_straight_diagonal(color, tileX, tileY)) {
+		return true;
+	}
+
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
 			Piece p = bc.get(x, y);
