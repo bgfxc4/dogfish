@@ -44,6 +44,7 @@ public:
 	bool tile_is_attacked_straight_diagonal(uint8_t color /* white: 0, black: 1 */, int x, int y);
 
 	void move_raw(int from_x, int from_y, int to_x, int to_y); // semi-private; don't use
+	void move(int from_x, int from_y, int to_x, int to_y);
 
 private:
 	// order of these fields is important for alignment. total size should be 36 bytes
