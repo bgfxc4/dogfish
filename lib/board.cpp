@@ -250,8 +250,32 @@ bool Board::tile_is_attacked(uint8_t color, int tileX, int tileY) {
 		}
 	}
 	return false;
-
 }
+// overload to ignore a specific piece
+bool Board::tile_is_attacked(uint8_t color, int tileX, int tileY, bool ignoreKings) { 
+	if (tile_is_attacked_straight_diagonal(color, tileX, tileY)) {
+		return true;
+	}
+
+	for (int x = 0; x < 8; x++) {
+		for (int y = 0; y < 8; y++) {
+			Piece p = bc.get(x, y);
+			if (p.type != (int)Pieces::Empty) {
+				if (p.is_white != color) continue;
+				if (p.type == (int)Pieces::Pawn || p.type == (int)Pieces::Knight || 
+					(p.type == (int)Pieces::King && !ignoreKings)) 
+				{
+					std::vector<std::pair<int, int>> moves = get_moves_raw(x ,y);
+					for (std::pair<int, int> move : moves) {
+						if ((move.first == tileX) && (move.second == tileY)) return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
 
 bool Board::tile_is_attacked_straight_diagonal(uint8_t color, int tileX, int tileY) {
 	

@@ -39,6 +39,7 @@ public:
 
 	std::vector<std::pair<int, int>> get_moves(int x, int y);
 	bool tile_is_attacked(uint8_t color /* white: 0, black: 1 */, int x, int y);
+	bool tile_is_attacked(uint8_t color /* white: 0, black: 1 */, int x, int y, bool ignoreKings);
 	bool is_check();
 	bool tile_is_attacked_straight_diagonal(uint8_t color /* white: 0, black: 1 */, int x, int y);
 
