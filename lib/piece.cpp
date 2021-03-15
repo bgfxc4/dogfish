@@ -70,16 +70,24 @@ static void add_pawn_moves(Board& board, int x, int y, std::vector<std::pair<int
 			}
 		}
 	}
+	std::optional<std::pair<int, int>> enPassantPosRaw = board.get_en_passant_pos();
+	std::pair<int, int> enPassantPos = { -1, -1 };
+	if (enPassantPosRaw.has_value()) {
+		enPassantPos = { enPassantPosRaw->first, enPassantPosRaw->second };
+	}
+
 	if (x <= 6) {
-		if (board.getPiece(x + 1, y + mod).type != (int)Pieces::Empty &&
+		if ((board.getPiece(x + 1, y + mod).type != (int)Pieces::Empty &&
 			board.getPiece(x + 1, y + mod).is_white != board.getPiece(x, y).is_white)
+			|| (enPassantPos.first == x + 1 && enPassantPos.second == y + mod))
 		{
 			res.push_back({x + 1, y + mod});
 		}
 	}
 	if (x >= 1) {
-		if (board.getPiece(x - 1, y + mod).type != (int)Pieces::Empty &&
+		if ((board.getPiece(x - 1, y + mod).type != (int)Pieces::Empty &&
 			board.getPiece(x - 1, y + mod).is_white != board.getPiece(x, y).is_white)
+			|| (enPassantPos.first == x - 1 && enPassantPos.second == y + mod))
 		{
 			res.push_back({x - 1, y + mod});
 		}

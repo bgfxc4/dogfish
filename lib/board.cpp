@@ -373,8 +373,19 @@ void Board::move(int from_x, int from_y, int to_x, int to_y) {
 			black_castle_short = false;
 			black_castle_long = false;
 		}
-	} //TODO en passant
+	} 
 
+	if (toMove.type == (int)Pieces::Pawn) {
+		int mod = (white_to_move == 1) ? -1 : 1;
+		if (to_y - from_y == 2 * mod) { // pawn was moved two tiles forward, en passant possible on next move
+			set_en_passant_pos({from_x, from_y + mod});
+		} else if (get_en_passant_pos() == (std::pair<int, int>){ to_x, to_y }) { // en passant happened
+			bc.clear_tile(to_x, to_y + (-1 * mod));
+		}
+	} else {
+		clear_en_passant_pos();
+	}
+	
 	move_raw(from_x, from_y, to_x, to_y);
 	white_to_move = !white_to_move;
 }

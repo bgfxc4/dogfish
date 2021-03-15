@@ -14,6 +14,7 @@ public:
 	BoardContent();
 	Piece get(int x, int y);
 	void set(int x, int y, Piece p);
+	void clear_tile(int x, int y);
 
 private:
 	uint8_t bits[32];

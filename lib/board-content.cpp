@@ -14,6 +14,10 @@ void BoardContent::set(int x, int y, Piece p) {
 	set(y * 8 + x, p.type | (p.is_white << 3));
 }
 
+void BoardContent::clear_tile(int x, int y) {
+	set(y * 8 + x, 0 | (1 << 3));
+}
+
 Piece BoardContent::get(uint8_t n) {
 	uint8_t byte = bits[n >> 1];
 	if (n & 1) {
