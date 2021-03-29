@@ -67,7 +67,7 @@ void BoardUI::renderPossibleMoves(sf::RenderWindow& window, Board& board) {
 	std::vector<Move> possibleMoves = board.get_moves(selectedTile[0], selectedTile[1]);
 	for (Move move : possibleMoves) {
 		if (board.getPiece(move.to_x, move.to_y).type == (int)Pieces::Empty && 
-			(move.to_x != enPassantPos.first && move.to_y != enPassantPos.second)) 
+			(move.to_x != enPassantPos.first || move.to_y != enPassantPos.second)) 
 		{
 			possibleMoveSprite.setPosition(move.to_x * 75, move.to_y * 75);
 			window.draw(possibleMoveSprite);
