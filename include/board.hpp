@@ -22,6 +22,14 @@ private:
 	void set(uint8_t n, uint8_t p);
 };
 
+class Move {
+	public:
+	int to_x;
+	int to_y;
+	int is_promotion = 0; // if the move isn*t a promotion, this is 0, if it is, the int has the value of a piece from the Pieces enum
+	Move(int to_x, int to_y, int is_promotion);
+};
+
 class Board {
 public:
 	uint8_t white_to_move : 1;
@@ -38,7 +46,7 @@ public:
 	void clear_en_passant_pos();
 	Piece getPiece(int x, int y);
 
-	std::vector<std::pair<int, int>> get_moves(int x, int y);
+	std::vector<Move> get_moves(int x, int y);
 	bool tile_is_attacked(uint8_t color /* white: 0, black: 1 */, int x, int y);
 	bool tile_is_attacked(uint8_t color /* white: 0, black: 1 */, int x, int y, bool ignoreKings);
 	bool is_check();
@@ -56,5 +64,5 @@ private:
 	uint16_t num_moves : 12;
 
 	int parseFenString(const std::string& fenString);
-	std::vector<std::pair<int, int>> get_moves_raw(int x, int y);
+	std::vector<Move> get_moves_raw(int x, int y);
 };

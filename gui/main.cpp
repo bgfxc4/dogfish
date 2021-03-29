@@ -22,7 +22,7 @@ int main() {
 	Board board;
 	BoardUI boardUI;
 	
-    while (window.isOpen()) {
+	while (window.isOpen()) {
 		sf::Event event;
 		while (window.pollEvent(event)) {
 			if (event.type == sf::Event::Closed)
@@ -38,11 +38,11 @@ int main() {
 					boardUI.endMouseClick(sf::Mouse::getPosition(window), board);
 			}
 		}
-        window.clear();
-        window.draw(boardSprite);
+		window.clear();
+		window.draw(boardSprite);
 		boardUI.renderBoard(window, board);
 		window.display();
-    }
+	}
 	delete &window;
 	return 0;
 }

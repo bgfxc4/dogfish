@@ -64,13 +64,15 @@ void BoardUI::renderPossibleMoves(sf::RenderWindow& window, Board& board) {
 	}
 
 	if (selectedTile[0] < 0 || selectedTile[1] < 0) return;
-	std::vector<std::pair<int, int>> possibleMoves = board.get_moves(selectedTile[0], selectedTile[1]);
-	for (std::pair<int, int> move : possibleMoves) {
-		if (board.getPiece(move.first, move.second).type == (int)Pieces::Empty && move != enPassantPos) {
-			possibleMoveSprite.setPosition(move.first * 75, move.second * 75);
+	std::vector<Move> possibleMoves = board.get_moves(selectedTile[0], selectedTile[1]);
+	for (Move move : possibleMoves) {
+		if (board.getPiece(move.to_x, move.to_y).type == (int)Pieces::Empty && 
+			(move.to_x != enPassantPos.first && move.to_y != enPassantPos.second)) 
+		{
+			possibleMoveSprite.setPosition(move.to_x * 75, move.to_y * 75);
 			window.draw(possibleMoveSprite);
 		} else {
-			possibleTakeSprite.setPosition(move.first * 75, move.second * 75);
+			possibleTakeSprite.setPosition(move.to_x * 75, move.to_y * 75);
 			window.draw(possibleTakeSprite);
 		}
 	}

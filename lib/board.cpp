@@ -6,6 +6,12 @@
 
 #include "constants.hpp"
 
+Move::Move(int to_x, int to_y, int is_promotion) {
+	this->to_x = to_x;
+	this->to_y = to_y;
+	this->is_promotion = is_promotion;
+}
+
 Board::Board(const std::string& fenString) {
 	_en_passant_pos = 0;
 	white_to_move = 1;
@@ -179,18 +185,18 @@ err:
 	return -1;
 }
 
-std::vector<std::pair<int, int>> Board::get_moves(int x, int y) {
+std::vector<Move> Board::get_moves(int x, int y) {
 	Piece from = bc.get(x, y);
 	if (from.type == (uint8_t)Pieces::Empty || white_to_move != from.is_white) {
 		// quick return on degenerate cases
 		return {};
 	}
 
-	std::vector<std::pair<int, int>> raw_moves = get_moves_raw(x, y);
+	std::vector<Move> raw_moves = get_moves_raw(x, y);
 
-	std::vector<std::pair<int, int>> moves_no_friendly_fire;
-	for (std::pair<int, int> move : raw_moves) {
-		int to_x = std::get<0>(move), to_y = std::get<1>(move);
+	std::vector<Move> moves_no_friendly_fire;
+	for (Move move : raw_moves) {
+		int to_x = move.to_x, to_y = move.to_y;
 		Piece to = bc.get(to_x, to_y);
 
 		if (to.type == (uint8_t)Pieces::Empty || to.is_white != from.is_white) {
@@ -198,10 +204,10 @@ std::vector<std::pair<int, int>> Board::get_moves(int x, int y) {
 		}
 	}
 
-	std::vector<std::pair<int, int>> res;
-	for (std::pair<int, int> move : moves_no_friendly_fire) {
+	std::vector<Move> res;
+	for (Move move : moves_no_friendly_fire) {
 		Board tmp(*this);
-		tmp.move_raw(x, y, std::get<0>(move), std::get<1>(move));
+		tmp.move_raw(x, y, move.to_x, move.to_y);
 
 		if (!tmp.is_check()) {
 			res.push_back(move);
@@ -241,9 +247,9 @@ bool Board::tile_is_attacked(uint8_t color, int tileX, int tileY) {
 			if (p.type != (int)Pieces::Empty) {
 				if (p.is_white != color) continue;
 				if (p.type == (int)Pieces::Pawn || p.type == (int)Pieces::Knight || p.type == (int)Pieces::King) {
-					std::vector<std::pair<int, int>> moves = get_moves_raw(x ,y);
-					for (std::pair<int, int> move : moves) {
-						if ((move.first == tileX) && (move.second == tileY)) return true;
+					std::vector<Move> moves = get_moves_raw(x ,y);
+					for (Move move : moves) {
+						if ((move.to_x == tileX) && (move.to_y == tileY)) return true;
 					}
 				}
 			}
@@ -265,9 +271,9 @@ bool Board::tile_is_attacked(uint8_t color, int tileX, int tileY, bool ignoreKin
 				if (p.type == (int)Pieces::Pawn || p.type == (int)Pieces::Knight || 
 					(p.type == (int)Pieces::King && !ignoreKings)) 
 				{
-					std::vector<std::pair<int, int>> moves = get_moves_raw(x ,y);
-					for (std::pair<int, int> move : moves) {
-						if ((move.first == tileX) && (move.second == tileY)) return true;
+					std::vector<Move> moves = get_moves_raw(x ,y);
+					for (Move move : moves) {
+						if ((move.to_x == tileX) && (move.to_y == tileY)) return true;
 					}
 				}
 			}
@@ -328,10 +334,10 @@ void Board::move_raw(int from_x, int from_y, int to_x, int to_y) {
 
 void Board::move(int from_x, int from_y, int to_x, int to_y) {
 	Piece toMove = bc.get(from_x, from_y);
-	std::vector<std::pair<int, int>> possibleMoves = get_moves(from_x, from_y);
+	std::vector<Move> possibleMoves = get_moves(from_x, from_y);
 	bool legalMove = false;
-	for (std::pair<int, int> move : possibleMoves) {
-		if (move.first == to_x && move.second == to_y) {
+	for (Move move : possibleMoves) {
+		if (move.to_x == to_x && move.to_y == to_y) {
 			legalMove = true;
 			break;
 		}
@@ -390,6 +396,6 @@ void Board::move(int from_x, int from_y, int to_x, int to_y) {
 	white_to_move = !white_to_move;
 }
 
-std::vector<std::pair<int, int>> Board::get_moves_raw(int x, int y) {
+std::vector<Move> Board::get_moves_raw(int x, int y) {
 	return bc.get(x, y).get_moves_raw(*this, x, y);
 }

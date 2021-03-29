@@ -11,28 +11,28 @@ Piece::Piece(uint8_t _type, uint8_t _is_white) {
 }
 
 static void add_rook_moves(Board& board, int x, int y,
-		std::vector<std::pair<int, int>>& res)
+		std::vector<Move>& res)
 {
 	for (int _x = x - 1; _x >= 0; _x--) {
-		res.push_back({_x, y});
+		res.push_back(Move(_x, y, (int)Pieces::Empty));
 		if (board.getPiece(_x, y).type != (uint8_t)Pieces::Empty) break;
 	}
 	for (int _x = x + 1; _x < 8; _x++) {
-		res.push_back({_x, y});
+		res.push_back(Move(_x, y, (int)Pieces::Empty));
 		if (board.getPiece(_x, y).type != (uint8_t)Pieces::Empty) break;
 	}
 	for (int _y = y - 1; _y >= 0; _y--) {
-		res.push_back({x, _y});
+		res.push_back(Move(x, _y, (int)Pieces::Empty));
 		if (board.getPiece(x, _y).type != (uint8_t)Pieces::Empty) break;
 	}
 	for (int _y = y + 1; _y < 8; _y++) {
-		res.push_back({x, _y});
+		res.push_back(Move(x, _y, (int)Pieces::Empty));
 		if (board.getPiece(x, _y).type != (uint8_t)Pieces::Empty) break;
 	}
 }
 
 static void add_bishop_moves(Board& board, int x, int y,
-		std::vector<std::pair<int, int>>& res)
+		std::vector<Move>& res)
 {
 	std::vector<std::pair<int, int>> mods = { {-1, -1}, {-1, 1}, {1, -1}, {1, 1} };
 
@@ -42,31 +42,30 @@ static void add_bishop_moves(Board& board, int x, int y,
 				_y >= 0 && _y < 8 && _x >= 0 && _x < 8;
 				_y += dy, _x += dx)
 		{
-			res.push_back({_x, _y});
+			res.push_back(Move(_x, _y, (int)Pieces::Empty));
 			if (board.getPiece(_x, _y).type != (uint8_t)Pieces::Empty) break;
 		}
 	}
 }
 
-static void add_knight_moves(Board& board, int x, int y,
-		std::vector<std::pair<int, int>>& res)
+static void add_knight_moves(int x, int y, std::vector<Move>& res)
 {
 	std::vector<std::pair<int, int>> moves = { {2, 1}, {2, -1}, {-2, 1}, {-2, -1}, 
 												{1, 2}, {1, -2}, {-1, 2}, {-1, -2}};
 	for (std::pair<int,int> move : moves) {
 		if (x + move.first > 7 || x + move.first < 0 || y + move.second > 7 || y + move.second < 0) continue;
-		res.push_back({x + move.first, y + move.second});
+		res.push_back(Move(x + move.first, y + move.second, (int)Pieces::Empty));
 	}
 }
 
-static void add_pawn_moves(Board& board, int x, int y, std::vector<std::pair<int, int>>& res) {
+static void add_pawn_moves(Board& board, int x, int y, std::vector<Move>& res) {
 	int mod = (board.getPiece(x, y).is_white) ? -1 : 1;
 	if ((mod == -1 && y <= 0) || (mod == 1 && y >= 7)) return;
 	if (board.getPiece(x, y + mod).type == (int)Pieces::Empty) { // Push pawn one tile
-		res.push_back({x, y + mod});
+		res.push_back(Move(x, y + mod, (int)Pieces::Empty));
 	    if ((mod == -1 && y == 6) || (mod == 1 && y == 1)) { // pawn is on start tile
 			if (board.getPiece(x, y + 2 * mod).type == (int)Pieces::Empty) { // 2nd tile in front is free
-			res.push_back({x, y + 2 * mod});
+			res.push_back(Move(x, y + 2 * mod, (int)Pieces::Empty));
 			}
 		}
 	}
@@ -81,7 +80,7 @@ static void add_pawn_moves(Board& board, int x, int y, std::vector<std::pair<int
 			board.getPiece(x + 1, y + mod).is_white != board.getPiece(x, y).is_white)
 			|| (enPassantPos.first == x + 1 && enPassantPos.second == y + mod))
 		{
-			res.push_back({x + 1, y + mod});
+			res.push_back(Move(x + 1, y + mod, (int)Pieces::Empty));
 		}
 	}
 	if (x >= 1) {
@@ -89,12 +88,12 @@ static void add_pawn_moves(Board& board, int x, int y, std::vector<std::pair<int
 			board.getPiece(x - 1, y + mod).is_white != board.getPiece(x, y).is_white)
 			|| (enPassantPos.first == x - 1 && enPassantPos.second == y + mod))
 		{
-			res.push_back({x - 1, y + mod});
+			res.push_back(Move(x - 1, y + mod, (int)Pieces::Empty));
 		}
 	}
 }
 
-static void add_king_moves(Board& board, int x, int y, std::vector<std::pair<int, int>>& res) {
+static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
 	std::vector<std::pair<int, int>> mods = {
 		{-1, -1}, {-1, 0}, {-1, 1},
 		{ 0, -1},          { 0, 1},
@@ -106,7 +105,7 @@ static void add_king_moves(Board& board, int x, int y, std::vector<std::pair<int
 		int _x = x + dx, _y = y + dy;
 
 		if (_x >= 0 && _x < 8 && _y >= 0 && _y < 8) {
-			res.push_back({_x, _y});
+			res.push_back(Move(_x, _y, (int)Pieces::Empty));
 		}
 	}
 	
@@ -120,7 +119,7 @@ static void add_king_moves(Board& board, int x, int y, std::vector<std::pair<int
 					!board.tile_is_attacked(!p.is_white, 2, 7, true) && 
 					!board.tile_is_attacked(!p.is_white, 3, 7, true)) // tiles to castle over are not attacked
 				{
-					res.push_back({2, 7});
+					res.push_back(Move(2, 7, (int)Pieces::Empty));
 				}
 			}
 		}
@@ -131,7 +130,7 @@ static void add_king_moves(Board& board, int x, int y, std::vector<std::pair<int
 					!board.tile_is_attacked(!p.is_white, 5, 7, true) &&
 					!board.tile_is_attacked(!p.is_white, 6, 7, true)) // tiles to castle over are not attacked
 				{
-					res.push_back({6, 7});
+					res.push_back(Move(6, 7, (int)Pieces::Empty));
 				}
 			}
 		}
@@ -144,7 +143,7 @@ static void add_king_moves(Board& board, int x, int y, std::vector<std::pair<int
 					!board.tile_is_attacked(!p.is_white, 2, 0, true) && 
 					!board.tile_is_attacked(!p.is_white, 3, 0, true)) // tiles to castle over are not attacked
 				{
-					res.push_back({2, 0});
+					res.push_back(Move(2, 0, (int)Pieces::Empty));
 				}
 			}
 		}
@@ -155,22 +154,22 @@ static void add_king_moves(Board& board, int x, int y, std::vector<std::pair<int
 					!board.tile_is_attacked(!p.is_white, 5, 0, true) && 
 					!board.tile_is_attacked(!p.is_white, 6, 0, true)) // tiles to castle over are not attacked
 				{
-					res.push_back({6, 0});
+					res.push_back(Move(6, 0, (int)Pieces::Empty));
 				}
 			}
 		}
 	}
 }
 
-std::vector<std::pair<int, int>> Piece::get_moves_raw(Board& board, int x, int y) {
-	std::vector<std::pair<int, int>> res;
+std::vector<Move> Piece::get_moves_raw(Board& board, int x, int y) {
+	std::vector<Move> res;
 	switch ((Pieces)type) {
 	case Pieces::Pawn:
 		add_pawn_moves(board, x, y, res);
 		break;
 
 	case Pieces::Knight:
-		add_knight_moves(board, x, y, res);
+		add_knight_moves(x, y, res);
 		break;
 
 	case Pieces::Bishop:
