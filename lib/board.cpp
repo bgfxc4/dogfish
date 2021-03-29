@@ -344,6 +344,9 @@ void Board::move(int from_x, int from_y, int to_x, int to_y) {
 	}
 	if (!legalMove) return;
 
+	std::pair<int, int> tmp_en_passant_pos = get_en_passant_pos().value_or((std::pair<int, int>){-1, -1});
+	clear_en_passant_pos();
+
 	if (toMove.type == (int)Pieces::Rook) { // you cant castle anymore if you move a rook
 		if (from_y == 7 && white_to_move == 1) {
 			if (from_x == 0)
@@ -385,11 +388,9 @@ void Board::move(int from_x, int from_y, int to_x, int to_y) {
 		int mod = (white_to_move == 1) ? -1 : 1;
 		if (to_y - from_y == 2 * mod) { // pawn was moved two tiles forward, en passant possible on next move
 			set_en_passant_pos({from_x, from_y + mod});
-		} else if (get_en_passant_pos() == (std::pair<int, int>){ to_x, to_y }) { // en passant happened
+		} else if (tmp_en_passant_pos == (std::pair<int, int>){ to_x, to_y }) { // en passant happened
 			bc.clear_tile(to_x, to_y + (-1 * mod));
 		}
-	} else {
-		clear_en_passant_pos();
 	}
 	
 	move_raw(from_x, from_y, to_x, to_y);
