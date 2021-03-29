@@ -6,7 +6,7 @@ void print_moves(Board& board, int x, int y) {
 	printf("%d, %d:\n", x, y);
 	auto moves = board.get_moves(x, y);
 	for (auto& move : moves) {
-		printf("-> %d, %d\n", std::get<0>(move), std::get<1>(move));
+		printf("-> %d, %d\n", move.to_x, move.to_y);
 	}
 	puts("");
 }
@@ -19,7 +19,7 @@ int main() {
 	for (int y = 0; y < 8; y++) {
 		for (int x = 0; x < 8; x++) {
 			Piece p = board.getPiece(x, y);
-			printf("% 2hhu ", p.type + 8 * p.is_white);
+			printf("%2hhu", p.type + 8 * p.is_white);
 		}
 		puts("");
 	}

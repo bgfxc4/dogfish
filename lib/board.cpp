@@ -6,10 +6,23 @@
 
 #include "constants.hpp"
 
+Position::Position(int x, int y) {
+	this->x = x;
+	this->y = y;
+}
+
+bool Position::operator== (Position second) {
+	return this->x == second.x && this->y == second.y;
+}
+
 Move::Move(int to_x, int to_y, int is_promotion) {
 	this->to_x = to_x;
 	this->to_y = to_y;
 	this->is_promotion = is_promotion;
+}
+
+bool Move::operator== (Move& second) {
+	return this->to_x == second.to_x && this->to_y == second.to_y && this->is_promotion == second.is_promotion;
 }
 
 Board::Board(const std::string& fenString) {
@@ -24,18 +37,18 @@ Board::Board(const std::string& fenString) {
 	parseFenString(fenString);
 }
 
-std::optional<std::pair<int, int>> Board::get_en_passant_pos() {
+std::optional<Position> Board::get_en_passant_pos() {
 	if (!(_en_passant_pos & 0x40)) {
 		return {};
 	}
 
 	uint8_t tmp = _en_passant_pos & 0x3F;
 
-	return std::make_pair<int, int>(tmp >> 3, tmp & 0x07);
+	return Position(tmp >> 3, tmp & 0x07);
 }
 
-void Board::set_en_passant_pos(std::pair<int, int> pos) {
-	_en_passant_pos = 0x40 | (std::get<0>(pos) << 3) | (std::get<1>(pos));
+void Board::set_en_passant_pos(Position pos) {
+	_en_passant_pos = 0x40 | (pos.x << 3) | pos.y;
 }
 
 void Board::clear_en_passant_pos() {
@@ -219,18 +232,18 @@ std::vector<Move> Board::get_moves(int x, int y) {
 
 bool Board::is_check() {
 	Piece king(0, 0);
-	std::pair<int, int> kingPos;
+	Position kingPos(-1, -1);
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
 			Piece p = bc.get(x, y);
 			if (p.type == (int)Pieces::King && p.is_white == white_to_move) {
 				king = p; // find king of the player who has to move
-				kingPos = { x, y };
+				kingPos = Position(x, y);
 			}
 		}
 	}
 
-	if (tile_is_attacked(!king.is_white, kingPos.first, kingPos.second)) {
+	if (tile_is_attacked(!king.is_white, kingPos.x, kingPos.y)) {
 		return true;
 	}
 	return false;
@@ -285,10 +298,10 @@ bool Board::tile_is_attacked(uint8_t color, int tileX, int tileY, bool ignoreKin
 
 bool Board::tile_is_attacked_straight_diagonal(uint8_t color, int tileX, int tileY) {
 	
-	std::vector<std::pair<int, int>> mods = { {-1, -1}, {-1, 1}, {1, -1}, {1, 1} };
+	std::vector<Position> mods = { {-1, -1}, {-1, 1}, {1, -1}, {1, 1} };
 
-	for (std::pair<int, int> mod : mods) { // check all diagonals of tile
-		int dx = std::get<0>(mod), dy = std::get<1>(mod);
+	for (Position mod : mods) { // check all diagonals of tile
+		int dx = mod.x, dy = mod.y;
 		for (int y = tileY + dy, x = tileX + dx;
 				y >= 0 && y < 8 && x >= 0 && x < 8;
 				y += dy, x += dx)
@@ -306,8 +319,8 @@ bool Board::tile_is_attacked_straight_diagonal(uint8_t color, int tileX, int til
 
 	mods = { {-1, 0}, {1, 0}, {0, -1}, {0, 1} };
 
-	for (std::pair<int, int> mod : mods) { // check file and row of king
-		int dx = std::get<0>(mod), dy = std::get<1>(mod);
+	for (Position mod : mods) { // check file and row of king
+		int dx = mod.x, dy = mod.y;
 		for (int y = tileY + dy, x = tileX + dx;
 				y >= 0 && y < 8 && x >= 0 && x < 8;
 				y += dy, x += dx)
@@ -344,7 +357,7 @@ void Board::move(int from_x, int from_y, int to_x, int to_y) {
 	}
 	if (!legalMove) return;
 
-	std::pair<int, int> tmp_en_passant_pos = get_en_passant_pos().value_or((std::pair<int, int>){-1, -1});
+	Position tmp_en_passant_pos = get_en_passant_pos().value_or((Position(-1, -1)));
 	clear_en_passant_pos();
 
 	if (toMove.type == (int)Pieces::Rook) { // you cant castle anymore if you move a rook
@@ -388,7 +401,7 @@ void Board::move(int from_x, int from_y, int to_x, int to_y) {
 		int mod = (white_to_move == 1) ? -1 : 1;
 		if (to_y - from_y == 2 * mod) { // pawn was moved two tiles forward, en passant possible on next move
 			set_en_passant_pos({from_x, from_y + mod});
-		} else if (tmp_en_passant_pos == (std::pair<int, int>){ to_x, to_y }) { // en passant happened
+		} else if (tmp_en_passant_pos == Position(to_x, to_y)) { // en passant happened
 			bc.clear_tile(to_x, to_y + (-1 * mod));
 		}
 	}

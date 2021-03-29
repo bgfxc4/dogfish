@@ -57,17 +57,17 @@ void BoardUI::renderSelectedTiles(sf::RenderWindow& window) {
 }
 
 void BoardUI::renderPossibleMoves(sf::RenderWindow& window, Board& board) {
-	std::optional<std::pair<int, int>> enPassantPosRaw = board.get_en_passant_pos();
-	std::pair<int, int> enPassantPos = { -1, -1 };
+	std::optional<Position> enPassantPosRaw = board.get_en_passant_pos();
+	Position enPassantPos = Position(-1, -1 );
 	if (enPassantPosRaw.has_value()) {
-		enPassantPos = { enPassantPosRaw->first, enPassantPosRaw->second };
+		enPassantPos = { enPassantPosRaw->x, enPassantPosRaw->y };
 	}
 
 	if (selectedTile[0] < 0 || selectedTile[1] < 0) return;
 	std::vector<Move> possibleMoves = board.get_moves(selectedTile[0], selectedTile[1]);
 	for (Move move : possibleMoves) {
 		if (board.getPiece(move.to_x, move.to_y).type == (int)Pieces::Empty && 
-			(move.to_x != enPassantPos.first || move.to_y != enPassantPos.second)) 
+			(move.to_x != enPassantPos.x || move.to_y != enPassantPos.y)) 
 		{
 			possibleMoveSprite.setPosition(move.to_x * 75, move.to_y * 75);
 			window.draw(possibleMoveSprite);

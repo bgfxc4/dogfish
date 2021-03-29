@@ -34,10 +34,10 @@ static void add_rook_moves(Board& board, int x, int y,
 static void add_bishop_moves(Board& board, int x, int y,
 		std::vector<Move>& res)
 {
-	std::vector<std::pair<int, int>> mods = { {-1, -1}, {-1, 1}, {1, -1}, {1, 1} };
+	std::vector<Position> mods = { Position(-1, -1), Position(-1, 1), Position(1, -1), Position(1, 1)};
 
-	for (std::pair<int, int> mod : mods) {
-		int dx = std::get<0>(mod), dy = std::get<1>(mod);
+	for (Position mod : mods) {
+		int dx = mod.x, dy = mod.y;
 		for (int _y = y + dy, _x = x + dx;
 				_y >= 0 && _y < 8 && _x >= 0 && _x < 8;
 				_y += dy, _x += dx)
@@ -50,11 +50,11 @@ static void add_bishop_moves(Board& board, int x, int y,
 
 static void add_knight_moves(int x, int y, std::vector<Move>& res)
 {
-	std::vector<std::pair<int, int>> moves = { {2, 1}, {2, -1}, {-2, 1}, {-2, -1}, 
-												{1, 2}, {1, -2}, {-1, 2}, {-1, -2}};
-	for (std::pair<int,int> move : moves) {
-		if (x + move.first > 7 || x + move.first < 0 || y + move.second > 7 || y + move.second < 0) continue;
-		res.push_back(Move(x + move.first, y + move.second, (int)Pieces::Empty));
+	std::vector<Position> moves = { Position(2, 1), Position(2, -1), Position(-2, 1), Position(-2, -1), 
+												Position(1, 2), Position(1, -2), Position(-1, 2), Position(-1, -2)};
+	for (Position move : moves) {
+		if (x + move.x > 7 || x + move.x < 0 || y + move.y > 7 || y + move.y < 0) continue;
+		res.push_back(Move(x + move.x, y + move.y, (int)Pieces::Empty));
 	}
 }
 
@@ -69,16 +69,16 @@ static void add_pawn_moves(Board& board, int x, int y, std::vector<Move>& res) {
 			}
 		}
 	}
-	std::optional<std::pair<int, int>> enPassantPosRaw = board.get_en_passant_pos();
-	std::pair<int, int> enPassantPos = { -1, -1 };
+	std::optional<Position> enPassantPosRaw = board.get_en_passant_pos();
+	Position enPassantPos = Position(-1, -1);
 	if (enPassantPosRaw.has_value()) {
-		enPassantPos = { enPassantPosRaw->first, enPassantPosRaw->second };
+		enPassantPos = Position(enPassantPosRaw->x, enPassantPosRaw->y);
 	}
 
 	if (x <= 6) {
 		if ((board.getPiece(x + 1, y + mod).type != (int)Pieces::Empty &&
 			board.getPiece(x + 1, y + mod).is_white != board.getPiece(x, y).is_white)
-			|| (enPassantPos.first == x + 1 && enPassantPos.second == y + mod))
+			|| (enPassantPos.x == x + 1 && enPassantPos.y == y + mod))
 		{
 			res.push_back(Move(x + 1, y + mod, (int)Pieces::Empty));
 		}
@@ -86,7 +86,7 @@ static void add_pawn_moves(Board& board, int x, int y, std::vector<Move>& res) {
 	if (x >= 1) {
 		if ((board.getPiece(x - 1, y + mod).type != (int)Pieces::Empty &&
 			board.getPiece(x - 1, y + mod).is_white != board.getPiece(x, y).is_white)
-			|| (enPassantPos.first == x - 1 && enPassantPos.second == y + mod))
+			|| (enPassantPos.x == x - 1 && enPassantPos.y == y + mod))
 		{
 			res.push_back(Move(x - 1, y + mod, (int)Pieces::Empty));
 		}
@@ -94,14 +94,14 @@ static void add_pawn_moves(Board& board, int x, int y, std::vector<Move>& res) {
 }
 
 static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
-	std::vector<std::pair<int, int>> mods = {
-		{-1, -1}, {-1, 0}, {-1, 1},
-		{ 0, -1},          { 0, 1},
-		{ 1, -1}, { 1, 0}, { 1, 1},
+	std::vector<Position> mods = {
+		Position(-1, -1), Position(-1, 0), Position(-1, 1),
+		Position(0, -1),          Position{ 0, 1},
+		Position(1, -1), Position(1, 0), Position(1, 1),
 	};
 
-	for (std::pair<int, int>& mod : mods) {
-		int dx = std::get<0>(mod), dy = std::get<1>(mod);
+	for (Position& mod : mods) {
+		int dx = mod.x, dy = mod.y;
 		int _x = x + dx, _y = y + dy;
 
 		if (_x >= 0 && _x < 8 && _y >= 0 && _y < 8) {

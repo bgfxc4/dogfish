@@ -22,12 +22,22 @@ private:
 	void set(uint8_t n, uint8_t p);
 };
 
+class Position {
+	public:
+	int x;
+	int y;
+
+	Position(int x, int y);
+	bool operator== (Position second);
+};
+
 class Move {
 	public:
 	int to_x;
 	int to_y;
 	int is_promotion = 0; // if the move isn*t a promotion, this is 0, if it is, the int has the value of a piece from the Pieces enum
 	Move(int to_x, int to_y, int is_promotion);
+	bool operator== (Move& second);
 };
 
 class Board {
@@ -41,8 +51,8 @@ public:
 	
 	Board(const std::string& fenString);
 	Board() : Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {}
-	std::optional<std::pair<int, int>> get_en_passant_pos();
-	void set_en_passant_pos(std::pair<int, int> pos);
+	std::optional<Position> get_en_passant_pos();
+	void set_en_passant_pos(Position pos);
 	void clear_en_passant_pos();
 	Piece getPiece(int x, int y);
 
