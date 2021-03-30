@@ -137,10 +137,22 @@ void BoardUI::endMouseClick(sf::Vector2i mousePos, Board& board) {
 		return;
 	}
 	tryMove(board, dragStartPos.x, dragStartPos.y, mousePos.x / 75, mousePos.y / 75);
-	dragStartPos = { -1, -1 };	
+	dragStartPos = { -1, -1 };
 }
 
 void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
-	board.move(fromX, fromY, toX, toY);
+
+	std::vector<Move> possibleMoves = board.get_moves(fromX, fromY);
+	Move move(-1, -1);
+
+	for (Move possibleMove : possibleMoves) {
+		if (possibleMove.to_x == toX && possibleMove.to_y == toY) {
+			move = possibleMove;
+		}
+	}
+	
+	if (move.to_x == -1 || move.to_y == -1) return;
+
+	board.move(fromX, fromY, move);
 	isCheck = board.is_check();
 }

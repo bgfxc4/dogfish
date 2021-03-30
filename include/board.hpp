@@ -36,7 +36,9 @@ class Move {
 	int to_x;
 	int to_y;
 	int is_promotion = 0; // if the move isn*t a promotion, this is 0, if it is, the int has the value of a piece from the Pieces enum
-	Move(int to_x, int to_y, int is_promotion);
+	int promotion_is_white = 0;
+	Move(int to_x, int to_y, int is_promotion, int promotion_is_white);
+	Move(int to_x, int to_y);
 	bool operator== (Move& second);
 };
 
@@ -63,7 +65,7 @@ public:
 	bool tile_is_attacked_straight_diagonal(uint8_t color /* white: 0, black: 1 */, int x, int y);
 
 	void move_raw(int from_x, int from_y, int to_x, int to_y); // semi-private; don't use
-	void move(int from_x, int from_y, int to_x, int to_y);
+	void move(int from_x, int from_y, Move move);
 
 private:
 	// order of these fields is important for alignment. total size should be 36 bytes

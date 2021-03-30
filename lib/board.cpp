@@ -15,10 +15,18 @@ bool Position::operator== (Position second) {
 	return this->x == second.x && this->y == second.y;
 }
 
-Move::Move(int to_x, int to_y, int is_promotion) {
+Move::Move(int to_x, int to_y, int is_promotion, int promotion_is_white) {
 	this->to_x = to_x;
 	this->to_y = to_y;
 	this->is_promotion = is_promotion;
+	this->promotion_is_white = promotion_is_white;
+}
+
+Move::Move(int to_x, int to_y) {
+	this->to_x = to_x;
+	this->to_y = to_y;
+	this->is_promotion = (int)Pieces::Empty;
+	this->promotion_is_white = -1;
 }
 
 bool Move::operator== (Move& second) {
@@ -345,12 +353,12 @@ void Board::move_raw(int from_x, int from_y, int to_x, int to_y) {
 	bc.set(from_x, from_y, Piece(Pieces::Empty, 0));
 }
 
-void Board::move(int from_x, int from_y, int to_x, int to_y) {
+void Board::move(int from_x, int from_y, Move move) {
 	Piece toMove = bc.get(from_x, from_y);
 	std::vector<Move> possibleMoves = get_moves(from_x, from_y);
 	bool legalMove = false;
-	for (Move move : possibleMoves) {
-		if (move.to_x == to_x && move.to_y == to_y) {
+	for (Move possibleMove : possibleMoves) {
+		if (possibleMove.to_x == move.to_x && possibleMove.to_y == move.to_y) {
 			legalMove = true;
 			break;
 		}
@@ -375,15 +383,15 @@ void Board::move(int from_x, int from_y, int to_x, int to_y) {
 	} else if (toMove.type == (int)Pieces::King) { 
 
 		if (from_x == 4 && from_y == 7 && white_to_move == 1) { // player tried to castle
-			if (to_x == 2 && to_y == 7 && white_castle_long) {
+			if (move.to_x == 2 && move.to_y == 7 && white_castle_long) {
 				move_raw(0, 7, 3, 7);
-			} else if (to_x == 6 && to_y == 7 && white_castle_short) {
+			} else if (move.to_x == 6 && move.to_y == 7 && white_castle_short) {
 				move_raw(7, 7, 5, 7);
 			}
 		} else if (from_x == 4 && from_y == 0 && white_to_move == 0) {
-			if (to_x == 2 && to_y == 0 && black_castle_long) {
+			if (move.to_x == 2 && move.to_y == 0 && black_castle_long) {
 				move_raw(0, 0, 3, 0);
-			} else if (to_x == 6 && to_y == 0 && black_castle_short) {
+			} else if (move.to_x == 6 && move.to_y == 0 && black_castle_short) {
 				move_raw(7, 0, 5, 0);
 			}
 		}
@@ -399,14 +407,19 @@ void Board::move(int from_x, int from_y, int to_x, int to_y) {
 
 	if (toMove.type == (int)Pieces::Pawn) {
 		int mod = (white_to_move == 1) ? -1 : 1;
-		if (to_y - from_y == 2 * mod) { // pawn was moved two tiles forward, en passant possible on next move
+		if (move.to_y - from_y == 2 * mod) { // pawn was moved two tiles forward, en passant possible on next move
 			set_en_passant_pos({from_x, from_y + mod});
-		} else if (tmp_en_passant_pos == Position(to_x, to_y)) { // en passant happened
-			bc.clear_tile(to_x, to_y + (-1 * mod));
+		} else if (tmp_en_passant_pos == Position(move.to_x, move.to_y)) { // en passant happened
+			bc.clear_tile(move.to_x, move.to_y + (-1 * mod));
 		}
 	}
 	
-	move_raw(from_x, from_y, to_x, to_y);
+	move_raw(from_x, from_y, move.to_x, move.to_y);
+
+	if (move.is_promotion != (int)Pieces::Empty) {
+		bc.set(move.to_x, move.to_y, Piece(move.is_promotion, move.promotion_is_white));
+	}
+
 	white_to_move = !white_to_move;
 }
 
