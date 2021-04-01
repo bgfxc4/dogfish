@@ -1,6 +1,7 @@
 #include "board.hpp"
 
 #include <array>
+#include <bits/stdint-uintn.h>
 #include <vector>
 #include <iostream>
 
@@ -13,6 +14,10 @@ Position::Position(int x, int y) {
 
 bool Position::operator== (Position second) {
 	return this->x == second.x && this->y == second.y;
+}
+
+bool Position::operator!= (Position second) {
+	return this->x != second.x || this->y != second.y;
 }
 
 Move::Move(int to_x, int to_y, int is_promotion, int promotion_is_white) {
@@ -257,6 +262,22 @@ bool Board::is_check() {
 	return false;
 }
 
+uint8_t* Board::get_all_raw() {
+	return bc.get_all_raw();
+}
+
+std::vector<Move> Board::get_all_possible_moves() {
+	std::vector<Move> res;
+	for (int x = 0; x < 8; x++) {
+		for (int y = 0; y < 8; y++) {
+			if (bc.get(x, y).is_white != white_to_move) continue;
+			std::vector<Move> moves_to_add = get_moves(x, y);
+			res.insert(res.end(), moves_to_add.begin(), moves_to_add.end());
+		}
+	}
+	return res;
+}
+
 bool Board::tile_is_attacked(uint8_t color, int tileX, int tileY) {
 	if (tile_is_attacked_straight_diagonal(color, tileX, tileY)) {
 		return true;
@@ -347,6 +368,20 @@ bool Board::tile_is_attacked_straight_diagonal(uint8_t color, int tileX, int til
 	return false;
 }
 
+bool Board::is_same_position(Board& board) {
+	uint8_t* own_pos = this->get_all_raw();
+	uint8_t* compare_pos = board.get_all_raw();
+	for (int i = 0; i < 32; i++) {
+		if (own_pos[i] != compare_pos[i]) return false;
+	}
+	if (this->white_castle_short != board.white_castle_short) return false;
+	if (this->white_castle_long != board.white_castle_long) return false;
+	if (this->black_castle_long != board.black_castle_long) return false;
+	if (this->black_castle_short != board.black_castle_short) return false;
+	if (this->get_en_passant_pos().value_or(Position(-1, -1)) != board.get_en_passant_pos().value_or(Position(-1, -1))) return false;
+	return true;
+}
+
 void Board::move_raw(int from_x, int from_y, int to_x, int to_y) {
 	// TODO: castling
 	bc.set(to_x, to_y, bc.get(from_x, from_y));
@@ -367,6 +402,10 @@ void Board::move(int from_x, int from_y, Move move) {
 
 	Position tmp_en_passant_pos = get_en_passant_pos().value_or((Position(-1, -1)));
 	clear_en_passant_pos();
+	
+	if (bc.get(move.to_x, move.to_y).type != (int)Pieces::Empty) { // capture happened
+		whole_game.clear();
+	}
 
 	if (toMove.type == (int)Pieces::Rook) { // you cant castle anymore if you move a rook
 		if (from_y == 7 && white_to_move == 1) {
@@ -421,6 +460,33 @@ void Board::move(int from_x, int from_y, Move move) {
 	}
 
 	white_to_move = !white_to_move;
+	
+	if (toMove.type == (int)Pieces::Pawn || getPiece(move.to_x, move.to_y).type != (int)Pieces::Empty) {
+		num_half_moves = 0;
+	} else {
+		num_half_moves++;
+		if (num_half_moves >= 50) {
+			std::cout << "draw by 50 half moves" << std::endl;
+			gameState = GameState::draw;
+		}
+	}
+
+	int repetition_count = 0;
+	for (Board& board : whole_game) {
+		if (is_same_position(board)) repetition_count++;
+	}
+	
+	if (repetition_count >= 2) {
+		std::cout << "draw by repetition" << std::endl;
+		gameState = GameState::draw;
+	}
+	
+	if (get_all_possible_moves().size() == 0) {
+		std::cout << "checkmate" << std::endl;
+		gameState = (white_to_move) ? GameState::white_checkmate : GameState::black_checkmate;
+	}
+
+	whole_game.push_back(*this);
 }
 
 std::vector<Move> Board::get_moves_raw(int x, int y) {

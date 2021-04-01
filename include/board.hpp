@@ -13,6 +13,7 @@ class BoardContent {
 public:
 	BoardContent();
 	Piece get(int x, int y);
+	uint8_t* get_all_raw();
 	void set(int x, int y, Piece p);
 	void clear_tile(int x, int y);
 
@@ -29,6 +30,7 @@ class Position {
 
 	Position(int x, int y);
 	bool operator== (Position second);
+	bool operator!= (Position second);
 };
 
 class Move {
@@ -42,15 +44,26 @@ class Move {
 	bool operator== (Move& second);
 };
 
+enum GameState {
+	playing,
+	draw,
+	white_checkmate,
+	black_checkmate,
+};
+
 class Board {
 public:
+	GameState gameState = GameState::playing;
+
 	uint8_t white_to_move : 1;
 	
 	uint8_t white_castle_short : 1;
 	uint8_t white_castle_long : 1;
 	uint8_t black_castle_short : 1;
 	uint8_t black_castle_long : 1;
-	
+
+	std::vector<Board> whole_game;
+
 	Board(const std::string& fenString);
 	Board() : Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {}
 	std::optional<Position> get_en_passant_pos();
@@ -62,7 +75,11 @@ public:
 	bool tile_is_attacked(uint8_t color /* white: 0, black: 1 */, int x, int y);
 	bool tile_is_attacked(uint8_t color /* white: 0, black: 1 */, int x, int y, bool ignoreKings);
 	bool is_check();
+	uint8_t* get_all_raw();
+	std::vector<Move> get_all_possible_moves();
 	bool tile_is_attacked_straight_diagonal(uint8_t color /* white: 0, black: 1 */, int x, int y);
+	
+	bool is_same_position(Board& board);
 
 	void move_raw(int from_x, int from_y, int to_x, int to_y); // semi-private; don't use
 	void move(int from_x, int from_y, Move move);

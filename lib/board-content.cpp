@@ -10,6 +10,10 @@ Piece BoardContent::get(int x, int y) {
 	return get(y * 8 + x);
 }
 
+uint8_t* BoardContent::get_all_raw() {
+	return bits;
+}
+
 void BoardContent::set(int x, int y, Piece p) {
 	set(y * 8 + x, p.type | (p.is_white << 3));
 }
