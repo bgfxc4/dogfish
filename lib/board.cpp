@@ -262,6 +262,27 @@ bool Board::is_check() {
 	return false;
 }
 
+bool Board::is_insufficient_material() {
+	int white_bishop_count = 0;
+	int black_bishop_count = 0;
+	int white_knight_count = 0;
+	int black_knight_count = 0;
+	
+	for (int x = 0; x < 8; x++) {
+		for (int y = 0; y < 8; y++) {
+			Piece p = bc.get(x, y);
+			if (p.type == (int)Pieces::Empty || p.type == (int)Pieces::King) continue;
+			else if (p.type == (int)Pieces::Bishop) (p.is_white) ? white_bishop_count++ : black_bishop_count++;
+			else if (p.type == (int)Pieces::Knight) (p.is_white) ? white_knight_count++ : black_knight_count++;
+			else if (p.type == (int)Pieces::Pawn) return false;
+			else if (p.type == (int)Pieces::Rook) return false;
+			else if (p.type == (int)Pieces::Queen) return false;
+		}
+	}
+	if (white_knight_count + white_bishop_count <= 1 && black_knight_count + black_bishop_count <= 1) return true;
+	return false;
+}
+
 uint8_t* Board::get_all_raw() {
 	return bc.get_all_raw();
 }
@@ -481,11 +502,21 @@ void Board::move(int from_x, int from_y, Move move) {
 		gameState = GameState::draw;
 	}
 	
-	if (get_all_possible_moves().size() == 0) {
-		std::cout << "checkmate" << std::endl;
-		gameState = (white_to_move) ? GameState::white_checkmate : GameState::black_checkmate;
+	if (is_insufficient_material()) {	
+		std::cout << "draw by insufficient material" << std::endl;
+		gameState = GameState::draw;
 	}
 
+	if (get_all_possible_moves().size() == 0) {
+		if (is_check()) {
+			std::cout << "checkmate" << std::endl;
+			gameState = (white_to_move) ? GameState::white_checkmate : GameState::black_checkmate;
+		} else {
+			std::cout << "draw by stalemate" << std::endl;
+			gameState = GameState::draw;
+		}
+	}
+	
 	whole_game.push_back(*this);
 }
 

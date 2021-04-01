@@ -75,6 +75,7 @@ public:
 	bool tile_is_attacked(uint8_t color /* white: 0, black: 1 */, int x, int y);
 	bool tile_is_attacked(uint8_t color /* white: 0, black: 1 */, int x, int y, bool ignoreKings);
 	bool is_check();
+	bool is_insufficient_material();
 	uint8_t* get_all_raw();
 	std::vector<Move> get_all_possible_moves();
 	bool tile_is_attacked_straight_diagonal(uint8_t color /* white: 0, black: 1 */, int x, int y);
