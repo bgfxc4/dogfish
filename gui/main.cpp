@@ -11,17 +11,23 @@
 
 #include "graphics.hpp"
 #include "board-ui.hpp"
+#include "parse_opts.hpp"
 
 void testing() {
 }
 
-int main() {
+int main(int argc, char* argv[]) {
 	testing();
+	
+	struct opts opt;
+	parse_opts(argc, argv, &opt);
+
+	if (opt.help) return 0;
 
 	sf::RenderWindow& window = startGraphics();
 	Board board;
-	BoardUI boardUI;
-	
+	BoardUI boardUI = (opt.engine) ? BoardUI(1) : BoardUI();
+
 	while (window.isOpen()) {
 		sf::Event event;
 		while (window.pollEvent(event)) {

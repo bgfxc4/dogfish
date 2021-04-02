@@ -24,7 +24,7 @@ int* tileNameToPosition(const std::string& tileName) {
 	return ret;
 }
 
-BoardUI::BoardUI() {
+void BoardUI::loadTextures() {
 	selectedTileWhiteTexture.loadFromFile("images/selectedTileWhite.png");
 	selectedTileBlackTexture.loadFromFile("images/selectedTileBlack.png");
 	possibleMoveTexture.loadFromFile("images/possibleMove.png");
@@ -39,13 +39,26 @@ BoardUI::BoardUI() {
 	isCheckTileSprite = sf::Sprite(isCheckTileTexture);
 	promotionChooseWhiteSprite = sf::Sprite(promotionChooseWhiteTexture);
 	promotionChooseBlackSprite = sf::Sprite(promotionChooseBlackTexture);
+
 }
+
+BoardUI::BoardUI() {
+	loadTextures();
+}
+
+BoardUI::BoardUI(int white_playing) {
+	loadTextures();
+	onlyOneSidePlaying = white_playing;
+}
+
 BoardUI::~BoardUI() {
 }
 
 void BoardUI::renderBoard(sf::RenderWindow& window, Board& boardToRender) {
 	renderSelectedTiles(window);
-	renderPossibleMoves(window, boardToRender);
+	if (onlyOneSidePlaying == boardToRender.white_to_move || onlyOneSidePlaying == -1) {
+		renderPossibleMoves(window, boardToRender);
+	}
 	renderPieces(window, boardToRender);
 	if (ui_state == UI_state::black_choosing_promotion || ui_state == UI_state::white_choosing_promotion) {
 		renderPromotionChoose(window);
@@ -197,6 +210,9 @@ void BoardUI::endMouseClickPromoteState(sf::Vector2i mousePos, Board& board) {
 }
 
 void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
+
+
+	if (onlyOneSidePlaying != board.white_to_move && onlyOneSidePlaying != -1) return;
 
 	std::vector<Move> possibleMoves = board.get_moves(fromX, fromY);
 	Move move(-1, -1);

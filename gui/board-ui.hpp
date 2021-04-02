@@ -21,6 +21,8 @@ class BoardUI {
 	Position promotingPositionFrom = Position(-1, -1);
 	Pieces promotingTo = Pieces::Empty;
 
+	int onlyOneSidePlaying = -1; // if the user plays both sides, this is -1, if he plays white, it is 1, if black, it is 0
+
 	std::array<int8_t, 2> selectedTile = { -1, -1 };
 	bool isCheck = false;
 
@@ -42,7 +44,10 @@ class BoardUI {
 	sf::Vector2i dragStartPos = {-1, -1};
 	sf::Sprite* draggedSprite;
 
-	BoardUI();
+	void loadTextures();
+
+	BoardUI(); // user plays both sides
+	BoardUI(int white_playing); // user plays only one side (e.g. against an engine)
 	~BoardUI();
 
 	void renderBoard(sf::RenderWindow& window, Board& boardToRender);

@@ -1,5 +1,5 @@
 LDFLAGS += -lsfml-graphics -lsfml-audio -lsfml-window -lsfml-system
-OBJECTS := main.o board-ui.o graphics.o
+OBJECTS := main.o board-ui.o graphics.o parse_opts.o
 CXXFLAGS ?= -Wall -Wextra
 CXXFLAGS += -std=c++2a
 CXX ?= g++
@@ -7,7 +7,7 @@ INCLUDES := -I ../include
 
 BOARD_LIB := ../lib/board.a
 
-HEADERS := board-ui.hpp graphics.hpp ../include/board.hpp ../include/piece.hpp ../include/constants.hpp
+HEADERS := board-ui.hpp graphics.hpp parse_opts.hpp ../include/board.hpp ../include/piece.hpp ../include/constants.hpp
 EXECUTABLE := main
 
 debug : CXXFLAGS += -Og -g -pg
