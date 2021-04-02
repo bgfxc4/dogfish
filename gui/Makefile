@@ -3,7 +3,7 @@ OBJECTS := main.o board-ui.o graphics.o parse_opts.o
 CXXFLAGS ?= -Wall -Wextra
 CXXFLAGS += -std=c++2a
 CXX ?= g++
-INCLUDES := -I ../include
+INCLUDES := -I ../include -I ../include/fossile_chess
 
 BOARD_LIB := ../lib/board.a
 

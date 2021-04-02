@@ -1,9 +1,9 @@
 CXXFLAGS ?= -Wall -Wextra -std=c++17
 LDFLAGS ?=
 CXX ?= g++
-INCLUDES := -I ../include
+INCLUDES := -I ../include -I ../include/fossile_chess
 
-OBJECTS := board.o board-content.o piece.o
+OBJECTS := board.o board-content.o piece.o fossile_chess/fossile_chess.o
 HEADERS := ../include/board.hpp ../include/piece.hpp
 LIBRARY := board.a
 
@@ -20,7 +20,7 @@ $(LIBRARY): $(OBJECTS)
 	$(AR) rcs $@ $(OBJECTS)
 
 %.o: %.cpp $(HEADERS)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $< -c
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $< -c -o $@
 
 .PHONY: clean
 clean:

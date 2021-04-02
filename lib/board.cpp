@@ -21,8 +21,8 @@ bool Position::operator!= (Position second) {
 }
 
 Move::Move(int from_x, int from_y, int to_x, int to_y, int is_promotion, int promotion_is_white) {
-	this->to_x = from_x;
-	this->to_y = from_y;
+	this->from_x = from_x;
+	this->from_y = from_y;
 	this->to_x = to_x;
 	this->to_y = to_y;
 	this->is_promotion = is_promotion;
@@ -30,8 +30,8 @@ Move::Move(int from_x, int from_y, int to_x, int to_y, int is_promotion, int pro
 }
 
 Move::Move(int from_x, int from_y, int to_x, int to_y) {
-	this->to_x = from_x;
-	this->to_y = from_y;
+	this->from_x = from_x;
+	this->from_y = from_y;
 	this->to_x = to_x;
 	this->to_y = to_y;
 	this->is_promotion = (int)Pieces::Empty;

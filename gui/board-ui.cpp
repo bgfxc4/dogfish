@@ -48,7 +48,8 @@ BoardUI::BoardUI() {
 
 BoardUI::BoardUI(int white_playing) {
 	loadTextures();
-	onlyOneSidePlaying = white_playing;
+	playingAgainstEngine = white_playing;
+	engine = FossileChess();
 }
 
 BoardUI::~BoardUI() {
@@ -56,7 +57,7 @@ BoardUI::~BoardUI() {
 
 void BoardUI::renderBoard(sf::RenderWindow& window, Board& boardToRender) {
 	renderSelectedTiles(window);
-	if (onlyOneSidePlaying == boardToRender.white_to_move || onlyOneSidePlaying == -1) {
+	if (playingAgainstEngine == boardToRender.white_to_move || playingAgainstEngine == -1) {
 		renderPossibleMoves(window, boardToRender);
 	}
 	renderPieces(window, boardToRender);
@@ -180,6 +181,8 @@ void BoardUI::endMouseClick(sf::Vector2i mousePos, Board& board) {
 }
 
 void BoardUI::endMouseClickNormalState(sf::Vector2i mousePos, Board& board) {
+	if (playingAgainstEngine != board.white_to_move && playingAgainstEngine != -1) return;
+	
 	if ((mousePos.x / 75) >= 8 || (mousePos.y / 75) >= 8) {
 		dragStartPos = { -1, -1 };
 		return;
@@ -210,22 +213,16 @@ void BoardUI::endMouseClickPromoteState(sf::Vector2i mousePos, Board& board) {
 }
 
 void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
-
-
-	if (onlyOneSidePlaying != board.white_to_move && onlyOneSidePlaying != -1) return;
-
 	std::vector<Move> possibleMoves = board.get_moves(fromX, fromY);
 	Move move(-1, -1, -1, -1);
 
 	for (Move possibleMove : possibleMoves) {
-		if (possibleMove.to_x == toX && possibleMove.to_y == toY && 
-			possibleMove.from_x == fromX && possibleMove.from_y == fromY) 
-		{
+		if (possibleMove.to_x == toX && possibleMove.to_y == toY) {
 			move = possibleMove;
 			break;
 		}
 	}
-	
+
 	if (move.to_x == -1 || move.to_y == -1) return;
 	
 	if (move.is_promotion != (int)Pieces::Empty) {
@@ -239,4 +236,12 @@ void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
 
 	board.move(move);
 	isCheck = board.is_check();
+
+	if (playingAgainstEngine != -1 && playingAgainstEngine != board.white_to_move) makeEngineMove(board);
+}
+
+void BoardUI::makeEngineMove(Board& board) {
+	Move m = engine.get_best_move(board);
+	std::cout << m.from_x << " " << m.from_y << " " << m.to_x << " " << m.to_y << std::endl;
+	tryMove(board, m.from_x, m.from_y, m.to_x, m.to_y);
 }
