@@ -204,7 +204,7 @@ void BoardUI::endMouseClickPromoteState(sf::Vector2i mousePos, Board& board) {
 
 	if (promotingToTemp != promotingTo) return;
 	
-	board.move(promotingPositionFrom.x, promotingPositionFrom.y, Move(promotingPosition.x, promotingPosition.y, (int)promotingTo, (int)board.white_to_move));
+	board.move(Move(promotingPositionFrom.x, promotingPositionFrom.y, promotingPosition.x, promotingPosition.y, (int)promotingTo, (int)board.white_to_move));
 	ui_state = UI_state::in_game;
 	isCheck = board.is_check();
 }
@@ -215,11 +215,14 @@ void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
 	if (onlyOneSidePlaying != board.white_to_move && onlyOneSidePlaying != -1) return;
 
 	std::vector<Move> possibleMoves = board.get_moves(fromX, fromY);
-	Move move(-1, -1);
+	Move move(-1, -1, -1, -1);
 
 	for (Move possibleMove : possibleMoves) {
-		if (possibleMove.to_x == toX && possibleMove.to_y == toY) {
+		if (possibleMove.to_x == toX && possibleMove.to_y == toY && 
+			possibleMove.from_x == fromX && possibleMove.from_y == fromY) 
+		{
 			move = possibleMove;
+			break;
 		}
 	}
 	
@@ -234,6 +237,6 @@ void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
 		return;
 	}
 
-	board.move(fromX, fromY, move);
+	board.move(move);
 	isCheck = board.is_check();
 }

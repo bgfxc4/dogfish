@@ -14,19 +14,19 @@ static void add_rook_moves(Board& board, int x, int y,
 		std::vector<Move>& res)
 {
 	for (int _x = x - 1; _x >= 0; _x--) {
-		res.push_back(Move(_x, y));
+		res.push_back(Move(x, y, _x, y));
 		if (board.getPiece(_x, y).type != (uint8_t)Pieces::Empty) break;
 	}
 	for (int _x = x + 1; _x < 8; _x++) {
-		res.push_back(Move(_x, y));
+		res.push_back(Move(x, y, _x, y));
 		if (board.getPiece(_x, y).type != (uint8_t)Pieces::Empty) break;
 	}
 	for (int _y = y - 1; _y >= 0; _y--) {
-		res.push_back(Move(x, _y));
+		res.push_back(Move(x, y, x, _y));
 		if (board.getPiece(x, _y).type != (uint8_t)Pieces::Empty) break;
 	}
 	for (int _y = y + 1; _y < 8; _y++) {
-		res.push_back(Move(x, _y));
+		res.push_back(Move(x, y, x, _y));
 		if (board.getPiece(x, _y).type != (uint8_t)Pieces::Empty) break;
 	}
 }
@@ -42,7 +42,7 @@ static void add_bishop_moves(Board& board, int x, int y,
 				_y >= 0 && _y < 8 && _x >= 0 && _x < 8;
 				_y += dy, _x += dx)
 		{
-			res.push_back(Move(_x, _y));
+			res.push_back(Move(x, y, _x, _y));
 			if (board.getPiece(_x, _y).type != (uint8_t)Pieces::Empty) break;
 		}
 	}
@@ -54,7 +54,7 @@ static void add_knight_moves(int x, int y, std::vector<Move>& res)
 												Position(1, 2), Position(1, -2), Position(-1, 2), Position(-1, -2)};
 	for (Position move : moves) {
 		if (x + move.x > 7 || x + move.x < 0 || y + move.y > 7 || y + move.y < 0) continue;
-		res.push_back(Move(x + move.x, y + move.y));
+		res.push_back(Move(x, y, x + move.x, y + move.y));
 	}
 }
 
@@ -64,17 +64,17 @@ static void add_pawn_moves(Board& board, int x, int y, std::vector<Move>& res) {
 	if (board.getPiece(x, y + mod).type == (int)Pieces::Empty) { // Push pawn one tile
 		int is_promotion_white = (mod == -1) ? 1 : 0;
 		if ((mod == -1 && y == 1) || (mod == 1 && y == 6)) { // pawn is white and on 7th rank
-			/*res.push_back(Move(x, y + mod, (int)Pieces::Knight, is_promotion_white));
-			res.push_back(Move(x, y + mod, (int)Pieces::Bishop, is_promotion_white));
-			res.push_back(Move(x, y + mod, (int)Pieces::Rook, is_promotion_white));*/
-			res.push_back(Move(x, y + mod, (int)Pieces::Queen, is_promotion_white));
+			res.push_back(Move(x, y, x, y + mod, (int)Pieces::Knight, is_promotion_white));
+			res.push_back(Move(x, y, x, y + mod, (int)Pieces::Bishop, is_promotion_white));
+			res.push_back(Move(x, y, x, y + mod, (int)Pieces::Rook, is_promotion_white));
+			res.push_back(Move(x, y, x, y + mod, (int)Pieces::Queen, is_promotion_white));
 		} else {
-			res.push_back(Move(x, y + mod));
+			res.push_back(Move(x, y, x, y + mod));
 		}	
 
 	    if ((mod == -1 && y == 6) || (mod == 1 && y == 1)) { // pawn is on start tile
 			if (board.getPiece(x, y + 2 * mod).type == (int)Pieces::Empty) { // 2nd tile in front is free
-			res.push_back(Move(x, y + 2 * mod));
+			res.push_back(Move(x, y, x, y + 2 * mod));
 			}
 		}
 	}
@@ -91,12 +91,12 @@ static void add_pawn_moves(Board& board, int x, int y, std::vector<Move>& res) {
 		{
 			int is_promotion_white = (mod == -1) ? 1 : 0;
 			if ((mod == -1 && y == 1) || (mod == 1 && y == 6)) { // pawn is white and on 7th rank
-				/*res.push_back(Move(x + 1, y + mod, (int)Pieces::Knight, is_promotion_white));
-				res.push_back(Move(x + 1, y + mod, (int)Pieces::Bishop, is_promotion_white));
-				res.push_back(Move(x + 1, y + mod, (int)Pieces::Rook, is_promotion_white));*/
-				res.push_back(Move(x + 1, y + mod, (int)Pieces::Queen, is_promotion_white));
+				res.push_back(Move(x, y, x + 1, y + mod, (int)Pieces::Knight, is_promotion_white));
+				res.push_back(Move(x, y, x + 1, y + mod, (int)Pieces::Bishop, is_promotion_white));
+				res.push_back(Move(x, y, x + 1, y + mod, (int)Pieces::Rook, is_promotion_white));
+				res.push_back(Move(x, y, x + 1, y + mod, (int)Pieces::Queen, is_promotion_white));
 			} else {
-				res.push_back(Move(x + 1, y + mod));
+				res.push_back(Move(x, y, x + 1, y + mod));
 			}		
 		}
 	}
@@ -107,12 +107,12 @@ static void add_pawn_moves(Board& board, int x, int y, std::vector<Move>& res) {
 		{
 			int is_promotion_white = (mod == -1) ? 1 : 0;
 			if ((mod == -1 && y == 1) || (mod == 1 && y == 6)) { // pawn is white and on 7th rank
-				/*res.push_back(Move(x - 1, y + mod, (int)Pieces::Knight, is_promotion_white));
-				res.push_back(Move(x - 1, y + mod, (int)Pieces::Bishop, is_promotion_white));
-				res.push_back(Move(x - 1, y + mod, (int)Pieces::Rook, is_promotion_white));*/
-				res.push_back(Move(x - 1, y + mod, (int)Pieces::Queen, is_promotion_white));
+				res.push_back(Move(x, y, x - 1, y + mod, (int)Pieces::Knight, is_promotion_white));
+				res.push_back(Move(x, y, x - 1, y + mod, (int)Pieces::Bishop, is_promotion_white));
+				res.push_back(Move(x, y, x - 1, y + mod, (int)Pieces::Rook, is_promotion_white));
+				res.push_back(Move(x, y, x - 1, y + mod, (int)Pieces::Queen, is_promotion_white));
 			} else {
-				res.push_back(Move(x - 1, y + mod));
+				res.push_back(Move(x, y, x - 1, y + mod));
 			}
 		}
 	}
@@ -130,7 +130,7 @@ static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
 		int _x = x + dx, _y = y + dy;
 
 		if (_x >= 0 && _x < 8 && _y >= 0 && _y < 8) {
-			res.push_back(Move(_x, _y));
+			res.push_back(Move(x, y, _x, _y));
 		}
 	}
 	
@@ -144,7 +144,7 @@ static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
 					!board.tile_is_attacked(!p.is_white, 2, 7, true) && 
 					!board.tile_is_attacked(!p.is_white, 3, 7, true)) // tiles to castle over are not attacked
 				{
-					res.push_back(Move(2, 7));
+					res.push_back(Move(x, y, 2, 7));
 				}
 			}
 		}
@@ -155,7 +155,7 @@ static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
 					!board.tile_is_attacked(!p.is_white, 5, 7, true) &&
 					!board.tile_is_attacked(!p.is_white, 6, 7, true)) // tiles to castle over are not attacked
 				{
-					res.push_back(Move(6, 7));
+					res.push_back(Move(x, y, 6, 7));
 				}
 			}
 		}
@@ -168,7 +168,7 @@ static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
 					!board.tile_is_attacked(!p.is_white, 2, 0, true) && 
 					!board.tile_is_attacked(!p.is_white, 3, 0, true)) // tiles to castle over are not attacked
 				{
-					res.push_back(Move(2, 0));
+					res.push_back(Move(x, y, 2, 0));
 				}
 			}
 		}
@@ -179,7 +179,7 @@ static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
 					!board.tile_is_attacked(!p.is_white, 5, 0, true) && 
 					!board.tile_is_attacked(!p.is_white, 6, 0, true)) // tiles to castle over are not attacked
 				{
-					res.push_back(Move(6, 0));
+					res.push_back(Move(x, y, 6, 0));
 				}
 			}
 		}

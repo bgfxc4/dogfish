@@ -35,12 +35,12 @@ class Position {
 
 class Move {
 	public:
-	int to_x;
-	int to_y;
+	int from_x, from_y;
+	int to_x, to_y;
 	int is_promotion = 0; // if the move isn*t a promotion, this is 0, if it is, the int has the value of a piece from the Pieces enum
 	int promotion_is_white = 0;
-	Move(int to_x, int to_y, int is_promotion, int promotion_is_white);
-	Move(int to_x, int to_y);
+	Move(int from_x, int from_y, int to_x, int to_y, int is_promotion, int promotion_is_white);
+	Move(int from_x, int from_y, int to_x, int to_y);
 	bool operator== (Move& second);
 };
 
@@ -83,7 +83,7 @@ public:
 	bool is_same_position(Board& board);
 
 	void move_raw(int from_x, int from_y, int to_x, int to_y); // semi-private; don't use
-	void move(int from_x, int from_y, Move move);
+	void move(Move move);
 
 private:
 	// order of these fields is important for alignment. total size should be 36 bytes
