@@ -1,11 +1,11 @@
-#include "board.hpp"
-
 #include <array>
 #include <bits/stdint-uintn.h>
 #include <vector>
 #include <iostream>
+#include <cstring>
 
 #include "constants.hpp"
+#include "board.hpp"
 
 Position::Position(int x, int y) {
 	this->x = x;
@@ -217,32 +217,10 @@ err:
 }
 
 std::vector<Move> Board::get_moves(int x, int y) {
-	Piece from = bc.get(x, y);
-	if (from.type == (uint8_t)Pieces::Empty || white_to_move != from.is_white) {
-		// quick return on degenerate cases
-		return {};
-	}
-
-	std::vector<Move> raw_moves = get_moves_raw(x, y);
-
-	std::vector<Move> moves_no_friendly_fire;
-	for (Move move : raw_moves) {
-		int to_x = move.to_x, to_y = move.to_y;
-		Piece to = bc.get(to_x, to_y);
-
-		if (to.type == (uint8_t)Pieces::Empty || to.is_white != from.is_white) {
-			moves_no_friendly_fire.push_back(move);
-		}
-	}
-
 	std::vector<Move> res;
-	for (Move move : moves_no_friendly_fire) {
-		Board tmp(*this);
-		tmp.move_raw(x, y, move.to_x, move.to_y);
 
-		if (!tmp.is_check()) {
-			res.push_back(move);
-		}
+	for (Move m : all_possible_moves) {
+		if (m.from_x == x && m.from_y == y) res.push_back(m);
 	}
 
 	return res;
@@ -292,13 +270,44 @@ uint8_t* Board::get_all_raw() {
 	return bc.get_all_raw();
 }
 
+void Board::add_position_to_whole_game() {
+	Board tmp = *this;
+	tmp.whole_game.clear();
+	tmp.all_possible_moves.clear();
+	whole_game.push_back(tmp);
+}
+
 void Board::calculate_all_possible_moves() {
 	all_possible_moves.clear();
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
-			if (bc.get(x, y).is_white != white_to_move) continue;
-			std::vector<Move> moves_to_add = get_moves(x, y);
-			all_possible_moves.insert(all_possible_moves.end(), moves_to_add.begin(), moves_to_add.end());
+			Piece from = bc.get(x, y);
+			
+			if (from.type == (uint8_t)Pieces::Empty || white_to_move != from.is_white) {
+				// quick return on degenerate cases
+				continue;
+			}
+			std::vector<Move> raw_moves = get_moves_raw(x, y);
+
+			std::vector<Move> moves_no_friendly_fire;
+			for (Move move : raw_moves) {
+				int to_x = move.to_x, to_y = move.to_y;
+				Piece to = bc.get(to_x, to_y);
+
+				if (to.type == (uint8_t)Pieces::Empty || to.is_white != from.is_white) {
+					moves_no_friendly_fire.push_back(move);
+				}
+			}
+
+			std::vector<Move> res;
+			for (Move move : moves_no_friendly_fire) {
+				Board tmp(*this);
+				tmp.move_raw(x, y, move.to_x, move.to_y);
+
+				if (!tmp.is_check()) {
+					all_possible_moves.push_back(move);
+				}
+			}
 		}
 	}
 }
@@ -495,10 +504,10 @@ void Board::move(Move move) {
 			gameState = GameState::draw;
 		}
 	}
-
+	
 	int repetition_count = 0;
-	for (Board& board : whole_game) {
-		if (is_same_position(board)) repetition_count++;
+	for (Board b : whole_game) {
+		if (is_same_position(b)) repetition_count++;
 	}
 	
 	if (repetition_count >= 2) {
@@ -511,6 +520,8 @@ void Board::move(Move move) {
 		gameState = GameState::draw;
 	}
 
+	calculate_all_possible_moves();
+
 	if (all_possible_moves.size() == 0) {
 		if (is_check()) {
 			std::cout << "checkmate" << std::endl;
@@ -520,9 +531,8 @@ void Board::move(Move move) {
 			gameState = GameState::draw;
 		}
 	}
-	
-	whole_game.push_back(*this);
-	calculate_all_possible_moves();
+
+	add_position_to_whole_game();
 }
 
 std::vector<Move> Board::get_moves_raw(int x, int y) {

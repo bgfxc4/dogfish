@@ -78,6 +78,7 @@ public:
 	bool is_check();
 	bool is_insufficient_material();
 	uint8_t* get_all_raw();
+	void add_position_to_whole_game();
 
 	void  calculate_all_possible_moves();
 	bool tile_is_attacked_straight_diagonal(uint8_t color /* white: 0, black: 1 */, int x, int y);

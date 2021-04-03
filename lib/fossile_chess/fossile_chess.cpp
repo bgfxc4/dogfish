@@ -9,6 +9,5 @@ FossileChess::FossileChess() {};
 Move FossileChess::get_best_move(Board& board) {
 	srand(time(NULL));
 	std::vector<Move> possible_moves = board.all_possible_moves;
-	std::cout << "asd" << std::endl;
 	return possible_moves[rand() % possible_moves.size()];
 }

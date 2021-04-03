@@ -194,7 +194,7 @@ void BoardUI::endMouseClickNormalState(sf::Vector2i mousePos, Board& board) {
 		dragStartPos = { -1, -1 };
 		return;
 	}
-	if (playingAgainstEngine == board.white_to_move || playingAgainstEngine != -1) {
+	if (playingAgainstEngine == board.white_to_move || playingAgainstEngine == -1) {
 		tryMove(board, dragStartPos.x, dragStartPos.y, mousePos.x / 75, mousePos.y / 75);
 	}
 	dragStartPos = { -1, -1 };
@@ -211,6 +211,7 @@ void BoardUI::endMouseClickPromoteState(sf::Vector2i mousePos, Board& board) {
 	board.move(Move(promotingPositionFrom.x, promotingPositionFrom.y, promotingPosition.x, promotingPosition.y, (int)promotingTo, (int)board.white_to_move));
 	ui_state = UI_state::in_game;
 	isCheck = board.is_check();
+	if (playingAgainstEngine != -1 && playingAgainstEngine != board.white_to_move) makeEngineMove(board);
 }
 
 void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
@@ -226,7 +227,9 @@ void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
 
 	if (move.to_x == -1 || move.to_y == -1) return;
 	
-	if (move.is_promotion != (int)Pieces::Empty) {
+	if (move.is_promotion != (int)Pieces::Empty && 
+		(playingAgainstEngine == board.white_to_move || playingAgainstEngine == -1)) 
+	{
 		promotingPositionFrom.x = fromX;
 		promotingPositionFrom.y = fromY;
 		promotingPosition.x = toX;
@@ -237,12 +240,17 @@ void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
 
 	board.move(move);
 	isCheck = board.is_check();
-
+	
+	if (board.gameState == GameState::white_checkmate || 
+		board.gameState == GameState::black_checkmate || 
+		board.gameState == GameState::draw) 
+	{
+		return;
+	}
 	if (playingAgainstEngine != -1 && playingAgainstEngine != board.white_to_move) makeEngineMove(board);
 }
 
 void BoardUI::makeEngineMove(Board& board) {
 	Move m = engine.get_best_move(board);
-	std::cout << m.from_x << " " << m.from_y << " " << m.to_x << " " << m.to_y << std::endl;
 	tryMove(board, m.from_x, m.from_y, m.to_x, m.to_y);
 }
