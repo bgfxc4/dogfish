@@ -2,6 +2,7 @@
 
 #include <string>
 #include <SFML/Graphics.hpp>
+#include <thread>
 
 #include "piece.hpp"
 #include "constants.hpp"
@@ -18,6 +19,8 @@ class BoardUI {
 	public:
 	
 	FossileChess engine; // is only needed, if option -e is given
+	Move* engineMove = nullptr;
+	std::thread engineThread;
 
 	UI_state ui_state = UI_state::in_game;
 	Position promotingPosition = Position(-1, -1);

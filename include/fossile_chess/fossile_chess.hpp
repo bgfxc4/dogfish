@@ -6,5 +6,5 @@ class FossileChess {
 	public:
 	FossileChess();
 
-	Move get_best_move(Board& board);
+	Move get_best_move(Board* board);
 };

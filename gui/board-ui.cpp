@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <vector>
 #include <iostream>
+#include <thread>
+#include <unistd.h>
 
 #include "piece.hpp"
 #include "board.hpp"
@@ -63,6 +65,13 @@ void BoardUI::renderBoard(sf::RenderWindow& window, Board& boardToRender) {
 	renderPieces(window, boardToRender);
 	if (ui_state == UI_state::black_choosing_promotion || ui_state == UI_state::white_choosing_promotion) {
 		renderPromotionChoose(window);
+	}
+	
+	Move* atomicMove = __atomic_load_n(&engineMove, __ATOMIC_SEQ_CST);
+	if (atomicMove != nullptr) {
+		tryMove(boardToRender, atomicMove->from_x, atomicMove->from_y, atomicMove->to_x, atomicMove->to_y);
+		delete engineMove;
+		engineMove = nullptr;
 	}
 }
 
@@ -250,7 +259,14 @@ void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
 	if (playingAgainstEngine != -1 && playingAgainstEngine != board.white_to_move) makeEngineMove(board);
 }
 
+void spawn_engine(FossileChess* engine, Board* board, Move** out) {
+	sleep(2);
+	Move* out_local = (Move*)malloc(sizeof(Move));
+	*out_local = engine->get_best_move(board);
+	__atomic_store_n(out, out_local, __ATOMIC_SEQ_CST);
+}
+
 void BoardUI::makeEngineMove(Board& board) {
-	Move m = engine.get_best_move(board);
-	tryMove(board, m.from_x, m.from_y, m.to_x, m.to_y);
+	engineThread = std::thread(spawn_engine, &engine, &board, &engineMove);
+	engineThread.detach();
 }
