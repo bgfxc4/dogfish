@@ -51,19 +51,33 @@ enum GameState {
 	black_checkmate,
 };
 
+class BoardLite {
+	public:
+	BoardLite(Board* board);
+	uint8_t* get_all_raw();
+	
+	BoardContent bc;
+	uint8_t white_to_move : 1;
+	uint8_t white_castle_short : 1;
+	uint8_t white_castle_long : 1;
+	uint8_t black_castle_short : 1;
+	uint8_t black_castle_long : 1;
+	uint8_t _en_passant_pos : 7;
+};
+
 class Board {
 public:
 	GameState gameState = GameState::playing;
 
 	uint8_t white_to_move : 1;
-	
+		
 	uint8_t white_castle_short : 1;
 	uint8_t white_castle_long : 1;
 	uint8_t black_castle_short : 1;
 	uint8_t black_castle_long : 1;
 	
 	std::vector<Move> all_possible_moves;
-	std::vector<Board> whole_game;
+	std::vector<BoardLite> whole_game;
 
 	Board(const std::string& fenString);
 	Board() : Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {}
@@ -83,16 +97,16 @@ public:
 	void  calculate_all_possible_moves();
 	bool tile_is_attacked_straight_diagonal(uint8_t color /* white: 0, black: 1 */, int x, int y);
 	
-	bool is_same_position(Board& board);
+	bool is_same_position(BoardLite& board);
 
 	void move_raw(int from_x, int from_y, int to_x, int to_y); // semi-private; don't use
 	void move(Move move);
 
-private:
 	// order of these fields is important for alignment. total size should be 36 bytes
 	BoardContent bc;
 	uint8_t _en_passant_pos : 7;
-
+	
+	private:
 	uint8_t num_half_moves;
 	uint16_t num_moves : 12;
 

@@ -42,6 +42,20 @@ bool Move::operator== (Move& second) {
 	return this->to_x == second.to_x && this->to_y == second.to_y && this->is_promotion == second.is_promotion;
 }
 
+BoardLite::BoardLite(Board* board) {
+	this->bc = board->bc;
+	this->white_to_move = board->white_to_move;
+	this->white_castle_short = board->white_castle_short;
+	this->white_castle_long = board->white_castle_long;
+	this->black_castle_short = board->black_castle_short;
+	this->black_castle_long = board->black_castle_long;
+	this->_en_passant_pos = board->_en_passant_pos;
+}
+
+uint8_t* BoardLite::get_all_raw() {
+	return bc.get_all_raw();
+}
+
 Board::Board(const std::string& fenString) {
 	_en_passant_pos = 0;
 	white_to_move = 1;
@@ -271,9 +285,7 @@ uint8_t* Board::get_all_raw() {
 }
 
 void Board::add_position_to_whole_game() {
-	Board tmp = *this;
-	tmp.whole_game.clear();
-	tmp.all_possible_moves.clear();
+	BoardLite tmp = BoardLite(this);
 	whole_game.push_back(tmp);
 }
 
@@ -402,7 +414,7 @@ bool Board::tile_is_attacked_straight_diagonal(uint8_t color, int tileX, int til
 	return false;
 }
 
-bool Board::is_same_position(Board& board) {
+bool Board::is_same_position(BoardLite& board) {
 	uint8_t* own_pos = this->get_all_raw();
 	uint8_t* compare_pos = board.get_all_raw();
 	for (int i = 0; i < 32; i++) {
@@ -412,7 +424,7 @@ bool Board::is_same_position(Board& board) {
 	if (this->white_castle_long != board.white_castle_long) return false;
 	if (this->black_castle_long != board.black_castle_long) return false;
 	if (this->black_castle_short != board.black_castle_short) return false;
-	if (this->get_en_passant_pos().value_or(Position(-1, -1)) != board.get_en_passant_pos().value_or(Position(-1, -1))) return false;
+	if (this->_en_passant_pos != board._en_passant_pos) return false;
 	return true;
 }
 
@@ -506,7 +518,7 @@ void Board::move(Move move) {
 	}
 	
 	int repetition_count = 0;
-	for (Board b : whole_game) {
+	for (BoardLite b : whole_game) {
 		if (is_same_position(b)) repetition_count++;
 	}
 	
