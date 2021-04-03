@@ -61,7 +61,8 @@ public:
 	uint8_t white_castle_long : 1;
 	uint8_t black_castle_short : 1;
 	uint8_t black_castle_long : 1;
-
+	
+	std::vector<Move> all_possible_moves;
 	std::vector<Board> whole_game;
 
 	Board(const std::string& fenString);
@@ -77,7 +78,8 @@ public:
 	bool is_check();
 	bool is_insufficient_material();
 	uint8_t* get_all_raw();
-	std::vector<Move> get_all_possible_moves();
+
+	void  calculate_all_possible_moves();
 	bool tile_is_attacked_straight_diagonal(uint8_t color /* white: 0, black: 1 */, int x, int y);
 	
 	bool is_same_position(Board& board);

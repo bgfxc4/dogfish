@@ -181,7 +181,6 @@ void BoardUI::endMouseClick(sf::Vector2i mousePos, Board& board) {
 }
 
 void BoardUI::endMouseClickNormalState(sf::Vector2i mousePos, Board& board) {
-	if (playingAgainstEngine != board.white_to_move && playingAgainstEngine != -1) return;
 	
 	if ((mousePos.x / 75) >= 8 || (mousePos.y / 75) >= 8) {
 		dragStartPos = { -1, -1 };
@@ -195,7 +194,9 @@ void BoardUI::endMouseClickNormalState(sf::Vector2i mousePos, Board& board) {
 		dragStartPos = { -1, -1 };
 		return;
 	}
-	tryMove(board, dragStartPos.x, dragStartPos.y, mousePos.x / 75, mousePos.y / 75);
+	if (playingAgainstEngine == board.white_to_move || playingAgainstEngine != -1) {
+		tryMove(board, dragStartPos.x, dragStartPos.y, mousePos.x / 75, mousePos.y / 75);
+	}
 	dragStartPos = { -1, -1 };
 }
 

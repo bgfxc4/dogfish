@@ -52,6 +52,7 @@ Board::Board(const std::string& fenString) {
 	black_castle_long = 1;
 
 	parseFenString(fenString);
+	calculate_all_possible_moves();
 }
 
 std::optional<Position> Board::get_en_passant_pos() {
@@ -291,16 +292,15 @@ uint8_t* Board::get_all_raw() {
 	return bc.get_all_raw();
 }
 
-std::vector<Move> Board::get_all_possible_moves() {
-	std::vector<Move> res;
+void Board::calculate_all_possible_moves() {
+	all_possible_moves.clear();
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
 			if (bc.get(x, y).is_white != white_to_move) continue;
 			std::vector<Move> moves_to_add = get_moves(x, y);
-			res.insert(res.end(), moves_to_add.begin(), moves_to_add.end());
+			all_possible_moves.insert(all_possible_moves.end(), moves_to_add.begin(), moves_to_add.end());
 		}
 	}
-	return res;
 }
 
 bool Board::tile_is_attacked(uint8_t color, int tileX, int tileY) {
@@ -511,7 +511,7 @@ void Board::move(Move move) {
 		gameState = GameState::draw;
 	}
 
-	if (get_all_possible_moves().size() == 0) {
+	if (all_possible_moves.size() == 0) {
 		if (is_check()) {
 			std::cout << "checkmate" << std::endl;
 			gameState = (white_to_move) ? GameState::white_checkmate : GameState::black_checkmate;
@@ -522,6 +522,7 @@ void Board::move(Move move) {
 	}
 	
 	whole_game.push_back(*this);
+	calculate_all_possible_moves();
 }
 
 std::vector<Move> Board::get_moves_raw(int x, int y) {
