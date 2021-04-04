@@ -249,8 +249,8 @@ void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
 	board.move(move);
 	isCheck = board.is_check();
 	
-	if (board.gameState == GameState::white_checkmate || 
-		board.gameState == GameState::black_checkmate || 
+	if (board.gameState == GameState::white_checkmate ||
+		board.gameState == GameState::black_checkmate ||
 		board.gameState == GameState::draw) 
 	{
 		return;

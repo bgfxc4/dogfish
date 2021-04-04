@@ -20,6 +20,7 @@ Move FossileChess::get_best_move(Board* board, int depth) {
 			best_move_eval = eval;
 			best_move_index = i;
 		}
+		std::cout << (((float)(i+1) / (float)board->all_possible_moves.size()) * 100) << "%\n";
 	}
 	return board->all_possible_moves[best_move_index];
 }
@@ -46,10 +47,19 @@ int FossileChess::evaluate_board(Board* board) { // evaluates from whites perspe
 				continue;
 			} else if (p.type == (int)Pieces::Pawn) {
 				(p.is_white) ? eval += 100 : eval -= 100;
+				if (x > 1 && x < 6) { // if the pawn is horizontaliy in the middle, it gets points for being close to the center
+					int mult = 1;
+					if (x > 2 && x < 5) { // if it is closer to the center, it gets more points
+						mult = 2;
+					}
+					if ((p.is_white && y >= 4) || (!p.is_white && y <= 3)) {
+						(p.is_white) ? eval += (10 /*maximum points*/ - (y - 4)) * mult : eval -= (10 - (3 - y)) * mult;
+					}
+				}
 			} else if (p.type == (int)Pieces::Knight) {
 				(p.is_white) ? eval += 300 : eval -= 300;
 			} else if (p.type == (int)Pieces::Bishop) {
-				(p.is_white) ? eval += 300 : eval -= 300;
+				(p.is_white) ? eval += 310 : eval -= 310;
 			} else if (p.type == (int)Pieces::Rook) {
 				(p.is_white) ? eval += 500 : eval -= 500;
 			} else if (p.type == (int)Pieces::Queen) {
