@@ -6,7 +6,6 @@
 #include <vector>
 #include <iostream>
 #include <thread>
-#include <unistd.h>
 
 #include "piece.hpp"
 #include "board.hpp"
@@ -260,9 +259,8 @@ void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
 }
 
 void spawn_engine(FossileChess* engine, Board* board, Move** out) {
-	sleep(2);
 	Move* out_local = (Move*)malloc(sizeof(Move));
-	*out_local = engine->get_best_move(board);
+	*out_local = engine->get_best_move(board, 4);
 	__atomic_store_n(out, out_local, __ATOMIC_SEQ_CST);
 }
 
