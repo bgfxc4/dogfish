@@ -47,13 +47,12 @@ int FossileChess::evaluate_board(Board* board) { // evaluates from whites perspe
 				continue;
 			} else if (p.type == (int)Pieces::Pawn) {
 				(p.is_white) ? eval += 100 : eval -= 100;
-				if (x > 1 && x < 6) { // if the pawn is horizontaliy in the middle, it gets points for being close to the center
-					int mult = 1;
+				// if the pawn is horizontaliy in the middle, it gets points for being close to the center
+				if ((x > 1 && x < 6) && ((p.is_white && y >= 4 && y >= 5) || (!p.is_white && y <= 3 && y >= 2))) { 
 					if (x > 2 && x < 5) { // if it is closer to the center, it gets more points
-						mult = 2;
-					}
-					if ((p.is_white && y >= 4) || (!p.is_white && y <= 3)) {
-						(p.is_white) ? eval += (10 /*maximum points*/ - (y - 4)) * mult : eval -= (10 - (3 - y)) * mult;
+						eval += (p.is_white) ? (4 /*maximum points*/ - (y - 4)) : -(4 - (3 - y));
+					} else {
+						eval += (p.is_white) ? (2 /*maximum points*/ - (y - 4)) : -(2 - (3 - y));
 					}
 				}
 			} else if (p.type == (int)Pieces::Knight) {
