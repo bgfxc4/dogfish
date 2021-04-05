@@ -2,6 +2,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <algorithm>
+#include <thread>
 
 #include "board.hpp"
 #include "fossile_chess.hpp"
@@ -9,20 +10,69 @@
 
 FossileChess::FossileChess() {};
 
-Move FossileChess::get_best_move(Board* board, int depth) {
-	int best_move_index = 0;
+minimax_thread::minimax_thread(Move m) {
+	move = m;
+};
+
+void spawn_minimax_thread(FossileChess* engine, Board* board, int depth, minimax_thread** out) {
+	Board b = *board;
+	b.move((*out)->move);
+	minimax_thread* out_local = new minimax_thread((*out)->move);
+	out_local->eval = engine->minimax(&b, depth, -999999999, 999999999, true);
+	out_local->state = 1;
+	free(*out);
+	std::cout << "ended thread " << out_local->move.from_x << " " << out_local->move.from_y << " to "
+			  << out_local->move.to_x << " " << out_local->move.to_y << std::endl;
+	__atomic_store_n(out, out_local, __ATOMIC_SEQ_CST);
+}
+
+Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
+	Move best_move(-1, -1, -1, -1);
 	int best_move_eval = 999999999;
-	for (int i = 0; i < (int)board->all_possible_moves.size(); i++) {
-		Board b = *board;
-		b.move(board->all_possible_moves[i]);
-		int eval = minimax(&b, depth - 1, -999999999, 999999999, true);
-		if (eval < best_move_eval) {
-			best_move_eval = eval;
-			best_move_index = i;
-		}
-		std::cout << (((float)(i+1) / (float)board->all_possible_moves.size()) * 100) << "%\n";
+	
+	for (Move m : board->all_possible_moves) {
+		minimax_thread** mmt_ptr = (minimax_thread**)malloc(sizeof(minimax_thread*));
+		minimax_thread* mmt = new minimax_thread(m);
+		*mmt_ptr = mmt;
+		moves_to_be_processed.push_back(mmt_ptr);
 	}
-	return board->all_possible_moves[best_move_index];
+	
+	bool not_finished = true;
+	int threads_used = 0;
+	int moves_calculated_count = 0;
+	while (not_finished) {
+		not_finished = false;
+		for (minimax_thread** mmt_ptr : moves_to_be_processed) {
+			minimax_thread* mmt_local = __atomic_load_n(mmt_ptr, __ATOMIC_SEQ_CST);
+			if (mmt_local->state == 2) continue; // move is calculated, can be skipped
+			if (mmt_local->state == 0)  { // a thread is already working on this move
+				not_finished = true;
+				continue; 
+			}
+			if (mmt_local->state == -1) { // move needs to be calculated
+				not_finished = true;
+				if (threads_used >= threads_to_use) continue; // all threads are already used
+				(*mmt_ptr)->state = 0;
+				std::thread th(spawn_minimax_thread, this, board, depth - 1, mmt_ptr); // start new thread
+				th.detach();
+				threads_used++;
+			}
+			if (mmt_local->state == 1) {
+				(*mmt_ptr)->state = 2;
+				not_finished = true;
+				threads_used--;
+
+				if (mmt_local->eval < best_move_eval) {
+					best_move = mmt_local->move;
+					best_move_eval = mmt_local->eval;
+				}
+				moves_calculated_count++;
+				std::cout << ((float)(moves_calculated_count) / (float)moves_to_be_processed.size()) * 100 << "%" << std::endl;
+			}
+		}
+	}
+	moves_to_be_processed.clear();
+	return best_move;
 }
 
 int FossileChess::evaluate_board(Board* board) { // evaluates from whites perspective

@@ -258,13 +258,13 @@ void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
 	if (playingAgainstEngine != -1 && playingAgainstEngine != board.white_to_move) makeEngineMove(board);
 }
 
-void spawn_engine(FossileChess* engine, Board* board, Move** out) {
+void spawn_engine(FossileChess* engine, Board* board, Move** out, int threads_to_use) {
 	Move* out_local = (Move*)malloc(sizeof(Move));
-	*out_local = engine->get_best_move(board, 4);
+	*out_local = engine->get_best_move(board, 4, threads_to_use - 1);
 	__atomic_store_n(out, out_local, __ATOMIC_SEQ_CST);
 }
 
 void BoardUI::makeEngineMove(Board& board) {
-	engineThread = std::thread(spawn_engine, &engine, &board, &engineMove);
+	engineThread = std::thread(spawn_engine, &engine, &board, &engineMove, 11);
 	engineThread.detach();
 }

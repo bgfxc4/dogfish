@@ -1,4 +1,6 @@
 #include <cstdio>
+#include <thread>
+#include <iostream>
 
 #include "board.hpp"
 
@@ -12,6 +14,8 @@ void print_moves(Board& board, int x, int y) {
 }
 
 int main() {
+	std::cout << std::thread::hardware_concurrency() << " threads" << std::endl;
+
 	Board board("rnbqkbnr/pppppppp/8/R3n3/4BKQ1/3b4/PPPPPPPP/RNBQKBNR w KQkq f3 23 21");
 
 	printf("Board size: %zu\n\n", sizeof(board));
