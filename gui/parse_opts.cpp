@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include <unistd.h>
 #include <iostream>
 
@@ -10,30 +11,47 @@
 static struct option opts[] = {
 	{"help", no_argument, 0, 'h'},
 	{"engine", no_argument, 0, 'e'},
+	{"threads", required_argument, 0, 't'},
 	{NULL, 0, 0, 0}
 };
 
 extern void print_help(char* command) {
 	std::cout << 
 "Usage: " << command << " [options...]\n" 	<<
-"-h, --help         Get a list of all options\n" <<
-"-e, --engine       Play against the engine, by default you are playing white\n" <<
+"\n" <<
+"-h, --help             Get a list of all options\n" <<
+"-e, --engine           Play against the engine, by default you are playing white\n" <<
+"-t --threads <NUMBER>  Set the number of threads to use (is only used, if -e is given), default are all threads on your machine\n" << 
 "\n" << 
 "This is a chess game an engine from bgfxc4, if you want to, you can visit the github repo \n" <<
 "https://github.com/bgfxc4/chess" <<
 	std::endl;
 }
 
-extern void usage(char *command, int exit_code) {
+extern void usage(char* command, int exit_code) {
 	print_help(command);
 	exit(exit_code);
 }
 
+extern void error(const char* msg, int exit_code) {
+	std::cerr << msg << std::endl;
+	exit(exit_code);
+}
+
+bool is_number(char* str) {
+	for (int i = 0; *(str + i) != '\0'; i++) {
+		if (std::isdigit(*(str + i)) == 0) return false;
+	}
+	return true;
+}
+
 extern void parse_opts(int argc, char** argv, struct opts* out) {
-	out->help = 0, out->engine = 0;
+	out->help = 0;
+	out->engine = 0;
+	out->threads = -1;
 
 	while (1) {
-		int opt = getopt_long(argc, argv, "he", opts, NULL);
+		int opt = getopt_long(argc, argv, "het:", opts, NULL);
 
 		if (opt == -1) {
 			break;
@@ -50,6 +68,9 @@ extern void parse_opts(int argc, char** argv, struct opts* out) {
 			case 'e':
 				out->engine = 1;
 				break;
+			case 't':
+				if (!is_number(optarg)) return error("-t or --threads needs a number as an argument!", 1);
+				out->threads = std::stoi(optarg);
 		}
 	}
 }

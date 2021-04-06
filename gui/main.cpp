@@ -23,10 +23,16 @@ int main(int argc, char* argv[]) {
 	parse_opts(argc, argv, &opt);
 
 	if (opt.help) return 0;
+	
+	if (opt.threads == -1) {
+		opt.threads = std::thread::hardware_concurrency();
+	}	
+
+	if (opt.engine && opt.threads < 3) error("If -e or --engine is provided, -t or --threads needs to be at least 3 (1 for UI, 1 for the managing part of the engine, 1 for the calculating part of the engine))!", 1);
 
 	sf::RenderWindow& window = startGraphics();
 	Board board;
-	BoardUI boardUI = (opt.engine) ? BoardUI(1) : BoardUI();
+	BoardUI boardUI = (opt.engine) ? BoardUI(opt.threads, 1) : BoardUI(opt.threads);
 
 	while (window.isOpen()) {
 		sf::Event event;

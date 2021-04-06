@@ -18,6 +18,7 @@ void spawn_minimax_thread(FossileChess* engine, Board* board, int depth, minimax
 	Board b = *board;
 	b.move((*out)->move);
 	minimax_thread* out_local = new minimax_thread((*out)->move);
+	std::cout << "depth: " <<  depth << std::endl;
 	out_local->eval = engine->minimax(&b, depth, -999999999, 999999999, true);
 	out_local->state = 1;
 	free(*out);
