@@ -21,7 +21,6 @@ void spawn_minimax_thread(FossileChess* engine, Board* board, int depth, minimax
 	std::cout << "depth: " <<  depth << std::endl;
 	out_local->eval = engine->minimax(&b, depth, -999999999, 999999999, true);
 	out_local->state = 1;
-	free(*out);
 	std::cout << "ended thread " << out_local->move.from_x << " " << out_local->move.from_y << " to "
 			  << out_local->move.to_x << " " << out_local->move.to_y << std::endl;
 	__atomic_store_n(out, out_local, __ATOMIC_SEQ_CST);
@@ -32,9 +31,10 @@ Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
 	int best_move_eval = 999999999;
 	
 	for (Move m : board->all_possible_moves) {
-		minimax_thread** mmt_ptr = (minimax_thread**)malloc(sizeof(minimax_thread*));
 		minimax_thread* mmt = new minimax_thread(m);
+		minimax_thread** mmt_ptr = (minimax_thread**)malloc(sizeof(minimax_thread*));
 		*mmt_ptr = mmt;
+		to_be_freed.push_back(mmt);
 		moves_to_be_processed.push_back(mmt_ptr);
 	}
 	
@@ -72,6 +72,16 @@ Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
 			}
 		}
 	}
+	
+	for (minimax_thread* mmt : to_be_freed) {
+		delete mmt;
+	}
+	for (minimax_thread** mmt_ptr : moves_to_be_processed) {
+		delete *mmt_ptr;
+		free(mmt_ptr);
+	}
+	
+	to_be_freed.clear();
 	moves_to_be_processed.clear();
 	return best_move;
 }

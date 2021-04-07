@@ -16,6 +16,7 @@ class minimax_thread {
 class FossileChess {
 	public:
 	std::vector<minimax_thread**> moves_to_be_processed;
+	std::vector<minimax_thread*> to_be_freed;
 
 	FossileChess();
 
