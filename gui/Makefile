@@ -7,7 +7,7 @@ INCLUDES := -I ../include -I ../include/fossile_chess
 
 BOARD_LIB := ../lib/board.a
 
-HEADERS := board-ui.hpp graphics.hpp parse_opts.hpp ../include/board.hpp ../include/piece.hpp ../include/constants.hpp
+HEADERS := board-ui.hpp graphics.hpp parse_opts.hpp ../include/board.hpp ../include/piece.hpp ../include/constants.hpp ../include/fossile_chess/fossile_chess.hpp
 EXECUTABLE := main
 
 debug : CXXFLAGS += -Og -g -pg
