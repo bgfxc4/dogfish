@@ -87,15 +87,15 @@ public:
 	Piece getPiece(int x, int y);
 
 	std::vector<Move> get_moves(int x, int y);
-	bool tile_is_attacked(uint8_t color /* white: 0, black: 1 */, int x, int y);
-	bool tile_is_attacked(uint8_t color /* white: 0, black: 1 */, int x, int y, bool ignoreKings);
+	bool tile_is_attacked(int x, int y);
+	bool tile_is_attacked(int x, int y, bool ignoreKings);
 	bool is_check();
 	bool is_insufficient_material();
 	uint8_t* get_all_raw();
 	void add_position_to_whole_game();
 
 	void  calculate_all_possible_moves();
-	bool tile_is_attacked_straight_diagonal(uint8_t color /* white: 0, black: 1 */, int x, int y);
+	bool tile_is_attacked_straight_diagonal(int x, int y);
 	
 	bool is_same_position(BoardLite& board);
 

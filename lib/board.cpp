@@ -253,7 +253,7 @@ bool Board::is_check() {
 		}
 	}
 
-	if (tile_is_attacked(!king.is_white, kingPos.x, kingPos.y)) {
+	if (tile_is_attacked(kingPos.x, kingPos.y)) {
 		return true;
 	}
 	return false;
@@ -324,8 +324,9 @@ void Board::calculate_all_possible_moves() {
 	}
 }
 
-bool Board::tile_is_attacked(uint8_t color, int tileX, int tileY) {
-	if (tile_is_attacked_straight_diagonal(color, tileX, tileY)) {
+bool Board::tile_is_attacked(int tileX, int tileY) {
+	uint8_t color = !white_to_move;
+	if (tile_is_attacked_straight_diagonal(tileX, tileY)) {
 		return true;
 	}
 
@@ -346,8 +347,9 @@ bool Board::tile_is_attacked(uint8_t color, int tileX, int tileY) {
 	return false;
 }
 // overload to ignore a specific piece
-bool Board::tile_is_attacked(uint8_t color, int tileX, int tileY, bool ignoreKings) { 
-	if (tile_is_attacked_straight_diagonal(color, tileX, tileY)) {
+bool Board::tile_is_attacked(int tileX, int tileY, bool ignoreKings) { 
+	uint8_t color = !white_to_move;
+	if (tile_is_attacked_straight_diagonal(tileX, tileY)) {
 		return true;
 	}
 
@@ -371,8 +373,8 @@ bool Board::tile_is_attacked(uint8_t color, int tileX, int tileY, bool ignoreKin
 }
 
 
-bool Board::tile_is_attacked_straight_diagonal(uint8_t color, int tileX, int tileY) {
-	
+bool Board::tile_is_attacked_straight_diagonal(int tileX, int tileY) {
+	uint8_t color = !white_to_move;	
 	std::vector<Position> mods = { {-1, -1}, {-1, 1}, {1, -1}, {1, 1} };
 
 	for (Position mod : mods) { // check all diagonals of tile

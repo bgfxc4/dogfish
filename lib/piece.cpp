@@ -139,10 +139,10 @@ static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
 		if (board.white_castle_long) {
 			// three pieces to the left of the king are empty
 			if (board.getPiece(1, 7).type + board.getPiece(2, 7).type + board.getPiece(3, 7).type == (int)Pieces::Empty) {
-				if (!board.tile_is_attacked(!p.is_white, 4, 7, true) &&
-					!board.tile_is_attacked(!p.is_white, 1, 7, true) && 
-					!board.tile_is_attacked(!p.is_white, 2, 7, true) && 
-					!board.tile_is_attacked(!p.is_white, 3, 7, true)) // tiles to castle over are not attacked
+				if (!board.tile_is_attacked(4, 7, true) &&
+					!board.tile_is_attacked(1, 7, true) && 
+					!board.tile_is_attacked(2, 7, true) && 
+					!board.tile_is_attacked(3, 7, true)) // tiles to castle over are not attacked
 				{
 					res.push_back(Move(x, y, 2, 7));
 				}
@@ -151,9 +151,9 @@ static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
 		if (board.white_castle_short) {
 			// two pieces to the right of the king are empty
 			if (board.getPiece(5, 7).type + board.getPiece(6, 7).type == (int)Pieces::Empty) {
-				if (!board.tile_is_attacked(!p.is_white, 4, 7, true) &&
-					!board.tile_is_attacked(!p.is_white, 5, 7, true) &&
-					!board.tile_is_attacked(!p.is_white, 6, 7, true)) // tiles to castle over are not attacked
+				if (!board.tile_is_attacked(4, 7, true) &&
+					!board.tile_is_attacked(5, 7, true) &&
+					!board.tile_is_attacked(6, 7, true)) // tiles to castle over are not attacked
 				{
 					res.push_back(Move(x, y, 6, 7));
 				}
@@ -163,10 +163,10 @@ static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
 		if (board.black_castle_long) {
 			// three pieces to the left of the king are empty
 			if (board.getPiece(1, 0).type + board.getPiece(2, 0).type + board.getPiece(3, 0).type == (int)Pieces::Empty) {
-				if (!board.tile_is_attacked(!p.is_white, 4, 0, true) &&
-					!board.tile_is_attacked(!p.is_white, 1, 0, true) && 
-					!board.tile_is_attacked(!p.is_white, 2, 0, true) && 
-					!board.tile_is_attacked(!p.is_white, 3, 0, true)) // tiles to castle over are not attacked
+				if (!board.tile_is_attacked(4, 0, true) &&
+					!board.tile_is_attacked(1, 0, true) && 
+					!board.tile_is_attacked(2, 0, true) && 
+					!board.tile_is_attacked(3, 0, true)) // tiles to castle over are not attacked
 				{
 					res.push_back(Move(x, y, 2, 0));
 				}
@@ -175,9 +175,9 @@ static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
 		if (board.black_castle_short) {
 			// two pieces to the right of the king are empty
 			if (board.getPiece(5, 0).type + board.getPiece(6, 0).type == (int)Pieces::Empty) {
-				if (!board.tile_is_attacked(!p.is_white, 4, 0, true) &&
-					!board.tile_is_attacked(!p.is_white, 5, 0, true) && 
-					!board.tile_is_attacked(!p.is_white, 6, 0, true)) // tiles to castle over are not attacked
+				if (!board.tile_is_attacked(4, 0, true) &&
+					!board.tile_is_attacked(5, 0, true) && 
+					!board.tile_is_attacked(6, 0, true)) // tiles to castle over are not attacked
 				{
 					res.push_back(Move(x, y, 6, 0));
 				}
