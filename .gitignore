@@ -2,3 +2,4 @@
 **.a
 gui/main
 test/main
+benchmark/main
