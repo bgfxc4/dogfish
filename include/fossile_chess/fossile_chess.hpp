@@ -1,26 +1,31 @@
 #pragma once
 
+#include <mutex>
 #include <vector>
 
 #include "board.hpp"
 
-class minimax_thread {
-	public:
-	minimax_thread(Move m);
+struct FossileChess;
 
-	int state = -1; // -1 -> waiting to be processed 0 -> is getting processed 1 -> finished 2 -> realized finish
-	int eval = 0;
-	Move move = Move(-1, -1, -1, -1);
+struct MinimaxThread {
+	FossileChess* master;
+	Move best_move = Move(-1, -1, -1, -1);
+	int best_move_eval = 999999999;
+
+	MinimaxThread(FossileChess* _master) : master(_master) {}
+
+	void run(int depth, Board* board);
 };
 
-class FossileChess {
-	public:
-	std::vector<minimax_thread**> moves_to_be_processed;
-	std::vector<minimax_thread*> to_be_freed;
+struct FossileChess {
+	std::mutex move_lock;
+	std::vector<Move> moves_left;
+	int num_moves_total;
 
-	FossileChess();
+	FossileChess() {}
+	FossileChess(const FossileChess& other) = delete;
 
 	Move get_best_move(Board* board, int depth, int threads_to_use);
-	int evaluate_board(Board* board);
-	int minimax(Board* board, int depth, int alpha, int beta, bool maximizing_player);
+	static int evaluate_board(Board* board);
+	static int minimax(Board* board, int depth, int alpha, int beta, bool maximizing_player);
 };
