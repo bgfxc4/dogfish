@@ -31,6 +31,27 @@ static void add_rook_moves(Board& board, int x, int y,
 	}
 }
 
+static void add_rook_attacked_tiles(Board& board, int x, int y,
+		std::vector<Position>& res)
+{
+	for (int _x = x - 1; _x >= 0; _x--) {
+		res.push_back(Position(_x, y));
+		if (board.getPiece(_x, y).type != (uint8_t)Pieces::Empty) break;
+	}
+	for (int _x = x + 1; _x < 8; _x++) {
+		res.push_back(Position(_x, y));
+		if (board.getPiece(_x, y).type != (uint8_t)Pieces::Empty) break;
+	}
+	for (int _y = y - 1; _y >= 0; _y--) {
+		res.push_back(Position(x, _y));
+		if (board.getPiece(x, _y).type != (uint8_t)Pieces::Empty) break;
+	}
+	for (int _y = y + 1; _y < 8; _y++) {
+		res.push_back(Position(x, _y));
+		if (board.getPiece(x, _y).type != (uint8_t)Pieces::Empty) break;
+	}
+}
+
 static void add_bishop_moves(Board& board, int x, int y,
 		std::vector<Move>& res)
 {
@@ -48,6 +69,23 @@ static void add_bishop_moves(Board& board, int x, int y,
 	}
 }
 
+static void add_bishop_attacked_tiles(Board& board, int x, int y,
+		std::vector<Position>& res)
+{
+	std::vector<Position> mods = { Position(-1, -1), Position(-1, 1), Position(1, -1), Position(1, 1)};
+
+	for (Position mod : mods) {
+		int dx = mod.x, dy = mod.y;
+		for (int _y = y + dy, _x = x + dx;
+				_y >= 0 && _y < 8 && _x >= 0 && _x < 8;
+				_y += dy, _x += dx)
+		{
+			res.push_back(Position(_x, _y));
+			if (board.getPiece(_x, _y).type != (uint8_t)Pieces::Empty) break;
+		}
+	}
+}
+
 static void add_knight_moves(int x, int y, std::vector<Move>& res)
 {
 	std::vector<Position> moves = { Position(2, 1), Position(2, -1), Position(-2, 1), Position(-2, -1), 
@@ -55,6 +93,16 @@ static void add_knight_moves(int x, int y, std::vector<Move>& res)
 	for (Position move : moves) {
 		if (x + move.x > 7 || x + move.x < 0 || y + move.y > 7 || y + move.y < 0) continue;
 		res.push_back(Move(x, y, x + move.x, y + move.y));
+	}
+}
+
+static void add_knight_attacked_tiles(int x, int y, std::vector<Position>& res)
+{
+	std::vector<Position> moves = { Position(2, 1), Position(2, -1), Position(-2, 1), Position(-2, -1), 
+												Position(1, 2), Position(1, -2), Position(-1, 2), Position(-1, -2)};
+	for (Position move : moves) {
+		if (x + move.x > 7 || x + move.x < 0 || y + move.y > 7 || y + move.y < 0) continue;
+		res.push_back(Position(x + move.x, y + move.y));
 	}
 }
 
@@ -114,6 +162,22 @@ static void add_pawn_moves(Board& board, int x, int y, std::vector<Move>& res) {
 			} else {
 				res.push_back(Move(x, y, x - 1, y + mod));
 			}
+		}
+	}
+}
+
+static void add_pawn_attacked_tiles(Board& board, int x, int y, std::vector<Position>& res) {
+	Piece p = board.getPiece(x, y);
+	int mod = (p.is_white) ? -1 : 1;
+
+	if (x <= 6) {
+		if (board.getPiece(x + 1, y + mod).is_white != p.is_white || board.getPiece(x + 1, y + mod).type == (int)Pieces::Empty) {
+			res.push_back(Position(x + 1, y + mod));
+		}
+	}
+	if (x >= 1) {
+		if (board.getPiece(x - 1, y + mod).is_white != p.is_white || board.getPiece(x - 1, y + mod).type == (int)Pieces::Empty) {
+			res.push_back(Position(x - 1, y + mod));
 		}
 	}
 }
@@ -186,6 +250,23 @@ static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
 	}
 }
 
+static void add_king_attacked_tiles(int x, int y, std::vector<Position>& res) {
+	std::vector<Position> mods = {
+		Position(-1, -1), Position(-1, 0), Position(-1, 1),
+		Position(0, -1),          Position{ 0, 1},
+		Position(1, -1), Position(1, 0), Position(1, 1),
+	};
+
+	for (Position& mod : mods) {
+		int dx = mod.x, dy = mod.y;
+		int _x = x + dx, _y = y + dy;
+
+		if (_x >= 0 && _x < 8 && _y >= 0 && _y < 8) {
+			res.push_back(Position(_x, _y));
+		}
+	}
+}
+
 std::vector<Move> Piece::get_moves_raw(Board& board, int x, int y) {
 	std::vector<Move> res;
 	switch ((Pieces)type) {
@@ -217,6 +298,39 @@ std::vector<Move> Piece::get_moves_raw(Board& board, int x, int y) {
 	default:
 		break;
 	}
+	return res;
+}
 
+std::vector<Position> Piece::get_attacked_tiles(Board& board, int x, int y) {
+	std::vector<Position> res;
+	switch ((Pieces)type) {
+	case Pieces::Pawn:
+		add_pawn_attacked_tiles(board, x, y, res);
+		break;
+
+	case Pieces::Knight:
+		add_knight_attacked_tiles(x, y, res);
+		break;
+
+	case Pieces::Bishop:
+		add_bishop_attacked_tiles(board, x, y, res);
+		break;
+
+	case Pieces::Rook:
+		add_rook_attacked_tiles(board, x, y, res);
+		break;
+
+	case Pieces::Queen:
+		add_rook_attacked_tiles(board, x, y, res);
+		add_bishop_attacked_tiles(board, x, y, res);
+		break;
+
+	case Pieces::King: 
+		add_king_attacked_tiles(x, y, res);
+		break;
+
+	default:
+		break;
+	}
 	return res;
 }

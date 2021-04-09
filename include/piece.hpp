@@ -5,6 +5,7 @@
 
 class Move;
 class Board;
+class Position;
 
 class Piece {
 public:
@@ -17,4 +18,5 @@ public:
 	Piece(A _type, B _is_white) : Piece((uint8_t)_type, (uint8_t)_is_white) {}
 
 	std::vector<Move> get_moves_raw(Board& board, int x, int y);
+	std::vector<Position> get_attacked_tiles(Board& board, int x, int y);
 };

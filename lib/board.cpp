@@ -66,6 +66,7 @@ Board::Board(const std::string& fenString) {
 	black_castle_long = 1;
 
 	parseFenString(fenString);
+	calculate_all_attacked_tiles();
 	calculate_all_possible_moves();
 }
 
@@ -259,6 +260,46 @@ bool Board::is_check() {
 	return false;
 }
 
+bool Board::is_check_slow() {
+	Piece king(0, 0);
+	Position king_pos(-1, -1);
+	for (int x = 0; x < 8; x++) {
+		for (int y = 0; y < 8; y++) {
+			Piece p = bc.get(x, y);
+			if (p.type == (int)Pieces::King && p.is_white == white_to_move) {
+				king = p; // find king of the player who has to move
+				king_pos = Position(x, y);
+			}
+		}
+	}
+
+	std::vector<Position> mods = { Position(1, 1), Position(1, -1), Position(-1, 1), Position(-1, -1),
+									Position(0, 1), Position(1, 0), Position(0, -1), Position(-1, 0)};
+	
+	for (Position mod : mods) {
+		int dx = mod.x, dy = mod.y;
+		for (int _y = king_pos.y + dy, _x = king_pos.x + dx;
+				_y >= 0 && _y < 8 && _x >= 0 && _x < 8;
+				_y += dy, _x += dx)
+		{
+			Piece p = getPiece(_x, _y);
+			if (p.type == (int)Pieces::Empty) continue;
+			if (p.is_white == white_to_move) {
+				break;
+			} else {
+				if (dx * dy == 0 && (p.type == (int)Pieces::Rook || p.type == (int)Pieces::Queen)) {
+					return true;
+				} else if (dx * dy != 0 && (p.type == (int)Pieces::Bishop || p.type == (int)Pieces::Queen)) {
+					return true;
+				} else {
+					break;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 bool Board::is_insufficient_material() {
 	int white_bishop_count = 0;
 	int black_bishop_count = 0;
@@ -289,6 +330,74 @@ void Board::add_position_to_whole_game() {
 	whole_game.push_back(tmp);
 }
 
+void Board::calculate_all_attacked_tiles() {
+	memset(attacked_tiles, 0, 8);
+	memset(attacked_tiles_ign_king, 0, 8);
+	for (int x = 0; x < 8; x++) {
+		for (int y = 0; y < 8; y++) {
+			Piece p = bc.get(x, y);
+			if (p.type == (int)Pieces::Empty) continue;
+			if (p.is_white == white_to_move) {
+				if (p.type == (int)Pieces::King) calculate_all_potential_attacked_tiles(Position(x, y));
+				continue;
+			}
+			std::vector<Position> tiles = p.get_attacked_tiles(*this, x, y);
+			for (Position pos : tiles) {
+				int i = pos.x * 8 + pos.y;
+				attacked_tiles[i / 8] |= 1 << (i % 8);
+				if (p.type != (int)Pieces::King) attacked_tiles_ign_king[i / 8] |= 1 << (i % 8);
+			}
+		}
+	}
+}
+
+void Board::calculate_all_potential_attacked_tiles(Position king_pos) {
+	memset(potential_attacked_tiles, 0, 8);
+	std::vector<Position> mods = { Position(1, 1), Position(1, -1), Position(-1, 1), Position(-1, -1),
+									Position(0, 1), Position(1, 0), Position(0, -1), Position(-1, 0)};
+	
+	for (Position mod : mods) {
+		int dx = mod.x, dy = mod.y;
+		int friendly_pieces_count = 0;
+		int enemy_pieces_count = 0;
+
+		for (int _y = king_pos.y + dy, _x = king_pos.x + dx;
+				_y >= 0 && _y < 8 && _x >= 0 && _x < 8;
+				_y += dy, _x += dx)
+		{
+			Piece p = getPiece(_x, _y);
+			if (p.type == (int)Pieces::Empty) continue;
+			if (p.is_white == white_to_move) {
+				if (friendly_pieces_count == 0) friendly_pieces_count++;
+				else break;
+			} else {
+				if (dx * dy == 0 && (p.type == (int)Pieces::Rook || p.type == (int)Pieces::Queen)) {
+					enemy_pieces_count++;
+					break;
+				} else if (dx * dy != 0 && (p.type == (int)Pieces::Bishop || p.type == (int)Pieces::Queen)) {
+					enemy_pieces_count++;
+					break;
+				} else {
+					break;
+				}
+			}
+		}
+
+		if (friendly_pieces_count == 0) continue; // either directly check or no friendly piece on the line
+		if (enemy_pieces_count == 0) continue; // no enemy piece that can attack on this line		
+
+		for (int _y = king_pos.y + dy, _x = king_pos.x + dx; // set all tiles on this line to possibly attacked
+				_y >= 0 && _y < 8 && _x >= 0 && _x < 8;
+				_y += dy, _x += dx)
+		{
+			int i = _x * 8 + _y;
+			potential_attacked_tiles[i / 8] |= 1 << (i % 8);
+			Piece p = getPiece(_x, _y);
+			if (p.type != (int)Pieces::Empty) break;
+		}
+	}
+}
+
 void Board::calculate_all_possible_moves() {
 	all_possible_moves.clear();
 	for (int x = 0; x < 8; x++) {
@@ -311,12 +420,18 @@ void Board::calculate_all_possible_moves() {
 				}
 			}
 
-			std::vector<Move> res;
 			for (Move move : moves_no_friendly_fire) {
-				Board tmp(*this);
-				tmp.move_raw(x, y, move.to_x, move.to_y);
-
-				if (!tmp.is_check()) {
+				if (from.type == (int)Pieces::King) {
+					if (tile_is_attacked(move.to_x, move.to_y)) continue;
+					Board tmp = *this;
+					tmp.move_raw(move.from_x, move.from_y, move.to_x, move.to_y);
+					if (tmp.is_check_slow()) continue;
+					all_possible_moves.push_back(move);
+				} else if (tile_is_potential_attacked(move.from_x, move.from_y)) {
+					if (tile_is_potential_attacked(move.to_x, move.to_y)) {
+						all_possible_moves.push_back(move);
+					}
+				} else {
 					all_possible_moves.push_back(move);
 				}
 			}
@@ -324,96 +439,22 @@ void Board::calculate_all_possible_moves() {
 	}
 }
 
-bool Board::tile_is_attacked(int tileX, int tileY) {
-	uint8_t color = !white_to_move;
-	if (tile_is_attacked_straight_diagonal(tileX, tileY)) {
-		return true;
-	}
-
-	for (int x = 0; x < 8; x++) {
-		for (int y = 0; y < 8; y++) {
-			Piece p = bc.get(x, y);
-			if (p.type != (int)Pieces::Empty) {
-				if (p.is_white != color) continue;
-				if (p.type == (int)Pieces::Pawn || p.type == (int)Pieces::Knight || p.type == (int)Pieces::King) {
-					std::vector<Move> moves = get_moves_raw(x ,y);
-					for (Move move : moves) {
-						if ((move.to_x == tileX) && (move.to_y == tileY)) return true;
-					}
-				}
-			}
-		}
-	}
-	return false;
+bool Board::tile_is_attacked(int x, int y) {
+	int i = x * 8 + y;
+	return (attacked_tiles[i / 8] & (1 << (i % 8))) != 0;
 }
 // overload to ignore a specific piece
-bool Board::tile_is_attacked(int tileX, int tileY, bool ignoreKings) { 
-	uint8_t color = !white_to_move;
-	if (tile_is_attacked_straight_diagonal(tileX, tileY)) {
-		return true;
-	}
-
-	for (int x = 0; x < 8; x++) {
-		for (int y = 0; y < 8; y++) {
-			Piece p = bc.get(x, y);
-			if (p.type != (int)Pieces::Empty) {
-				if (p.is_white != color) continue;
-				if (p.type == (int)Pieces::Pawn || p.type == (int)Pieces::Knight || 
-					(p.type == (int)Pieces::King && !ignoreKings)) 
-				{
-					std::vector<Move> moves = get_moves_raw(x ,y);
-					for (Move move : moves) {
-						if ((move.to_x == tileX) && (move.to_y == tileY)) return true;
-					}
-				}
-			}
-		}
-	}
-	return false;
+bool Board::tile_is_attacked(int x, int y, bool ignoreKings) { 
+	int i = x * 8 + y;
+	if (ignoreKings)
+		return (attacked_tiles_ign_king[i / 8] & (1 << (i % 8))) != 0;
+	else 
+		return (attacked_tiles[i / 8] & (1 << (i % 8))) != 0;
 }
 
-
-bool Board::tile_is_attacked_straight_diagonal(int tileX, int tileY) {
-	uint8_t color = !white_to_move;	
-	std::vector<Position> mods = { {-1, -1}, {-1, 1}, {1, -1}, {1, 1} };
-
-	for (Position mod : mods) { // check all diagonals of tile
-		int dx = mod.x, dy = mod.y;
-		for (int y = tileY + dy, x = tileX + dx;
-				y >= 0 && y < 8 && x >= 0 && x < 8;
-				y += dy, x += dx)
-		{
-			Piece p = bc.get(x, y);
-			if (p.type != (uint8_t)Pieces::Empty) {
-				// first piece on diagonal is from opponent an can hit over diagonals
-				if (p.is_white == color && (p.type == (int)Pieces::Bishop || p.type == (int)Pieces::Queen)) {
-					return true;
-				}
-				break;
-			}
-		}
-	}
-
-	mods = { {-1, 0}, {1, 0}, {0, -1}, {0, 1} };
-
-	for (Position mod : mods) { // check file and row of king
-		int dx = mod.x, dy = mod.y;
-		for (int y = tileY + dy, x = tileX + dx;
-				y >= 0 && y < 8 && x >= 0 && x < 8;
-				y += dy, x += dx)
-		{
-			Piece p = bc.get(x, y);
-			if (p.type != (uint8_t)Pieces::Empty) {
-				// piece on file or row is from opponent an can hit over 
-				if (p.is_white == color && (p.type == (int)Pieces::Rook || p.type == (int)Pieces::Queen)) {
-					return true;
-				}
-				break;
-			}
-		}
-	}
-
-	return false;
+bool Board::tile_is_potential_attacked(int x, int y) { 
+	int i = x * 8 + y;
+	return (potential_attacked_tiles[i / 8] & (1 << (i % 8))) != 0;
 }
 
 bool Board::is_same_position(BoardLite& board) {
@@ -533,7 +574,8 @@ void Board::move(Move move) {
 		std::cout << "draw by insufficient material" << std::endl;
 		gameState = GameState::draw;
 	}
-
+	
+	calculate_all_attacked_tiles();
 	calculate_all_possible_moves();
 
 	if (all_possible_moves.size() == 0) {
