@@ -5,9 +5,10 @@
 
 #include "board.hpp"
 
-struct FossileChess;
+class FossileChess;
 
-struct MinimaxThread {
+class MinimaxThread {
+	public:
 	FossileChess* master;
 	Move best_move = Move(-1, -1, -1, -1);
 	int best_move_eval = 999999999;
@@ -17,12 +18,13 @@ struct MinimaxThread {
 	void run(int depth, Board* board);
 };
 
-struct FossileChess {
+class FossileChess {
+	public:
 	std::mutex move_lock;
 	std::vector<Move> moves_left;
 	int num_moves_total;
 
-	FossileChess() {}
+	FossileChess() {};
 	FossileChess(const FossileChess& other) = delete;
 
 	Move get_best_move(Board* board, int depth, int threads_to_use);

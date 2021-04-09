@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 		opt.threads = std::thread::hardware_concurrency();
 	}	
 
-	if (opt.engine && opt.threads < 3) error("If -e or --engine is provided, -t or --threads needs to be at least 3 (1 for UI, 1 for the managing part of the engine, 1 for the calculating part of the engine))!", 1);
+	if (opt.engine && opt.threads < 2) error("If -e or --engine is provided, -t or --threads needs to be at least 2 (1 for UI, 1 for the engine)!", 1);
 
 	sf::RenderWindow& window = startGraphics();
 	Board board;
