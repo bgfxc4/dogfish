@@ -338,7 +338,7 @@ void Board::calculate_all_attacked_tiles() {
 			Piece p = bc.get(x, y);
 			if (p.type == (int)Pieces::Empty) continue;
 			if (p.is_white == white_to_move) {
-				if (p.type == (int)Pieces::King) calculate_all_potential_attacked_tiles(Position(x, y));
+				if (p.type == (int)Pieces::King) calculate_pinned_pieces(Position(x, y));
 				continue;
 			}
 			std::vector<Position> tiles = p.get_attacked_tiles(*this, x, y);
@@ -351,15 +351,16 @@ void Board::calculate_all_attacked_tiles() {
 	}
 }
 
-void Board::calculate_all_potential_attacked_tiles(Position king_pos) {
-	memset(potential_attacked_tiles, 0, 8);
+void Board::calculate_pinned_pieces(Position king_pos) {
+	pinned_pieces.clear();
 	std::vector<Position> mods = { Position(1, 1), Position(1, -1), Position(-1, 1), Position(-1, -1),
 									Position(0, 1), Position(1, 0), Position(0, -1), Position(-1, 0)};
 	
 	for (Position mod : mods) {
 		int dx = mod.x, dy = mod.y;
 		int friendly_pieces_count = 0;
-		int enemy_pieces_count = 0;
+		
+		Position potentially_pinned_piece(-1, -1);
 
 		for (int _y = king_pos.y + dy, _x = king_pos.x + dx;
 				_y >= 0 && _y < 8 && _x >= 0 && _x < 8;
@@ -368,32 +369,23 @@ void Board::calculate_all_potential_attacked_tiles(Position king_pos) {
 			Piece p = getPiece(_x, _y);
 			if (p.type == (int)Pieces::Empty) continue;
 			if (p.is_white == white_to_move) {
-				if (friendly_pieces_count == 0) friendly_pieces_count++;
+				if (friendly_pieces_count == 0) {
+					friendly_pieces_count++;
+					potentially_pinned_piece.x = _x;
+					potentially_pinned_piece.y = _y;
+				}
 				else break;
 			} else {
 				if (dx * dy == 0 && (p.type == (int)Pieces::Rook || p.type == (int)Pieces::Queen)) {
-					enemy_pieces_count++;
+					if (friendly_pieces_count == 1) pinned_pieces.push_back(potentially_pinned_piece);
 					break;
 				} else if (dx * dy != 0 && (p.type == (int)Pieces::Bishop || p.type == (int)Pieces::Queen)) {
-					enemy_pieces_count++;
+					if (friendly_pieces_count == 1) pinned_pieces.push_back(potentially_pinned_piece);
 					break;
 				} else {
 					break;
 				}
 			}
-		}
-
-		if (friendly_pieces_count == 0) continue; // either directly check or no friendly piece on the line
-		if (enemy_pieces_count == 0) continue; // no enemy piece that can attack on this line		
-
-		for (int _y = king_pos.y + dy, _x = king_pos.x + dx; // set all tiles on this line to possibly attacked
-				_y >= 0 && _y < 8 && _x >= 0 && _x < 8;
-				_y += dy, _x += dx)
-		{
-			int i = _x * 8 + _y;
-			potential_attacked_tiles[i / 8] |= 1 << (i % 8);
-			Piece p = getPiece(_x, _y);
-			if (p.type != (int)Pieces::Empty) break;
 		}
 	}
 }
@@ -420,20 +412,30 @@ void Board::calculate_all_possible_moves() {
 				}
 			}
 
+			bool is_pinned_piece = false;
+				
+			for (Position p : pinned_pieces) {
+				if (x == p.x && y == p.y) {
+					std::cout << "pinned: " << p.x << " " << p.y << std::endl;
+					is_pinned_piece = true;
+				}
+			}
+
 			for (Move move : moves_no_friendly_fire) {
 				if (from.type == (int)Pieces::King) {
 					if (tile_is_attacked(move.to_x, move.to_y)) continue;
+					all_possible_moves.push_back(move);
+					continue;
+				}
+
+				if (is_check() || is_pinned_piece) {
 					Board tmp = *this;
 					tmp.move_raw(move.from_x, move.from_y, move.to_x, move.to_y);
 					if (tmp.is_check_slow()) continue;
 					all_possible_moves.push_back(move);
-				} else if (tile_is_potential_attacked(move.from_x, move.from_y)) {
-					if (tile_is_potential_attacked(move.to_x, move.to_y)) {
-						all_possible_moves.push_back(move);
-					}
-				} else {
-					all_possible_moves.push_back(move);
-				}
+					continue; 
+				} 
+				all_possible_moves.push_back(move);
 			}
 		}
 	}
@@ -450,11 +452,6 @@ bool Board::tile_is_attacked(int x, int y, bool ignoreKings) {
 		return (attacked_tiles_ign_king[i / 8] & (1 << (i % 8))) != 0;
 	else 
 		return (attacked_tiles[i / 8] & (1 << (i % 8))) != 0;
-}
-
-bool Board::tile_is_potential_attacked(int x, int y) { 
-	int i = x * 8 + y;
-	return (potential_attacked_tiles[i / 8] & (1 << (i % 8))) != 0;
 }
 
 bool Board::is_same_position(BoardLite& board) {

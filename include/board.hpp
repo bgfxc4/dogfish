@@ -77,7 +77,7 @@ public:
 	uint8_t black_castle_long : 1;
 	
 	uint8_t attacked_tiles[8] = {0};
-	uint8_t potential_attacked_tiles[8] = {0};
+	std::vector<Position> pinned_pieces;
 	uint8_t attacked_tiles_ign_king[8] = {0};
 	std::vector<Move> all_possible_moves;
 	std::vector<BoardLite> whole_game;
@@ -92,7 +92,6 @@ public:
 	std::vector<Move> get_moves(int x, int y);
 	bool tile_is_attacked(int x, int y);
 	bool tile_is_attacked(int x, int y, bool ignoreKings);
-	bool tile_is_potential_attacked(int x, int y);
 	bool is_check();
 	bool is_check_slow();
 	bool is_insufficient_material();
@@ -100,7 +99,7 @@ public:
 	void add_position_to_whole_game();
 
 	void calculate_all_attacked_tiles();
-	void calculate_all_potential_attacked_tiles(Position king_pos);
+	void calculate_pinned_pieces(Position king_pos);
 	void calculate_all_possible_moves();
 	
 	bool is_same_position(BoardLite& board);
