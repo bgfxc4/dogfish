@@ -8,82 +8,79 @@
 #include "fossile_chess.hpp"
 #include "constants.hpp"
 
-FossileChess::FossileChess() {};
+static void print_progress(int done, int total) {
+	std::cout << "Progress: " << done * 100 / total << "%" << std::endl;
+}
 
-minimax_thread::minimax_thread(Move m) {
-	move = m;
-};
+void MinimaxThread::run(int depth, Board* board) {
+	while (true) {
+		Move next_move(-1, -1, -1, -1);
+		int num_moves_left;
 
-void spawn_minimax_thread(FossileChess* engine, Board* board, int depth, minimax_thread** out) {
-	Board b = *board;
-	b.move((*out)->move);
-	minimax_thread* out_local = new minimax_thread((*out)->move);
-	std::cout << "depth: " <<  depth << std::endl;
-	out_local->eval = engine->minimax(&b, depth, -999999999, 999999999, true);
-	out_local->state = 1;
-	std::cout << "ended thread " << out_local->move.from_x << " " << out_local->move.from_y << " to "
-			  << out_local->move.to_x << " " << out_local->move.to_y << std::endl;
-	__atomic_store_n(out, out_local, __ATOMIC_SEQ_CST);
+		// get the next move, our return if we're done
+		{
+			std::lock_guard<std::mutex> g(master->move_lock);
+
+			num_moves_left = master->moves_left.size();
+	
+			if (num_moves_left == 0)
+				break;
+
+			next_move = master->moves_left.back();
+			master->moves_left.pop_back();
+		}
+
+		auto total = master->num_moves_total;
+		print_progress(total - num_moves_left, total);
+
+		Board b = *board;
+		b.move(next_move);
+
+		int eval = FossileChess::minimax(&b, depth, -999999999, 999999999, true);
+		if (eval < best_move_eval) {
+			best_move = next_move;
+			best_move_eval = eval;
+		}
+	}
+}
+
+static void run_minimax_thread(MinimaxThread* t, int depth, Board* board) {
+	t->run(depth, board);
 }
 
 Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
-	Move best_move(-1, -1, -1, -1);
-	int best_move_eval = 999999999;
-	
-	for (Move m : board->all_possible_moves) {
-		minimax_thread* mmt = new minimax_thread(m);
-		minimax_thread** mmt_ptr = (minimax_thread**)malloc(sizeof(minimax_thread*));
-		*mmt_ptr = mmt;
-		to_be_freed.push_back(mmt);
-		moves_to_be_processed.push_back(mmt_ptr);
-	}
-	
-	bool not_finished = true;
-	int threads_used = 0;
-	int moves_calculated_count = 0;
-	while (not_finished) {
-		not_finished = false;
-		for (minimax_thread** mmt_ptr : moves_to_be_processed) {
-			minimax_thread* mmt_local = __atomic_load_n(mmt_ptr, __ATOMIC_SEQ_CST);
-			if (mmt_local->state == 2) continue; // move is calculated, can be skipped
-			if (mmt_local->state == 0)  { // a thread is already working on this move
-				not_finished = true;
-				continue; 
-			}
-			if (mmt_local->state == -1) { // move needs to be calculated
-				not_finished = true;
-				if (threads_used >= threads_to_use) continue; // all threads are already used
-				(*mmt_ptr)->state = 0;
-				std::thread th(spawn_minimax_thread, this, board, depth - 1, mmt_ptr); // start new thread
-				th.detach();
-				threads_used++;
-			}
-			if (mmt_local->state == 1) {
-				(*mmt_ptr)->state = 2;
-				not_finished = true;
-				threads_used--;
+	moves_left = board->all_possible_moves;
+	num_moves_total = board->all_possible_moves.size();
 
-				if (mmt_local->eval < best_move_eval) {
-					best_move = mmt_local->move;
-					best_move_eval = mmt_local->eval;
-				}
-				moves_calculated_count++;
-				std::cout << ((float)(moves_calculated_count) / (float)moves_to_be_processed.size()) * 100 << "%" << std::endl;
-			}
+	std::vector<std::thread> threads;
+	std::vector<MinimaxThread> threads_data;
+	threads.reserve(threads_to_use - 1);
+	threads_data.resize(threads_to_use, this);
+
+	// spawn n - 1 threads...
+	for (int i = 0; i < threads_to_use - 1; i++)
+		threads.emplace_back(run_minimax_thread, &threads_data[i], depth - 1, board);
+	// ...since we become the last thread
+	run_minimax_thread(&threads_data.back(), depth - 1, board);
+
+	// after we're finished, join all other threads...
+	for (std::thread& t : threads)
+		t.join();
+
+	// ...and figure out the best move out of all of them
+	int best_eval = 999999999;
+	MinimaxThread* best_res = nullptr;
+	for (MinimaxThread& res : threads_data) {
+		if (res.best_move_eval < best_eval) {
+			best_eval = res.best_move_eval;
+			best_res = &res;
 		}
 	}
-	
-	for (minimax_thread* mmt : to_be_freed) {
-		delete mmt;
-	}
-	for (minimax_thread** mmt_ptr : moves_to_be_processed) {
-		delete *mmt_ptr;
-		free(mmt_ptr);
-	}
-	
-	to_be_freed.clear();
-	moves_to_be_processed.clear();
-	return best_move;
+
+	// also tell the user that we're done :)
+	print_progress(1, 1);
+
+	return best_res->best_move;
 }
 
 int FossileChess::evaluate_board(Board* board) { // evaluates from whites perspective
