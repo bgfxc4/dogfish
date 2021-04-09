@@ -416,8 +416,8 @@ void Board::calculate_all_possible_moves() {
 				
 			for (Position p : pinned_pieces) {
 				if (x == p.x && y == p.y) {
-					std::cout << "pinned: " << p.x << " " << p.y << std::endl;
 					is_pinned_piece = true;
+					break;
 				}
 			}
 
@@ -431,7 +431,8 @@ void Board::calculate_all_possible_moves() {
 				if (is_check() || is_pinned_piece) {
 					Board tmp = *this;
 					tmp.move_raw(move.from_x, move.from_y, move.to_x, move.to_y);
-					if (tmp.is_check_slow()) continue;
+					tmp.calculate_all_attacked_tiles();
+					if (tmp.is_check()) continue;
 					all_possible_moves.push_back(move);
 					continue; 
 				} 
