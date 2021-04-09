@@ -28,3 +28,6 @@ clean:
 perf_calls: $(EXECUTABLE)
 	perf record --call-graph=lbr ./$(EXECUTABLE)
 	perf report --no-children
+
+perf_stat: $(EXECUTABLE)
+	perf stat -d ./$(EXECUTABLE)
