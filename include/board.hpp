@@ -120,5 +120,5 @@ public:
 	uint16_t num_moves : 12;
 
 	int parseFenString(const std::string& fenString);
-	std::vector<Move> get_moves_raw(int x, int y);
+	void get_moves_raw(int x, int y, std::vector<Move>& res);
 };

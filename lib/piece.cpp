@@ -267,8 +267,8 @@ static void add_king_attacked_tiles(int x, int y, std::vector<Position>& res) {
 	}
 }
 
-std::vector<Move> Piece::get_moves_raw(Board& board, int x, int y) {
-	std::vector<Move> res;
+void Piece::get_moves_raw(Board& board, int x, int y, std::vector<Move>& res) {
+	res.clear();
 	switch ((Pieces)type) {
 	case Pieces::Pawn:
 		add_pawn_moves(board, x, y, res);
@@ -298,11 +298,10 @@ std::vector<Move> Piece::get_moves_raw(Board& board, int x, int y) {
 	default:
 		break;
 	}
-	return res;
 }
 
-std::vector<Position> Piece::get_attacked_tiles(Board& board, int x, int y) {
-	std::vector<Position> res;
+void Piece::get_attacked_tiles(Board& board, int x, int y, std::vector<Position>& res) {
+	res.clear();
 	switch ((Pieces)type) {
 	case Pieces::Pawn:
 		add_pawn_attacked_tiles(board, x, y, res);
@@ -332,5 +331,4 @@ std::vector<Position> Piece::get_attacked_tiles(Board& board, int x, int y) {
 	default:
 		break;
 	}
-	return res;
 }

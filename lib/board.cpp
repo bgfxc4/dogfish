@@ -330,11 +330,12 @@ void Board::calculate_all_attacked_tiles() {
 	calculate_pinned_pieces();
 	memset(attacked_tiles, 0, 8);
 	memset(attacked_tiles_ign_king, 0, 8);
+	std::vector<Position> tiles;
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
 			Piece p = bc.get(x, y);
 			if (p.type == (int)Pieces::Empty || (p.is_white == white_to_move)) continue;
-			std::vector<Position> tiles = p.get_attacked_tiles(*this, x, y);
+			p.get_attacked_tiles(*this, x, y, tiles);
 			for (Position pos : tiles) {
 				int i = pos.x * 8 + pos.y;
 				attacked_tiles[i / 8] |= 1 << (i % 8);
@@ -387,6 +388,7 @@ void Board::calculate_pinned_pieces() {
 
 void Board::calculate_all_possible_moves() {
 	all_possible_moves.clear();
+	std::vector<Move> raw_moves;
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
 			Piece from = bc.get(x, y);
@@ -395,7 +397,7 @@ void Board::calculate_all_possible_moves() {
 				// quick return on degenerate cases
 				continue;
 			}
-			std::vector<Move> raw_moves = get_moves_raw(x, y);
+			get_moves_raw(x, y, raw_moves);
 
 			std::vector<Move> moves_no_friendly_fire;
 			for (Move move : raw_moves) {
@@ -600,6 +602,6 @@ void Board::move(Move move) {
 	add_position_to_whole_game();
 }
 
-std::vector<Move> Board::get_moves_raw(int x, int y) {
-	return bc.get(x, y).get_moves_raw(*this, x, y);
+void Board::get_moves_raw(int x, int y, std::vector<Move>& res) {
+	return bc.get(x, y).get_moves_raw(*this, x, y, res);
 }
