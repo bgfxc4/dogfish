@@ -20,26 +20,8 @@ bool Position::operator!= (Position second) {
 	return this->x != second.x || this->y != second.y;
 }
 
-Move::Move(int from_x, int from_y, int to_x, int to_y, int is_promotion, int promotion_is_white) {
-	this->from_x = from_x;
-	this->from_y = from_y;
-	this->to_x = to_x;
-	this->to_y = to_y;
-	this->is_promotion = is_promotion;
-	this->promotion_is_white = promotion_is_white;
-}
-
-Move::Move(int from_x, int from_y, int to_x, int to_y) {
-	this->from_x = from_x;
-	this->from_y = from_y;
-	this->to_x = to_x;
-	this->to_y = to_y;
-	this->is_promotion = (int)Pieces::Empty;
-	this->promotion_is_white = -1;
-}
-
 bool Move::operator== (Move& second) {
-	return this->to_x == second.to_x && this->to_y == second.to_y && this->is_promotion == second.is_promotion;
+	return this->to_x == second.to_x && this->to_y == second.to_y && this->promote_to == second.promote_to;
 }
 
 BoardLite::BoardLite(Board* board) {
@@ -392,9 +374,7 @@ void Board::calculate_all_possible_moves() {
 	// the average branching factor is about 31, so reserve a little more than that
 	// to make reallocations unlikely
 	std::vector<Move> raw_moves;
-	std::vector<Move> moves_no_friendly_fire;
 	raw_moves.reserve(64);
-	moves_no_friendly_fire.reserve(48);
 
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
@@ -406,16 +386,6 @@ void Board::calculate_all_possible_moves() {
 			}
 			get_moves_raw(x, y, raw_moves);
 
-			moves_no_friendly_fire.clear();
-			for (Move move : raw_moves) {
-				int to_x = move.to_x, to_y = move.to_y;
-				Piece to = bc.get(to_x, to_y);
-
-				if (to.type == (uint8_t)Pieces::Empty || to.is_white != from.is_white) {
-					moves_no_friendly_fire.push_back(move);
-				}
-			}
-
 			bool is_pinned_piece = false;
 				
 			for (Position p : pinned_pieces) {
@@ -425,7 +395,13 @@ void Board::calculate_all_possible_moves() {
 				}
 			}
 
-			for (Move move : moves_no_friendly_fire) {
+			for (Move move : raw_moves) {
+				// skip moves that would be friendly fire
+				int to_x = move.to_x, to_y = move.to_y;
+				Piece to = bc.get(to_x, to_y);
+				if (to.type != (uint8_t)Pieces::Empty && to.is_white == from.is_white)
+					continue;
+
 				if (from.type == (int)Pieces::King) {
 					if (tile_is_attacked(move.to_x, move.to_y)) continue;
 					all_possible_moves.push_back(move);
@@ -562,8 +538,8 @@ void Board::move(Move move) {
 	
 	move_raw(move.from_x, move.from_y, move.to_x, move.to_y);
 
-	if (move.is_promotion != (int)Pieces::Empty) {
-		bc.set(move.to_x, move.to_y, Piece(move.is_promotion, move.promotion_is_white));
+	if (move.promote_to != Pieces::Empty) {
+		bc.set(move.to_x, move.to_y, Piece(move.promote_to, move.promotion_is_white));
 	}
 
 	white_to_move = !white_to_move;

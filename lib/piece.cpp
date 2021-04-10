@@ -106,17 +106,17 @@ static void add_pawn_moves(Board& board, int x, int y, std::vector<Move>& res) {
 	if (board.getPiece(x, y + mod).type == (int)Pieces::Empty) { // Push pawn one tile
 		int is_promotion_white = (mod == -1) ? 1 : 0;
 		if ((mod == -1 && y == 1) || (mod == 1 && y == 6)) { // pawn is white and on 7th rank
-			res.push_back(Move(x, y, x, y + mod, (int)Pieces::Knight, is_promotion_white));
-			res.push_back(Move(x, y, x, y + mod, (int)Pieces::Bishop, is_promotion_white));
-			res.push_back(Move(x, y, x, y + mod, (int)Pieces::Rook, is_promotion_white));
-			res.push_back(Move(x, y, x, y + mod, (int)Pieces::Queen, is_promotion_white));
+			res.push_back(Move(x, y, x, y + mod, Pieces::Knight, is_promotion_white));
+			res.push_back(Move(x, y, x, y + mod, Pieces::Bishop, is_promotion_white));
+			res.push_back(Move(x, y, x, y + mod, Pieces::Rook, is_promotion_white));
+			res.push_back(Move(x, y, x, y + mod, Pieces::Queen, is_promotion_white));
 		} else {
 			res.push_back(Move(x, y, x, y + mod));
 		}	
 
 	    if ((mod == -1 && y == 6) || (mod == 1 && y == 1)) { // pawn is on start tile
 			if (board.getPiece(x, y + 2 * mod).type == (int)Pieces::Empty) { // 2nd tile in front is free
-			res.push_back(Move(x, y, x, y + 2 * mod));
+				res.push_back(Move(x, y, x, y + 2 * mod));
 			}
 		}
 	}
@@ -133,10 +133,10 @@ static void add_pawn_moves(Board& board, int x, int y, std::vector<Move>& res) {
 		{
 			int is_promotion_white = (mod == -1) ? 1 : 0;
 			if ((mod == -1 && y == 1) || (mod == 1 && y == 6)) { // pawn is white and on 7th rank
-				res.push_back(Move(x, y, x + 1, y + mod, (int)Pieces::Knight, is_promotion_white));
-				res.push_back(Move(x, y, x + 1, y + mod, (int)Pieces::Bishop, is_promotion_white));
-				res.push_back(Move(x, y, x + 1, y + mod, (int)Pieces::Rook, is_promotion_white));
-				res.push_back(Move(x, y, x + 1, y + mod, (int)Pieces::Queen, is_promotion_white));
+				res.push_back(Move(x, y, x + 1, y + mod, Pieces::Knight, is_promotion_white));
+				res.push_back(Move(x, y, x + 1, y + mod, Pieces::Bishop, is_promotion_white));
+				res.push_back(Move(x, y, x + 1, y + mod, Pieces::Rook, is_promotion_white));
+				res.push_back(Move(x, y, x + 1, y + mod, Pieces::Queen, is_promotion_white));
 			} else {
 				res.push_back(Move(x, y, x + 1, y + mod));
 			}		
@@ -149,10 +149,10 @@ static void add_pawn_moves(Board& board, int x, int y, std::vector<Move>& res) {
 		{
 			int is_promotion_white = (mod == -1) ? 1 : 0;
 			if ((mod == -1 && y == 1) || (mod == 1 && y == 6)) { // pawn is white and on 7th rank
-				res.push_back(Move(x, y, x - 1, y + mod, (int)Pieces::Knight, is_promotion_white));
-				res.push_back(Move(x, y, x - 1, y + mod, (int)Pieces::Bishop, is_promotion_white));
-				res.push_back(Move(x, y, x - 1, y + mod, (int)Pieces::Rook, is_promotion_white));
-				res.push_back(Move(x, y, x - 1, y + mod, (int)Pieces::Queen, is_promotion_white));
+				res.push_back(Move(x, y, x - 1, y + mod, Pieces::Knight, is_promotion_white));
+				res.push_back(Move(x, y, x - 1, y + mod, Pieces::Bishop, is_promotion_white));
+				res.push_back(Move(x, y, x - 1, y + mod, Pieces::Rook, is_promotion_white));
+				res.push_back(Move(x, y, x - 1, y + mod, Pieces::Queen, is_promotion_white));
 			} else {
 				res.push_back(Move(x, y, x - 1, y + mod));
 			}

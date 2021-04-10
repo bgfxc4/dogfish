@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "piece.hpp"
+#include "constants.hpp"
 
 class BoardContent {
 public:
@@ -35,12 +36,19 @@ class Position {
 
 class Move {
 	public:
-	int from_x, from_y;
-	int to_x, to_y;
-	int is_promotion = 0; // if the move isn*t a promotion, this is 0, if it is, the int has the value of a piece from the Pieces enum
+	int8_t from_x, from_y;
+	int8_t to_x, to_y;
+	Pieces promote_to = Pieces::Empty; // Pieces::Empty if no promotion
 	int promotion_is_white = 0;
-	Move(int from_x, int from_y, int to_x, int to_y, int is_promotion, int promotion_is_white);
-	Move(int from_x, int from_y, int to_x, int to_y);
+
+	Move(int _from_x, int _from_y, int _to_x, int _to_y)
+		: from_x(_from_x), from_y(_from_y), to_x(_to_x), to_y(_to_y) {}
+
+	Move(int _from_x, int _from_y, int _to_x, int _to_y,
+			Pieces _promote_to, int _promotion_is_white)
+		: from_x(_from_x), from_y(_from_y), to_x(_to_x), to_y(_to_y),
+		promote_to(_promote_to), promotion_is_white(_promotion_is_white) {}
+
 	bool operator== (Move& second);
 };
 

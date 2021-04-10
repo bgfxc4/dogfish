@@ -217,7 +217,7 @@ void BoardUI::endMouseClickPromoteState(sf::Vector2i mousePos, Board& board) {
 
 	if (promotingToTemp != promotingTo) return;
 	
-	board.move(Move(promotingPositionFrom.x, promotingPositionFrom.y, promotingPosition.x, promotingPosition.y, (int)promotingTo, (int)board.white_to_move));
+	board.move(Move(promotingPositionFrom.x, promotingPositionFrom.y, promotingPosition.x, promotingPosition.y, promotingTo, (int)board.white_to_move));
 	ui_state = UI_state::in_game;
 	isCheck = board.is_check();
 	if (playingAgainstEngine != -1 && playingAgainstEngine != board.white_to_move) makeEngineMove(board);
@@ -236,7 +236,7 @@ void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
 
 	if (move.to_x == -1 || move.to_y == -1) return;
 	
-	if (move.is_promotion != (int)Pieces::Empty && 
+	if (move.promote_to != Pieces::Empty && 
 		(playingAgainstEngine == board.white_to_move || playingAgainstEngine == -1)) 
 	{
 		promotingPositionFrom.x = fromX;
