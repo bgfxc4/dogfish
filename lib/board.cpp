@@ -388,7 +388,14 @@ void Board::calculate_pinned_pieces() {
 
 void Board::calculate_all_possible_moves() {
 	all_possible_moves.clear();
+
+	// the average branching factor is about 31, so reserve a little more than that
+	// to make reallocations unlikely
 	std::vector<Move> raw_moves;
+	std::vector<Move> moves_no_friendly_fire;
+	raw_moves.reserve(64);
+	moves_no_friendly_fire.reserve(48);
+
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
 			Piece from = bc.get(x, y);
@@ -399,7 +406,7 @@ void Board::calculate_all_possible_moves() {
 			}
 			get_moves_raw(x, y, raw_moves);
 
-			std::vector<Move> moves_no_friendly_fire;
+			moves_no_friendly_fire.clear();
 			for (Move move : raw_moves) {
 				int to_x = move.to_x, to_y = move.to_y;
 				Piece to = bc.get(to_x, to_y);
