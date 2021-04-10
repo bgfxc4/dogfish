@@ -261,7 +261,7 @@ void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
 
 void spawn_engine(FossileChess* engine, Board* board, Move** out, int threads_to_use) {
 	Move* out_local = new Move(-1, -1, -1, -1);
-	*out_local = engine->get_best_move(board, 2, threads_to_use - 1);
+	*out_local = engine->get_best_move(board, 6, threads_to_use - 1);
 	__atomic_store_n(out, out_local, __ATOMIC_SEQ_CST);
 }
 

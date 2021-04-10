@@ -404,6 +404,10 @@ void Board::calculate_all_possible_moves() {
 
 				if (from.type == (int)Pieces::King) {
 					if (tile_is_attacked(move.to_x, move.to_y)) continue;
+					Board tmp = *this;
+					tmp.move_raw(move.from_x, move.from_y, move.to_x, move.to_y);
+					tmp.calculate_all_attacked_tiles();
+					if (tmp.is_check()) continue;
 					all_possible_moves.push_back(move);
 					continue;
 				}

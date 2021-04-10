@@ -165,14 +165,10 @@ static void add_pawn_attacked_tiles(Board& board, int x, int y, std::vector<Posi
 	int mod = (p.is_white) ? -1 : 1;
 
 	if (x <= 6) {
-		if (board.getPiece(x + 1, y + mod).is_white != p.is_white || board.getPiece(x + 1, y + mod).type == (int)Pieces::Empty) {
-			res.push_back(Position(x + 1, y + mod));
-		}
+		res.push_back(Position(x + 1, y + mod));
 	}
 	if (x >= 1) {
-		if (board.getPiece(x - 1, y + mod).is_white != p.is_white || board.getPiece(x - 1, y + mod).type == (int)Pieces::Empty) {
-			res.push_back(Position(x - 1, y + mod));
-		}
+		res.push_back(Position(x - 1, y + mod));
 	}
 }
 
