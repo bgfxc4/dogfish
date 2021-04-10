@@ -147,31 +147,24 @@ int FossileChess::minimax(Board* board, int depth, int alpha, int beta, bool max
 		return evaluate_board(board);
 	}
 
-	if (maximizing_player) {
-		int max_eval = -HIGHEST_VALUE;
-		for (Move m : board->all_possible_moves) {
-			Board b = *board;
-			b.move(m);
-			int eval = minimax(&b, depth - 1, alpha, beta, false);
-			max_eval = std::max(max_eval, eval);
+	int top_eval = HIGHEST_VALUE * (maximizing_player? -1 : 1);
+
+	for (Move m : board->all_possible_moves) {
+		Board b = *board;
+		b.move(m);
+		int eval = minimax(&b, depth - 1, alpha, beta, !maximizing_player);
+		if (maximizing_player) {
+			top_eval = std::max(top_eval, eval);
 			alpha = std::max(alpha, eval);
-			if (beta <= alpha) {
-				break;
-			}
 		}
-		return max_eval;
-	} else {
-		int min_eval = HIGHEST_VALUE;
-		for (Move m : board->all_possible_moves) {
-			Board b = *board;
-			b.move(m);
-			int eval = minimax(&b, depth - 1, alpha, beta, true);
-			min_eval = std::min(min_eval, eval);
+		else {
+			top_eval = std::min(top_eval, eval);
 			beta = std::min(beta, eval);
-			if (beta <= alpha) {
-				break;
-			}
 		}
-		return min_eval;
+		if (beta <= alpha) {
+			break;
+		}
 	}
+
+	return top_eval;
 }
