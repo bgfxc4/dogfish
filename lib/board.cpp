@@ -66,6 +66,7 @@ Board::Board(const std::string& fenString) {
 	black_castle_long = 1;
 
 	parseFenString(fenString);
+	find_kings();
 	calculate_all_attacked_tiles();
 	calculate_all_possible_moves();
 }
@@ -242,36 +243,14 @@ std::vector<Move> Board::get_moves(int x, int y) {
 }
 
 bool Board::is_check() {
-	Piece king(0, 0);
-	Position kingPos(-1, -1);
-	for (int x = 0; x < 8; x++) {
-		for (int y = 0; y < 8; y++) {
-			Piece p = bc.get(x, y);
-			if (p.type == (int)Pieces::King && p.is_white == white_to_move) {
-				king = p; // find king of the player who has to move
-				kingPos = Position(x, y);
-			}
-		}
-	}
-
-	if (tile_is_attacked(kingPos.x, kingPos.y)) {
-		return true;
-	}
-	return false;
+	Position king_pos(-1, -1);
+	(white_to_move) ? king_pos = white_king : king_pos = black_king;
+	return tile_is_attacked(king_pos.x, king_pos.y);
 }
 
 bool Board::is_check_slow() {
-	Piece king(0, 0);
 	Position king_pos(-1, -1);
-	for (int x = 0; x < 8; x++) {
-		for (int y = 0; y < 8; y++) {
-			Piece p = bc.get(x, y);
-			if (p.type == (int)Pieces::King && p.is_white == white_to_move) {
-				king = p; // find king of the player who has to move
-				king_pos = Position(x, y);
-			}
-		}
-	}
+	(white_to_move) ? king_pos = white_king : king_pos = black_king;
 
 	std::vector<Position> mods = { Position(1, 1), Position(1, -1), Position(-1, 1), Position(-1, -1),
 									Position(0, 1), Position(1, 0), Position(0, -1), Position(-1, 0)};
@@ -330,17 +309,31 @@ void Board::add_position_to_whole_game() {
 	whole_game.push_back(tmp);
 }
 
+void Board::find_kings() {
+	for (int x = 0; x < 8; x++) {
+		for (int y = 0; y < 8; y++) {
+			Piece p = bc.get(x, y);
+			if (p.type == (int)Pieces::King) {
+				if (p.is_white) {
+					white_king.x = x;
+					white_king.y = y;
+				} else {
+					black_king.x = x;
+					black_king.y = y;
+				}
+			}
+		}
+	}
+}
+
 void Board::calculate_all_attacked_tiles() {
+	calculate_pinned_pieces();
 	memset(attacked_tiles, 0, 8);
 	memset(attacked_tiles_ign_king, 0, 8);
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
 			Piece p = bc.get(x, y);
-			if (p.type == (int)Pieces::Empty) continue;
-			if (p.is_white == white_to_move) {
-				if (p.type == (int)Pieces::King) calculate_pinned_pieces(Position(x, y));
-				continue;
-			}
+			if (p.type == (int)Pieces::Empty || (p.is_white == white_to_move)) continue;
 			std::vector<Position> tiles = p.get_attacked_tiles(*this, x, y);
 			for (Position pos : tiles) {
 				int i = pos.x * 8 + pos.y;
@@ -351,7 +344,9 @@ void Board::calculate_all_attacked_tiles() {
 	}
 }
 
-void Board::calculate_pinned_pieces(Position king_pos) {
+void Board::calculate_pinned_pieces() {
+	Position king_pos(-1, -1);
+	(white_to_move) ? king_pos = white_king : king_pos = black_king;
 	pinned_pieces.clear();
 	std::vector<Position> mods = { Position(1, 1), Position(1, -1), Position(-1, 1), Position(-1, -1),
 									Position(0, 1), Position(1, 0), Position(0, -1), Position(-1, 0)};
@@ -470,7 +465,17 @@ bool Board::is_same_position(BoardLite& board) {
 }
 
 void Board::move_raw(int from_x, int from_y, int to_x, int to_y) {
-	// TODO: castling
+	Piece p = bc.get(from_x, from_y);
+	if (p.type == (int)Pieces::King) {
+		if (p.is_white) {
+			white_king.x = to_x;
+			white_king.y = to_y;
+		} else {
+			black_king.x = to_x;
+			black_king.y = to_y;
+		}
+	}
+		
 	bc.set(to_x, to_y, bc.get(from_x, from_y));
 	bc.set(from_x, from_y, Piece(Pieces::Empty, 0));
 }
@@ -507,7 +512,13 @@ void Board::move(Move move) {
 				black_castle_short = false;
 		}
 	} else if (toMove.type == (int)Pieces::King) { 
-
+		if (toMove.is_white) {
+			white_king.x = move.to_x;
+			white_king.y = move.to_y;
+		} else {
+			black_king.x = move.to_x;
+			black_king.y = move.to_y;
+		}
 		if (move.from_x == 4 && move.from_y == 7 && white_to_move == 1) { // player tried to castle
 			if (move.to_x == 2 && move.to_y == 7 && white_castle_long) {
 				move_raw(0, 7, 3, 7);

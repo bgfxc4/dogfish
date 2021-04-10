@@ -68,6 +68,9 @@ class BoardLite {
 class Board {
 public:
 	GameState gameState = GameState::playing;
+	
+	Position white_king = Position(-1, -1);
+	Position black_king = Position(-1, -1);
 
 	uint8_t white_to_move : 1;
 		
@@ -97,9 +100,10 @@ public:
 	bool is_insufficient_material();
 	uint8_t* get_all_raw();
 	void add_position_to_whole_game();
+	void find_kings();
 
 	void calculate_all_attacked_tiles();
-	void calculate_pinned_pieces(Position king_pos);
+	void calculate_pinned_pieces();
 	void calculate_all_possible_moves();
 	
 	bool is_same_position(BoardLite& board);
