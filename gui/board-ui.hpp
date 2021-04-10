@@ -18,7 +18,7 @@ enum UI_state {
 class BoardUI {
 	public:
 	
-	FossileChess engine; // is only needed, if option -e is given
+	FossileChess engine;
 	Move* engineMove = nullptr;
 	std::thread engineThread;
 	int threads;

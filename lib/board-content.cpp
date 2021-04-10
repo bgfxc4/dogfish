@@ -6,7 +6,7 @@ BoardContent::BoardContent() {
 	memset(bits, 0, sizeof(bits));
 }
 
-Piece BoardContent::get(int x, int y) {
+Piece BoardContent::get(unsigned x, unsigned y) {
 	return get(y * 8 + x);
 }
 
@@ -22,14 +22,10 @@ void BoardContent::clear_tile(int x, int y) {
 	set(y * 8 + x, 0 | (1 << 3));
 }
 
-Piece BoardContent::get(uint8_t n) {
+Piece BoardContent::get(unsigned n) {
 	uint8_t byte = bits[n >> 1];
-	if (n & 1) {
-		byte >>= 4;
-	}
-	else {
-		byte &= 0x0F;
-	}
+	byte >>= (n & 1) << 2;
+	byte &= 0x0F;
 	return { (uint8_t)(byte & 0x07), (uint8_t)(byte >> 3) };
 }
 
