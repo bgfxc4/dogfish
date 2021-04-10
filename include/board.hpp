@@ -12,14 +12,14 @@
 class BoardContent {
 public:
 	BoardContent();
-	Piece get(int x, int y);
+	Piece get(unsigned x, unsigned y);
 	uint8_t* get_all_raw();
 	void set(int x, int y, Piece p);
 	void clear_tile(int x, int y);
 
 private:
 	uint8_t bits[32];
-	Piece get(uint8_t n);
+	Piece get(unsigned n);
 	void set(uint8_t n, uint8_t p);
 };
 
