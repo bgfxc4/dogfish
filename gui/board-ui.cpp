@@ -43,13 +43,15 @@ void BoardUI::loadTextures() {
 
 }
 
-BoardUI::BoardUI(int threads) {
+BoardUI::BoardUI(int threads, int engine_depth) {
 	this->threads = threads;
+	this->engine_depth = engine_depth;
 	loadTextures();
 }
 
-BoardUI::BoardUI(int threads, int white_playing) {
+BoardUI::BoardUI(int threads, int engine_depth, int white_playing) {
 	this->threads = threads;
+	this->engine_depth = engine_depth;
 	loadTextures();
 	playingAgainstEngine = white_playing;
 }
@@ -259,13 +261,13 @@ void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
 	if (playingAgainstEngine != -1 && playingAgainstEngine != board.white_to_move) makeEngineMove(board);
 }
 
-void spawn_engine(FossileChess* engine, Board* board, Move** out, int threads_to_use) {
+void spawn_engine(FossileChess* engine, Board* board, Move** out, int threads_to_use, int engine_depth) {
 	Move* out_local = new Move(-1, -1, -1, -1);
-	*out_local = engine->get_best_move(board, 6, threads_to_use - 1);
+	*out_local = engine->get_best_move(board, engine_depth, threads_to_use - 1);
 	__atomic_store_n(out, out_local, __ATOMIC_SEQ_CST);
 }
 
 void BoardUI::makeEngineMove(Board& board) {
-	engineThread = std::thread(spawn_engine, &engine, &board, &engineMove, threads - 1);
+	engineThread = std::thread(spawn_engine, &engine, &board, &engineMove, threads, engine_depth);
 	engineThread.detach();
 }

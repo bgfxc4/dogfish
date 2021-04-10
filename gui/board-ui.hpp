@@ -22,6 +22,7 @@ class BoardUI {
 	Move* engineMove = nullptr;
 	std::thread engineThread;
 	int threads;
+	int engine_depth;
 
 	UI_state ui_state = UI_state::in_game;
 	Position promotingPosition = Position(-1, -1);
@@ -53,8 +54,8 @@ class BoardUI {
 
 	void loadTextures();
 
-	BoardUI(int threads); // user plays both sides
-	BoardUI(int threads, int white_playing); // user plays only one side (e.g. against an engine)
+	BoardUI(int threads, int engine_depth); // user plays both sides
+	BoardUI(int threads, int engine_depth, int white_playing); // user plays only one side (e.g. against an engine)
 	~BoardUI();
 
 	void renderBoard(sf::RenderWindow& window, Board& boardToRender);

@@ -12,6 +12,7 @@ static struct option opts[] = {
 	{"help", no_argument, 0, 'h'},
 	{"engine", no_argument, 0, 'e'},
 	{"threads", required_argument, 0, 't'},
+	{"depth", required_argument, 0, 'd'},
 	{NULL, 0, 0, 0}
 };
 
@@ -21,7 +22,8 @@ extern void print_help(char* command) {
 "\n" <<
 "-h, --help             Get a list of all options\n" <<
 "-e, --engine           Play against the engine, by default you are playing white\n" <<
-"-t --threads <NUMBER>  Set the number of threads to use (is only used, if -e is given), default are all threads on your machine\n" << 
+"-t --threads <NUMBER>  Sets the number of threads the engine uses, default is all threads on your machine\n" << 
+"-d --depth <NUMBER>    Sets the depth the engine searches to, default is 5\n" << 
 "\n" << 
 "This is a chess game an engine from bgfxc4, if you want to, you can visit the github repo \n" <<
 "https://github.com/bgfxc4/chess" <<
@@ -51,7 +53,7 @@ extern void parse_opts(int argc, char** argv, struct opts* out) {
 	out->threads = -1;
 
 	while (1) {
-		int opt = getopt_long(argc, argv, "het:", opts, NULL);
+		int opt = getopt_long(argc, argv, "het:d:", opts, NULL);
 
 		if (opt == -1) {
 			break;
@@ -71,6 +73,9 @@ extern void parse_opts(int argc, char** argv, struct opts* out) {
 			case 't':
 				if (!is_number(optarg)) return error("-t or --threads needs a number as an argument!", 1);
 				out->threads = std::stoi(optarg);
+			case 'd':
+				if (!is_number(optarg)) return error("-d or --depth needs a number as an argument!", 1);
+				out->depth = std::stoi(optarg);
 		}
 	}
 }

@@ -4,6 +4,7 @@ struct opts {
 	int help;
 	int engine;
 	int threads;
+	int depth;
 };
 
 extern void error(const char* msg, int exit_code);

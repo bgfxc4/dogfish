@@ -26,13 +26,18 @@ int main(int argc, char* argv[]) {
 	
 	if (opt.threads == -1) {
 		opt.threads = std::thread::hardware_concurrency();
-	}	
+	}
 
-	if (opt.engine && opt.threads < 2) error("If -e or --engine is provided, -t or --threads needs to be at least 2 (1 for UI, 1 for the engine)!", 1);
+	if (opt.depth == -1) {
+		opt.depth = 5;
+	}
+
+	if (opt.threads < 1) error("The engine needs at least one thread to work!", 1);
+	if (opt.depth < 1) error("The engine can at least search to depth one!", 1);
 
 	sf::RenderWindow& window = startGraphics();
 	Board board;
-	BoardUI boardUI = (opt.engine) ? BoardUI(opt.threads, 1) : BoardUI(opt.threads);
+	BoardUI boardUI = (opt.engine) ? BoardUI(opt.threads, opt.depth, 1) : BoardUI(opt.threads, opt.depth);
 
 	while (window.isOpen()) {
 		sf::Event event;
