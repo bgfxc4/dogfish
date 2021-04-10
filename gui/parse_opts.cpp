@@ -51,6 +51,7 @@ extern void parse_opts(int argc, char** argv, struct opts* out) {
 	out->help = 0;
 	out->engine = 0;
 	out->threads = -1;
+	out->depth = -1;
 
 	while (1) {
 		int opt = getopt_long(argc, argv, "het:d:", opts, NULL);
