@@ -8,6 +8,9 @@
 #include "fossile_chess.hpp"
 #include "constants.hpp"
 
+#define CHECKMATE 1000000
+#define HIGHEST_VALUE (CHECKMATE+1)
+
 static void print_progress(int done, int total) {
 	std::cout << "Progress: " << done * 100 / total << "%" << std::endl;
 }
@@ -36,7 +39,7 @@ void MinimaxThread::run(int depth, Board* board) {
 		Board b = *board;
 		b.move(next_move);
 
-		int eval = FossileChess::minimax(&b, depth, -999999999, 999999999, true);
+		int eval = FossileChess::minimax(&b, depth, -HIGHEST_VALUE, HIGHEST_VALUE, true);
 		if (eval < best_move_eval) {
 			best_move = next_move;
 			best_move_eval = eval;
@@ -68,7 +71,7 @@ Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
 		t.join();
 
 	// ...and figure out the best move out of all of them
-	int best_eval = 999999999;
+	int best_eval = HIGHEST_VALUE;
 	MinimaxThread* best_res = nullptr;
 	for (MinimaxThread& res : threads_data) {
 		if (res.best_move_eval < best_eval) {
@@ -91,10 +94,10 @@ int FossileChess::evaluate_board(Board* board) { // evaluates from whites perspe
 		eval = 0;
 		return eval;
 	} else if (board->gameState == GameState::white_checkmate) {
-		eval = -99999999;
+		eval = -CHECKMATE;
 		return eval;
 	} else if (board->gameState == GameState::black_checkmate) {
-		eval = 99999999;
+		eval = CHECKMATE;
 		return eval;
 	}
 
@@ -134,7 +137,7 @@ int FossileChess::minimax(Board* board, int depth, int alpha, int beta, bool max
 	}
 
 	if (maximizing_player) {
-		int max_eval = -999999999;
+		int max_eval = -HIGHEST_VALUE;
 		for (Move m : board->all_possible_moves) {
 			Board b = *board;
 			b.move(m);
@@ -147,7 +150,7 @@ int FossileChess::minimax(Board* board, int depth, int alpha, int beta, bool max
 		}
 		return max_eval;
 	} else {
-		int min_eval = 999999999;
+		int min_eval = HIGHEST_VALUE;
 		for (Move m : board->all_possible_moves) {
 			Board b = *board;
 			b.move(m);
