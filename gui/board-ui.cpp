@@ -52,7 +52,6 @@ BoardUI::BoardUI(int threads, int white_playing) {
 	this->threads = threads;
 	loadTextures();
 	playingAgainstEngine = white_playing;
-	engine = FossileChess();
 }
 
 BoardUI::~BoardUI() {
