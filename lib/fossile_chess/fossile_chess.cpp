@@ -86,6 +86,25 @@ Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
 	return best_res->best_move;
 }
 
+// to initialize this as init-time, use a lambda
+static int pieces_values[8] = { 0 };
+int i = []() {
+	pieces_values[(int)Pieces::Empty] = 0;
+	pieces_values[(int)Pieces::King] = 0;
+	pieces_values[(int)Pieces::Pawn] = 100;
+	pieces_values[(int)Pieces::Knight] = 300;
+	pieces_values[(int)Pieces::Bishop] = 310;
+	pieces_values[(int)Pieces::Rook] = 500;
+	pieces_values[(int)Pieces::Queen] = 900;
+	return 0;
+} ();
+
+static int get_piece_value(const Piece& p) {
+	int mod = p.is_white * 2 - 1;
+
+	return mod * pieces_values[(int)p.type];
+}
+
 int FossileChess::evaluate_board(Board* board) { // evaluates from whites perspective
 	//TODO: better evaluation (e.g. points for rook on open file etc)
 	int eval = 0;
@@ -104,11 +123,12 @@ int FossileChess::evaluate_board(Board* board) { // evaluates from whites perspe
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
 			Piece p = board->getPiece(x, y);
-			if (p.type == (int)Pieces::Empty) {
-				continue;
-			} else if (p.type == (int)Pieces::Pawn) {
-				(p.is_white) ? eval += 100 : eval -= 100;
-				// if the pawn is horizontaliy in the middle, it gets points for being close to the center
+
+			eval += get_piece_value(p);
+
+			// special additional points for pawns xd
+			if (p.type == (int)Pieces::Pawn) {
+				// if the pawn is horizontally in the middle, it gets points for being close to the center
 				if ((x > 1 && x < 6) && ((p.is_white && y >= 4 && y >= 5) || (!p.is_white && y <= 3 && y >= 2))) { 
 					if (x > 2 && x < 5) { // if it is closer to the center, it gets more points
 						eval += (p.is_white) ? (4 /*maximum points*/ - (y - 4)) : -(4 - (3 - y));
@@ -116,15 +136,6 @@ int FossileChess::evaluate_board(Board* board) { // evaluates from whites perspe
 						eval += (p.is_white) ? (2 /*maximum points*/ - (y - 4)) : -(2 - (3 - y));
 					}
 				}
-			} else if (p.type == (int)Pieces::Knight) {
-				(p.is_white) ? eval += 300 : eval -= 300;
-			} else if (p.type == (int)Pieces::Bishop) {
-				(p.is_white) ? eval += 310 : eval -= 310;
-			} else if (p.type == (int)Pieces::Rook) {
-				(p.is_white) ? eval += 500 : eval -= 500;
-			} else if (p.type == (int)Pieces::Queen) {
-				(p.is_white) ? eval += 900 : eval -= 900;
-			} else if (p.type == (int)Pieces::King) {
 			}
 		}
 	}
