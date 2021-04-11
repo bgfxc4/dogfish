@@ -1,8 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
-#include <array>
-#include <sys/types.h>
 #include <vector>
 #include <iostream>
 #include <thread>

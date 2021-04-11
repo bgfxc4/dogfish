@@ -1,9 +1,5 @@
 #include <getopt.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <string>
-#include <unistd.h>
 #include <iostream>
 
 #include "parse_opts.hpp"

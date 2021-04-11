@@ -1,13 +1,5 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
-#include <array>
-#include <cctype>
-#include <iterator>
-#include <string>
-#include <type_traits>
-#include <vector>
-#include <iostream>
-#include <ctype.h>
 
 #include "graphics.hpp"
 #include "board-ui.hpp"
