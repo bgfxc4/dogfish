@@ -28,6 +28,6 @@ class FossileChess {
 	FossileChess(const FossileChess& other) = delete;
 
 	Move get_best_move(Board* board, int depth, int threads_to_use);
-	static int evaluate_board(Board* board);
+	static int evaluate_board(Board* board, int depth_left);
 	static int minimax(Board* board, int depth, int alpha, int beta, bool maximizing_player);
 };

@@ -105,7 +105,7 @@ static int get_piece_value(const Piece& p) {
 	return mod * pieces_values[(int)p.type];
 }
 
-int FossileChess::evaluate_board(Board* board) { // evaluates from whites perspective
+int FossileChess::evaluate_board(Board* board, int depth_left) { // evaluates from whites perspective
 	//TODO: better evaluation (e.g. points for rook on open file etc)
 	int eval = 0;
 
@@ -113,10 +113,10 @@ int FossileChess::evaluate_board(Board* board) { // evaluates from whites perspe
 		eval = 0;
 		return eval;
 	} else if (board->gameState == GameState::white_checkmate) {
-		eval = -CHECKMATE;
+		eval = -CHECKMATE - depth_left;
 		return eval;
 	} else if (board->gameState == GameState::black_checkmate) {
-		eval = CHECKMATE;
+		eval = CHECKMATE + depth_left;
 		return eval;
 	}
 
@@ -144,7 +144,7 @@ int FossileChess::evaluate_board(Board* board) { // evaluates from whites perspe
 
 int FossileChess::minimax(Board* board, int depth, int alpha, int beta, bool maximizing_player) {
 	if (depth == 0 || board->gameState != GameState::playing) {
-		return evaluate_board(board);
+		return evaluate_board(board, depth);
 	}
 
 	int top_eval = HIGHEST_VALUE * (maximizing_player? -1 : 1);
