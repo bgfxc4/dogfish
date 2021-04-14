@@ -79,7 +79,10 @@ struct AtomicHashmap {
 	int bits;
 
 #ifndef NDEBUG
-	size_t elems_used = 0;
+	size_t inserts = 0;
+	size_t searches = 0;
+	size_t successful_searches = 0;
+	size_t linear_searches = 0;
 #endif
 
 	AtomicHashmap(int _bits) : bits(_bits) {
@@ -90,7 +93,10 @@ struct AtomicHashmap {
 	~AtomicHashmap() {
 #ifndef NDEBUG
 		printf("Usage of hashmap just before destruction: %zu/%zu\n",
-				elems_used, (size_t)1 << bits);
+				inserts, (size_t)1 << bits);
+		printf("Usage statistics: %zu searches, with %zu succeeding,"
+				" and an average of %.2f elements linear searched per search\n",
+				searches, successful_searches, linear_searches / (double)searches);
 
 		int max_collisions = 0;
 		for (size_t i = 0; i < ((size_t)1 << bits); i++) {
@@ -108,13 +114,21 @@ struct AtomicHashmap {
 		table[hash].insert(std::forward<Args>(args)...);
 
 #ifndef NDEBUG
-		elems_used++;
+		__atomic_fetch_add(&inserts, 1, __ATOMIC_SEQ_CST);
 #endif
 	}
 
 	template <typename U>
 	T* get(uint64_t hash, U&& callback) {
 		hash >>= 64 - bits;
-		return table[hash].get(std::forward<U>(callback));
+		T* ret = table[hash].get(std::forward<U>(callback));
+
+#ifndef NDEBUG
+		__atomic_fetch_add(&searches, 1, __ATOMIC_SEQ_CST);
+		__atomic_fetch_add(&successful_searches, ret != nullptr, __ATOMIC_SEQ_CST);
+		__atomic_fetch_add(&linear_searches, table[hash].num_elems(), __ATOMIC_SEQ_CST);
+#endif
+
+		return ret;
 	}
 };

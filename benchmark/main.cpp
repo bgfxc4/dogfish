@@ -14,11 +14,13 @@ int main() {
 
 	board.move(m);
 	Move em = engine.get_best_move(&board, 5, 1);
-	
+
 	auto t2 = std::chrono::high_resolution_clock::now();
-	
+
 	auto time = duration_cast<std::chrono::milliseconds>(t2 - t1);
-	
-	std::cout << "Found move: " << em.from_x << " " << em.from_y << " to " << em.to_x << " " << em.to_y << ", time used: " << time.count() << std::endl;
+
+	std::cout << "Found move: " << (int)em.from_x << "/" << (int)em.from_y
+		<< " to " << (int)em.to_x << "/" << (int)em.to_y << std::endl;
+	std::cout << "Time used: " << time.count() << "ms" << std::endl;
 	return 0;
 }
