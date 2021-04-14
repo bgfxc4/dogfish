@@ -19,7 +19,8 @@ $(EXECUTABLE): $(OBJECTS) $(HEADERS) $(BOARD_LIB)
 .PHONY: clean $(BOARD_LIB)
 
 $(BOARD_LIB):
-	$(MAKE) -C ../lib release
+	$(MAKE) -C ../lib clean
+	$(MAKE) -C ../lib benchmark
 
 clean:
 	$(RM) $(EXECUTABLE) $(OBJECTS)

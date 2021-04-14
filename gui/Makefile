@@ -13,7 +13,7 @@ EXECUTABLE := main
 debug : CXXFLAGS += -Og -g -pg
 release : CXXFLAGS += -O3 -fno-exceptions
 debug : LDFLAGS +=
-release : LDFLAGS += -O -s
+release : LDFLAGS += -O
 debug : BUILD_TYPE := debug
 release : BUILD_TYPE := release
 

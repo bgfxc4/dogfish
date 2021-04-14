@@ -8,12 +8,15 @@ HEADERS := ../include/board.hpp ../include/piece.hpp ../include/fossile_chess/fo
 LIBRARY := board.a
 
 debug : CXXFLAGS += -Og -g -pg
-release : CXXFLAGS += -O3 -fno-exceptions
+release : CXXFLAGS += -O3 -fno-exceptions -DNDEBUG
+benchmark : CXXFLAGS += -O3 -fno-exceptions
 debug : LDFLAGS +=
 release : LDFLAGS += -O -s
+benchmark : LDFLAGS += -O
 
 debug: $(LIBRARY)
 release: $(LIBRARY)
+benchmark: $(LIBRARY)
 
 $(LIBRARY): $(OBJECTS)
 	$(RM) $@
