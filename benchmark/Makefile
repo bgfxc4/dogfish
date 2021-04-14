@@ -28,7 +28,7 @@ clean:
 
 perf_calls: $(EXECUTABLE)
 	perf record $(PERF_ARGS) ./$(EXECUTABLE)
-	perf report --no-children
+	perf report
 
 perf_calls_lbr : PERF_ARGS += --call-graph=lbr
 perf_calls_lbr: perf_calls
