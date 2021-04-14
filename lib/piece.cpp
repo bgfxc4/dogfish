@@ -49,7 +49,7 @@ static void add_rook_attacked_tiles(Board& board, int x, int y,
 static void add_bishop_moves(Board& board, int x, int y,
 		std::vector<Move>& res)
 {
-	std::vector<Position> mods = { Position(-1, -1), Position(-1, 1), Position(1, -1), Position(1, 1)};
+	std::array<Position, 4> mods({ Position(-1, -1), Position(-1, 1), Position(1, -1), Position(1, 1)});
 
 	for (Position mod : mods) {
 		int dx = mod.x, dy = mod.y;
@@ -66,7 +66,7 @@ static void add_bishop_moves(Board& board, int x, int y,
 static void add_bishop_attacked_tiles(Board& board, int x, int y,
 		std::vector<Position>& res)
 {
-	std::vector<Position> mods = { Position(-1, -1), Position(-1, 1), Position(1, -1), Position(1, 1)};
+	std::array<Position, 4> mods({ Position(-1, -1), Position(-1, 1), Position(1, -1), Position(1, 1)});
 
 	for (Position mod : mods) {
 		int dx = mod.x, dy = mod.y;
@@ -82,8 +82,8 @@ static void add_bishop_attacked_tiles(Board& board, int x, int y,
 
 static void add_knight_moves(int x, int y, std::vector<Move>& res)
 {
-	std::vector<Position> moves = { Position(2, 1), Position(2, -1), Position(-2, 1), Position(-2, -1), 
-												Position(1, 2), Position(1, -2), Position(-1, 2), Position(-1, -2)};
+	std::array<Position, 8> moves({ Position(2, 1), Position(2, -1), Position(-2, 1), Position(-2, -1), 
+												Position(1, 2), Position(1, -2), Position(-1, 2), Position(-1, -2)});
 	for (Position move : moves) {
 		if (x + move.x > 7 || x + move.x < 0 || y + move.y > 7 || y + move.y < 0) continue;
 		res.push_back(Move(x, y, x + move.x, y + move.y));
@@ -92,8 +92,8 @@ static void add_knight_moves(int x, int y, std::vector<Move>& res)
 
 static void add_knight_attacked_tiles(int x, int y, std::vector<Position>& res)
 {
-	std::vector<Position> moves = { Position(2, 1), Position(2, -1), Position(-2, 1), Position(-2, -1), 
-												Position(1, 2), Position(1, -2), Position(-1, 2), Position(-1, -2)};
+	std::array<Position, 8> moves({ Position(2, 1), Position(2, -1), Position(-2, 1), Position(-2, -1), 
+												Position(1, 2), Position(1, -2), Position(-1, 2), Position(-1, -2)});
 	for (Position move : moves) {
 		if (x + move.x > 7 || x + move.x < 0 || y + move.y > 7 || y + move.y < 0) continue;
 		res.push_back(Position(x + move.x, y + move.y));
