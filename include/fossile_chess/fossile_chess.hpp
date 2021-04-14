@@ -2,6 +2,7 @@
 
 #include <mutex>
 #include <vector>
+#include <stdint.h>
 
 #include "board.hpp"
 
@@ -24,10 +25,20 @@ class FossileChess {
 	std::vector<Move> moves_left;
 	int num_moves_total;
 
-	FossileChess() {};
+	FossileChess() {}
 	FossileChess(const FossileChess& other) = delete;
 
 	Move get_best_move(Board* board, int depth, int threads_to_use);
 	static int evaluate_board(Board* board, int depth_left);
 	static int minimax(Board* board, int depth, int alpha, int beta, bool maximizing_player);
+};
+
+class HashBoard : Board {
+	public:
+	uint64_t hash;
+
+	HashBoard(const std::string& fenString);
+	HashBoard() : HashBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {}
+
+	void move(Move move);
 };

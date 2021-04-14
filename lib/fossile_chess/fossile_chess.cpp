@@ -88,7 +88,7 @@ Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
 
 // to initialize this as init-time, use a lambda
 static int pieces_values[8] = { 0 };
-int i = []() {
+static int pieces_values_dummy = []() {
 	pieces_values[(int)Pieces::Empty] = 0;
 	pieces_values[(int)Pieces::King] = 0;
 	pieces_values[(int)Pieces::Pawn] = 100;
@@ -167,4 +167,63 @@ int FossileChess::minimax(Board* board, int depth, int alpha, int beta, bool max
 	}
 
 	return top_eval;
+}
+
+// generator the zobrist table statically so we don't have to worry about it
+// at runtime
+static constexpr uint64_t do_xorshift(uint64_t x) {
+	x ^= x << 13;
+	x ^= x >> 7;
+	x ^= x << 17;
+	return x;
+}
+static uint64_t zobrist_table[64 * 12];
+static int zobrist_table_dummy = []() {
+	uint64_t x = 314159;
+	// get some initial randomness
+	for (int i = 0; i < 10; i++)
+		x = do_xorshift(x);
+
+	for (int i = 0; i < 64 * 12; i++) {
+		x = do_xorshift(x);
+		zobrist_table[i] = x;
+	}
+	return 0;
+} ();
+
+static uint64_t lookup_piece(Piece p, int x, int y) {
+	if (p.type == (int)Pieces::Empty)
+		return 0;
+
+	int location = y * 8 + x;
+	int piece_n = (int)p.type - 1 + (6 * p.is_white);
+	return zobrist_table[location * 12 + piece_n];
+}
+
+HashBoard::HashBoard(const std::string& fenString) : Board(fenString) {
+	// completely rebuild zobrist hash
+	hash = 0;
+	for (int y = 0; y < 8; y++) {
+		for (int x = 0; x < 8; x++) {
+			Piece p = getPiece(x, y);
+			hash ^= lookup_piece(p, x, y);
+		}
+	}
+}
+
+void HashBoard::move(Move move) {
+	// TODO castling
+
+	// pieces to remove from the hash
+	Piece from = getPiece(move.from_x, move.from_y);
+	Piece to = getPiece(move.to_x, move.to_y);
+	hash ^= lookup_piece(from, move.from_x, move.from_y);
+	hash ^= lookup_piece(to, move.to_x, move.to_y);
+
+	// do the move
+	Board::move(move);
+
+	// piece to add to the hash
+	Piece new_to = getPiece(move.to_x, move.to_y);
+	hash ^= lookup_piece(new_to, move.to_x, move.to_y);
 }
