@@ -6,6 +6,7 @@
 
 #include "board.hpp"
 #include "fossile_chess.hpp"
+#include "atomic_hashmap.hpp"
 #include "constants.hpp"
 
 #define CHECKMATE 1000000
@@ -39,7 +40,7 @@ void MinimaxThread::run(int depth, HashBoard* board) {
 		HashBoard b(*board);
 		b.move(next_move);
 
-		int eval = FossileChess::minimax(&b, depth, -HIGHEST_VALUE, HIGHEST_VALUE, true);
+		int eval = master->minimax(&b, depth, -HIGHEST_VALUE, HIGHEST_VALUE, true);
 		if (eval < best_move_eval) {
 			best_move = next_move;
 			best_move_eval = eval;
@@ -52,6 +53,8 @@ static void run_minimax_thread(MinimaxThread* t, int depth, HashBoard* board) {
 }
 
 Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
+	eval_cache = new AtomicHashmap<BoardEvaluation>(depth * 4);
+
 	HashBoard b(*board);
 	moves_left = b.all_possible_moves;
 	num_moves_total = b.all_possible_moves.size();
@@ -83,6 +86,8 @@ Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
 
 	// also tell the user that we're done :)
 	print_progress(1, 1);
+
+	delete eval_cache;
 
 	return best_res->best_move;
 }
@@ -143,6 +148,12 @@ int FossileChess::evaluate_board(Board* board, int depth_left) { // evaluates fr
 	return eval;
 }
 
+BoardEvaluation* lookup_eval(AtomicHashmap<BoardEvaluation>* map, uint64_t hash) {
+	return map->get(hash, [=](BoardEvaluation* e) {
+		return e->hash == hash;
+	});
+}
+
 int FossileChess::minimax(HashBoard* board, int depth, int alpha, int beta, bool maximizing_player) {
 	if (depth == 0 || board->gameState != GameState::playing) {
 		return evaluate_board(board, depth);
@@ -153,7 +164,17 @@ int FossileChess::minimax(HashBoard* board, int depth, int alpha, int beta, bool
 	for (Move m : board->all_possible_moves) {
 		HashBoard b = *board;
 		b.move(m);
-		int eval = minimax(&b, depth - 1, alpha, beta, !maximizing_player);
+
+		BoardEvaluation* ev = lookup_eval(eval_cache, b.hash);
+		int eval;
+		if (ev != nullptr && ev->depth >= depth) {
+			eval = ev->eval;
+		}
+		else {
+			eval = minimax(&b, depth - 1, alpha, beta, !maximizing_player);
+			eval_cache->insert(b.hash, b.hash, eval, depth);
+		}
+
 		if (maximizing_player) {
 			top_eval = std::max(top_eval, eval);
 			alpha = std::max(alpha, eval);

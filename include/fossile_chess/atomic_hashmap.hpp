@@ -51,7 +51,7 @@ struct HashmapBucket {
 	T* get(const U& callback) {
 		HashmapBucketElem<T>* cur = __atomic_load_n(&first, __ATOMIC_SEQ_CST);
 
-		while (!callback(&cur->super) && cur != nullptr)
+		while (cur != nullptr && !callback(&cur->super))
 			cur = cur->next;
 
 		if (cur == nullptr)
@@ -59,6 +59,18 @@ struct HashmapBucket {
 		else
 			return &cur->super;
 	}
+
+#ifndef NDEBUG
+	int num_elems() {
+		int ret = 0;
+		HashmapBucketElem<T>* cur = __atomic_load_n(&first, __ATOMIC_SEQ_CST);
+		while (cur != nullptr) {
+			cur = cur->next;
+			ret++;
+		}
+		return ret;
+	}
+#endif
 };
 
 template <typename T>
@@ -76,12 +88,18 @@ struct AtomicHashmap {
 	}
 
 	~AtomicHashmap() {
-		delete[] table;
-
 #ifndef NDEBUG
 		printf("Usage of hashmap just before destruction: %zu/%zu\n",
 				elems_used, (size_t)1 << bits);
+
+		int max_collisions = 0;
+		for (size_t i = 0; i < ((size_t)1 << bits); i++) {
+			max_collisions = std::max(max_collisions, table[i].num_elems());
+		}
+		printf("Maximum number of collisions: %d\n", max_collisions);
 #endif
+
+		delete[] table;
 	}
 
 	template <typename ... Args>

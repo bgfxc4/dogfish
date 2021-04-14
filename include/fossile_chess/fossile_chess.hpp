@@ -5,9 +5,20 @@
 #include <stdint.h>
 
 #include "board.hpp"
+#include "atomic_hashmap.hpp"
 
 class FossileChess;
 class HashBoard;
+
+class BoardEvaluation {
+	public:
+	uint64_t hash;
+	int eval;
+	int depth;
+
+	BoardEvaluation(uint64_t _hash, int _eval, int _depth)
+		: hash(_hash), eval(_eval), depth(_depth) {}
+};
 
 class MinimaxThread {
 	public:
@@ -24,6 +35,7 @@ class FossileChess {
 	public:
 	std::mutex move_lock;
 	std::vector<Move> moves_left;
+	AtomicHashmap<BoardEvaluation>* eval_cache = nullptr;
 	int num_moves_total;
 
 	FossileChess() {}
@@ -31,7 +43,7 @@ class FossileChess {
 
 	Move get_best_move(Board* board, int depth, int threads_to_use);
 	static int evaluate_board(Board* board, int depth_left);
-	static int minimax(HashBoard* board, int depth, int alpha, int beta, bool maximizing_player);
+	int minimax(HashBoard* board, int depth, int alpha, int beta, bool maximizing_player);
 };
 
 class HashBoard : public Board {
