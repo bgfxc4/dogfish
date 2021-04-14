@@ -7,6 +7,7 @@
 #include "board.hpp"
 
 class FossileChess;
+class HashBoard;
 
 class MinimaxThread {
 	public:
@@ -16,7 +17,7 @@ class MinimaxThread {
 
 	MinimaxThread(FossileChess* _master) : master(_master) {}
 
-	void run(int depth, Board* board);
+	void run(int depth, HashBoard* board);
 };
 
 class FossileChess {
@@ -30,15 +31,19 @@ class FossileChess {
 
 	Move get_best_move(Board* board, int depth, int threads_to_use);
 	static int evaluate_board(Board* board, int depth_left);
-	static int minimax(Board* board, int depth, int alpha, int beta, bool maximizing_player);
+	static int minimax(HashBoard* board, int depth, int alpha, int beta, bool maximizing_player);
 };
 
-class HashBoard : Board {
+class HashBoard : public Board {
 	public:
 	uint64_t hash;
 
 	HashBoard(const std::string& fenString);
 	HashBoard() : HashBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") {}
+	HashBoard(const Board& other);
 
 	void move(Move move);
+
+	private:
+	void rebuild_hash();
 };

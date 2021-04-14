@@ -26,8 +26,11 @@ clean:
 	$(MAKE) -C ../lib clean
 
 perf_calls: $(EXECUTABLE)
-	perf record ./$(EXECUTABLE)
+	perf record $(PERF_ARGS) ./$(EXECUTABLE)
 	perf report --no-children
+
+perf_calls_lbr : PERF_ARGS += --call-graph=lbr
+perf_calls_lbr: perf_calls
 
 perf_stat: $(EXECUTABLE)
 	perf stat -d ./$(EXECUTABLE)

@@ -15,7 +15,7 @@ static void print_progress(int done, int total) {
 	std::cout << "Progress: " << done * 100 / total << "%" << std::endl;
 }
 
-void MinimaxThread::run(int depth, Board* board) {
+void MinimaxThread::run(int depth, HashBoard* board) {
 	while (true) {
 		Move next_move(-1, -1, -1, -1);
 		int num_moves_left;
@@ -36,7 +36,7 @@ void MinimaxThread::run(int depth, Board* board) {
 		auto total = master->num_moves_total;
 		print_progress(total - num_moves_left, total);
 
-		Board b = *board;
+		HashBoard b(*board);
 		b.move(next_move);
 
 		int eval = FossileChess::minimax(&b, depth, -HIGHEST_VALUE, HIGHEST_VALUE, true);
@@ -47,13 +47,14 @@ void MinimaxThread::run(int depth, Board* board) {
 	}
 }
 
-static void run_minimax_thread(MinimaxThread* t, int depth, Board* board) {
+static void run_minimax_thread(MinimaxThread* t, int depth, HashBoard* board) {
 	t->run(depth, board);
 }
 
 Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
-	moves_left = board->all_possible_moves;
-	num_moves_total = board->all_possible_moves.size();
+	HashBoard b(*board);
+	moves_left = b.all_possible_moves;
+	num_moves_total = b.all_possible_moves.size();
 
 	std::vector<std::thread> threads;
 	std::vector<MinimaxThread> threads_data;
@@ -62,9 +63,9 @@ Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
 
 	// spawn n - 1 threads...
 	for (int i = 0; i < threads_to_use - 1; i++)
-		threads.emplace_back(run_minimax_thread, &threads_data[i], depth - 1, board);
+		threads.emplace_back(run_minimax_thread, &threads_data[i], depth - 1, &b);
 	// ...since we become the last thread
-	run_minimax_thread(&threads_data.back(), depth - 1, board);
+	run_minimax_thread(&threads_data.back(), depth - 1, &b);
 
 	// after we're finished, join all other threads...
 	for (std::thread& t : threads)
@@ -142,7 +143,7 @@ int FossileChess::evaluate_board(Board* board, int depth_left) { // evaluates fr
 	return eval;
 }
 
-int FossileChess::minimax(Board* board, int depth, int alpha, int beta, bool maximizing_player) {
+int FossileChess::minimax(HashBoard* board, int depth, int alpha, int beta, bool maximizing_player) {
 	if (depth == 0 || board->gameState != GameState::playing) {
 		return evaluate_board(board, depth);
 	}
@@ -150,7 +151,7 @@ int FossileChess::minimax(Board* board, int depth, int alpha, int beta, bool max
 	int top_eval = HIGHEST_VALUE * (maximizing_player? -1 : 1);
 
 	for (Move m : board->all_possible_moves) {
-		Board b = *board;
+		HashBoard b = *board;
 		b.move(m);
 		int eval = minimax(&b, depth - 1, alpha, beta, !maximizing_player);
 		if (maximizing_player) {
@@ -200,8 +201,7 @@ static uint64_t lookup_piece(Piece p, int x, int y) {
 	return zobrist_table[location * 12 + piece_n];
 }
 
-HashBoard::HashBoard(const std::string& fenString) : Board(fenString) {
-	// completely rebuild zobrist hash
+void HashBoard::rebuild_hash() {
 	hash = 0;
 	for (int y = 0; y < 8; y++) {
 		for (int x = 0; x < 8; x++) {
@@ -209,6 +209,15 @@ HashBoard::HashBoard(const std::string& fenString) : Board(fenString) {
 			hash ^= lookup_piece(p, x, y);
 		}
 	}
+
+}
+
+HashBoard::HashBoard(const std::string& fenString) : Board(fenString) {
+	rebuild_hash();
+}
+
+HashBoard::HashBoard(const Board& other) : Board(other) {
+	rebuild_hash();
 }
 
 void HashBoard::move(Move move) {
