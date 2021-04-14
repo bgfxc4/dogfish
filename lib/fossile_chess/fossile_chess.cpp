@@ -26,7 +26,7 @@ void MinimaxThread::run(int depth, HashBoard* board, bool save_all_moves) {
 			std::lock_guard<std::mutex> g(master->move_lock);
 
 			num_moves_left = master->moves_left.size();
-	
+
 			if (num_moves_left == 0)
 				break;
 
@@ -61,59 +61,29 @@ static void run_minimax_thread(MinimaxThread* t, int depth, HashBoard* board, bo
 
 Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
 	eval_cache = new AtomicHashmap<BoardEvaluation>(depth * 3 + 3);
-	
+
+	if (depth < 2)
+		depth = 2;
+
 	HashBoard b(*board);
+
 	std::vector<Move> sorted_moves = b.all_possible_moves;
 
 	// start with low depth and get higher. Sorting after each depth to increase effectivity of alpha beta pruning
-	for (int i = 2; i < depth; i++) { 
-		std::vector<MoveEval> sorted_move_eval = evaluate_all_moves(sorted_moves, board, i, threads_to_use);
+	for (int i = 2; i <= depth; i++) {
+		std::vector<MoveEval> sorted_move_eval = evaluate_all_moves(sorted_moves, &b, i, threads_to_use);
 		sorted_moves.clear();
 		for (MoveEval& me : sorted_move_eval) {
 			sorted_moves.push_back(me.move);
 		}
 	}
 
-	moves_left = sorted_moves;
-	num_moves_total = moves_left.size();
-
-	std::vector<std::thread> threads;
-	std::vector<MinimaxThread> threads_data;
-	threads.reserve(threads_to_use - 1);
-	threads_data.resize(threads_to_use, this);
-
-	// spawn n - 1 threads...
-	for (int i = 0; i < threads_to_use - 1; i++)
-		threads.emplace_back(run_minimax_thread, &threads_data[i], depth - 1, &b, false);
-	// ...since we become the last thread
-	run_minimax_thread(&threads_data.back(), depth - 1, &b, false);
-
-	// after we're finished, join all other threads...
-	for (std::thread& t : threads)
-		t.join();
-
-	// ...and figure out the best move out of all of them
-	int best_eval = HIGHEST_VALUE;
-	MinimaxThread* best_res = nullptr;
-	for (MinimaxThread& res : threads_data) {
-		if (res.best_move.eval < best_eval) {
-			best_eval = res.best_move.eval;
-			best_res = &res;
-		}
-	}
-
-	// also tell the user that we're done :)
-	print_progress(1, 1);
-
 	delete eval_cache;
 
-	return best_res->best_move.move;
+	return sorted_moves.front();
 }
 
-bool cmp_function(MoveEval m1, MoveEval m2) {return m1.eval < m2.eval;}
-
-std::vector<MoveEval> FossileChess::evaluate_all_moves(std::vector<Move> moves_in, Board* board, int depth, int threads_to_use) {
-	HashBoard b(*board);
+std::vector<MoveEval> FossileChess::evaluate_all_moves(std::vector<Move> moves_in, HashBoard* board, int depth, int threads_to_use) {
 	moves_left = moves_in;
 	num_moves_total = moves_in.size();
 
@@ -124,9 +94,9 @@ std::vector<MoveEval> FossileChess::evaluate_all_moves(std::vector<Move> moves_i
 
 	// spawn n - 1 threads...
 	for (int i = 0; i < threads_to_use - 1; i++)
-		threads.emplace_back(run_minimax_thread, &threads_data[i], depth - 1, &b, true);
+		threads.emplace_back(run_minimax_thread, &threads_data[i], depth - 1, board, true);
 	// ...since we become the last thread
-	run_minimax_thread(&threads_data.back(), depth - 1, &b, true);
+	run_minimax_thread(&threads_data.back(), depth - 1, board, true);
 
 	// after we're finished, join all other threads...
 	for (std::thread& t : threads)
@@ -134,15 +104,15 @@ std::vector<MoveEval> FossileChess::evaluate_all_moves(std::vector<Move> moves_i
 
 	// ...and sort the moves by their eval
 	std::vector<MoveEval> res;
-	
+
 	for (MinimaxThread& t : threads_data) {
 		for (MoveEval& m : t.all_moves) {
 			res.push_back(m);
 		}
 	}
 
-	std::sort(res.begin(), res.end(), cmp_function);
-	
+	std::sort(res.begin(), res.end());
+
 	// also tell the user that we're done :)
 	print_progress(1, 1);
 
@@ -192,7 +162,7 @@ int FossileChess::evaluate_board(Board* board, int depth_left) { // evaluates fr
 			// special additional points for pawns xd
 			if (p.type == (int)Pieces::Pawn) {
 				// if the pawn is horizontally in the middle, it gets points for being close to the center
-				if ((x > 1 && x < 6) && ((p.is_white && y >= 4 && y >= 5) || (!p.is_white && y <= 3 && y >= 2))) { 
+				if ((x > 1 && x < 6) && ((p.is_white && y >= 4 && y >= 5) || (!p.is_white && y <= 3 && y >= 2))) {
 					if (x > 2 && x < 5) { // if it is closer to the center, it gets more points
 						eval += (p.is_white) ? (4 /*maximum points*/ - (y - 4)) : -(4 - (3 - y));
 					} else {

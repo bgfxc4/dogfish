@@ -282,8 +282,7 @@ uint8_t* Board::get_all_raw() {
 }
 
 void Board::add_position_to_whole_game() {
-	BoardLite tmp = BoardLite(this);
-	whole_game.push_back(tmp);
+	whole_game.push_back(BoardLite(this));
 }
 
 void Board::find_kings() {
@@ -570,16 +569,6 @@ void Board::move(Move move) {
 	
 	calculate_all_attacked_tiles();
 	calculate_all_possible_moves();
-
-	if (all_possible_moves.size() == 0) {
-		if (is_check()) {
-			std::cout << "checkmate" << std::endl;
-			gameState = (white_to_move) ? GameState::white_checkmate : GameState::black_checkmate;
-		} else {
-			std::cout << "draw by stalemate" << std::endl;
-			gameState = GameState::draw;
-		}
-	}
 
 	add_position_to_whole_game();
 }
