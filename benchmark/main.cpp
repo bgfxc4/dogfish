@@ -13,7 +13,7 @@ int main() {
 	auto t1 = std::chrono::high_resolution_clock::now();
 
 	board.move(m);
-	Move em = engine.get_best_move(&board, 5, 1);
+	Move em = engine.get_best_move(&board, 6, 10);
 
 	auto t2 = std::chrono::high_resolution_clock::now();
 
