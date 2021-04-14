@@ -29,7 +29,7 @@ class Position {
 	int x;
 	int y;
 
-	Position(int x, int y);
+	Position(int _x, int _y) : x(_x), y(_y) {}
 	bool operator== (Position second);
 	bool operator!= (Position second);
 };

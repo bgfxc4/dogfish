@@ -7,11 +7,6 @@
 #include "constants.hpp"
 #include "board.hpp"
 
-Position::Position(int x, int y) {
-	this->x = x;
-	this->y = y;
-}
-
 bool Position::operator== (Position second) {
 	return this->x == second.x && this->y == second.y;
 }
