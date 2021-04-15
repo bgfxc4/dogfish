@@ -24,7 +24,6 @@ class MoveEval {
 	public:
 	Move move = Move(-1, -1, -1, -1);
 	int eval = 999999999;
-	bool operator<(MoveEval& other) { return eval < other.eval; }
 };
 
 class MinimaxThread {
@@ -49,7 +48,7 @@ class FossileChess {
 	FossileChess(const FossileChess& other) = delete;
 
 	Move get_best_move(Board* board, int depth, int threads_to_use);
-	std::vector<MoveEval> evaluate_all_moves(std::vector<Move> moves_in, HashBoard* board, int depth, int threads_to_use);
+	std::vector<MoveEval> evaluate_all_moves(std::vector<Move> moves_in, Board* board, int depth, int threads_to_use);
 	static int evaluate_board(Board* board, int depth_left);
 	int minimax(HashBoard* board, int depth, int alpha, int beta, bool maximizing_player);
 };
