@@ -16,7 +16,7 @@ static void print_progress(int done, int total) {
 	std::cout << "Progress: " << done * 100 / total << "%" << std::endl;
 }
 
-void MinimaxThread::run(int depth, HashBoard* board, bool save_all_moves) {
+void MinimaxThread::run(int depth, HashBoard* board) {
 	while (true) {
 		Move next_move(-1, -1, -1, -1);
 		int num_moves_left;
@@ -41,41 +41,23 @@ void MinimaxThread::run(int depth, HashBoard* board, bool save_all_moves) {
 		b.move(next_move);
 
 		int eval = master->minimax(&b, depth, -HIGHEST_VALUE, HIGHEST_VALUE, true);
-		if (eval < best_move.eval) {
-			best_move.move = next_move;
-			best_move.eval = eval;
-		}
-
-		if (save_all_moves) {
-			MoveEval me;
-			me.move = next_move;
-			me.eval = eval;
-			all_moves.push_back(me);
+		if (eval < best_move_eval) {
+			best_move = next_move;
+			best_move_eval = eval;
 		}
 	}
 }
 
-static void run_minimax_thread(MinimaxThread* t, int depth, HashBoard* board, bool save_all_moves) {
-	t->run(depth, board, save_all_moves);
+static void run_minimax_thread(MinimaxThread* t, int depth, HashBoard* board) {
+	t->run(depth, board);
 }
 
 Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
 	eval_cache = new AtomicHashmap<BoardEvaluation>(depth * 3 + 3);
-	
+
 	HashBoard b(*board);
-	std::vector<Move> sorted_moves = b.all_possible_moves;
-
-	// start with low depth and get higher. Sorting after each depth to increase effectivity of alpha beta pruning
-	for (int i = 2; i < depth; i++) { 
-		std::vector<MoveEval> sorted_move_eval = evaluate_all_moves(sorted_moves, board, i, threads_to_use);
-		sorted_moves.clear();
-		for (MoveEval& me : sorted_move_eval) {
-			sorted_moves.push_back(me.move);
-		}
-	}
-
-	moves_left = sorted_moves;
-	num_moves_total = moves_left.size();
+	moves_left = b.all_possible_moves;
+	num_moves_total = b.all_possible_moves.size();
 
 	std::vector<std::thread> threads;
 	std::vector<MinimaxThread> threads_data;
@@ -84,9 +66,9 @@ Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
 
 	// spawn n - 1 threads...
 	for (int i = 0; i < threads_to_use - 1; i++)
-		threads.emplace_back(run_minimax_thread, &threads_data[i], depth - 1, &b, false);
+		threads.emplace_back(run_minimax_thread, &threads_data[i], depth - 1, &b);
 	// ...since we become the last thread
-	run_minimax_thread(&threads_data.back(), depth - 1, &b, false);
+	run_minimax_thread(&threads_data.back(), depth - 1, &b);
 
 	// after we're finished, join all other threads...
 	for (std::thread& t : threads)
@@ -96,8 +78,8 @@ Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
 	int best_eval = HIGHEST_VALUE;
 	MinimaxThread* best_res = nullptr;
 	for (MinimaxThread& res : threads_data) {
-		if (res.best_move.eval < best_eval) {
-			best_eval = res.best_move.eval;
+		if (res.best_move_eval < best_eval) {
+			best_eval = res.best_move_eval;
 			best_res = &res;
 		}
 	}
@@ -107,46 +89,7 @@ Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
 
 	delete eval_cache;
 
-	return best_res->best_move.move;
-}
-
-bool cmp_function(MoveEval m1, MoveEval m2) {return m1.eval < m2.eval;}
-
-std::vector<MoveEval> FossileChess::evaluate_all_moves(std::vector<Move> moves_in, Board* board, int depth, int threads_to_use) {
-	HashBoard b(*board);
-	moves_left = moves_in;
-	num_moves_total = moves_in.size();
-
-	std::vector<std::thread> threads;
-	std::vector<MinimaxThread> threads_data;
-	threads.reserve(threads_to_use - 1);
-	threads_data.resize(threads_to_use, this);
-
-	// spawn n - 1 threads...
-	for (int i = 0; i < threads_to_use - 1; i++)
-		threads.emplace_back(run_minimax_thread, &threads_data[i], depth - 1, &b, true);
-	// ...since we become the last thread
-	run_minimax_thread(&threads_data.back(), depth - 1, &b, true);
-
-	// after we're finished, join all other threads...
-	for (std::thread& t : threads)
-		t.join();
-
-	// ...and sort the moves by their eval
-	std::vector<MoveEval> res;
-	
-	for (MinimaxThread& t : threads_data) {
-		for (MoveEval& m : t.all_moves) {
-			res.push_back(m);
-		}
-	}
-
-	std::sort(res.begin(), res.end(), cmp_function);
-	
-	// also tell the user that we're done :)
-	print_progress(1, 1);
-
-	return res;
+	return best_res->best_move;
 }
 
 // to initialize this as init-time, use a lambda

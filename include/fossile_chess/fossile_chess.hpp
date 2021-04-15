@@ -20,21 +20,15 @@ class BoardEvaluation {
 		: hash(_hash), eval(_eval), depth(_depth) {}
 };
 
-class MoveEval {
-	public:
-	Move move = Move(-1, -1, -1, -1);
-	int eval = 999999999;
-};
-
 class MinimaxThread {
 	public:
 	FossileChess* master;
-	MoveEval best_move;
-	std::vector<MoveEval> all_moves; // only used for iterative search, otherwise unused
+	Move best_move = Move(-1, -1, -1, -1);
+	int best_move_eval = 999999999;
 
 	MinimaxThread(FossileChess* _master) : master(_master) {}
 
-	void run(int depth, HashBoard* board, bool save_all_moves);
+	void run(int depth, HashBoard* board);
 };
 
 class FossileChess {
@@ -48,7 +42,6 @@ class FossileChess {
 	FossileChess(const FossileChess& other) = delete;
 
 	Move get_best_move(Board* board, int depth, int threads_to_use);
-	std::vector<MoveEval> evaluate_all_moves(std::vector<Move> moves_in, Board* board, int depth, int threads_to_use);
 	static int evaluate_board(Board* board, int depth_left);
 	int minimax(HashBoard* board, int depth, int alpha, int beta, bool maximizing_player);
 };
