@@ -249,7 +249,15 @@ void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
 
 	board.move(move);
 	isCheck = board.is_check();
-	
+
+	if (board.gameState == GameState::draw) {
+		std::cout << "Game ended: draw" << std::endl;
+	} else if (board.gameState == GameState::white_checkmate) {	
+		std::cout << "Game ended: white got checkmated" << std::endl;
+	} else if (board.gameState == GameState::black_checkmate) {	
+		std::cout << "Game ended: black got checkmated" << std::endl;
+	}
+
 	if (board.gameState == GameState::white_checkmate ||
 		board.gameState == GameState::black_checkmate ||
 		board.gameState == GameState::draw) 

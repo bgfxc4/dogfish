@@ -548,7 +548,6 @@ void Board::move(Move move) {
 	} else {
 		num_half_moves++;
 		if (num_half_moves >= 50) {
-			std::cout << "draw by 50 half moves" << std::endl;
 			gameState = GameState::draw;
 		}
 	}
@@ -559,12 +558,10 @@ void Board::move(Move move) {
 	}
 	
 	if (repetition_count >= 2) {
-		std::cout << "draw by repetition" << std::endl;
 		gameState = GameState::draw;
 	}
 	
 	if (is_insufficient_material()) {	
-		std::cout << "draw by insufficient material" << std::endl;
 		gameState = GameState::draw;
 	}
 	
@@ -573,10 +570,8 @@ void Board::move(Move move) {
 
 	if (all_possible_moves.size() == 0) {
 		if (is_check()) {
-			std::cout << "checkmate" << std::endl;
 			gameState = (white_to_move) ? GameState::white_checkmate : GameState::black_checkmate;
 		} else {
-			std::cout << "draw by stalemate" << std::endl;
 			gameState = GameState::draw;
 		}
 	}
