@@ -3,7 +3,7 @@ LDFLAGS ?=
 CXX ?= g++
 INCLUDES := -I ../include -I ../include/fossile_chess
 
-OBJECTS := board.o board-content.o piece.o fossile_chess/fossile_chess.o
+OBJECTS := board.o piece.o fossile_chess/fossile_chess.o
 HEADERS := ../include/board.hpp ../include/piece.hpp ../include/fossile_chess/fossile_chess.hpp ../include/fossile_chess/atomic_hashmap.hpp ../include/constants.hpp
 LIBRARY := board.a
 
