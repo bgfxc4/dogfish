@@ -6,22 +6,50 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <cstring>
 
 #include "piece.hpp"
 #include "constants.hpp"
 
 class BoardContent {
 public:
-	BoardContent();
-	Piece get(unsigned x, unsigned y);
-	uint8_t* get_all_raw();
-	void set(int x, int y, Piece p);
-	void clear_tile(int x, int y);
+	BoardContent() {
+		memset(bits, 0, sizeof(bits));
+	}
+	
+	Piece get(unsigned x, unsigned y) {
+		return get(y * 8 + x);
+	}
+
+	uint8_t* get_all_raw() { return bits;}
+
+	void set(int x, int y, Piece p) {
+		set(y * 8 + x, p.type | (p.is_white << 3));
+	}
+
+	void clear_tile(int x, int y) {
+		set(y * 8 + x, 0 | (1 << 3));
+	}
 
 private:
 	uint8_t bits[32];
-	Piece get(unsigned n);
-	void set(uint8_t n, uint8_t p);
+	Piece get(unsigned n) {
+		uint8_t byte = bits[n >> 1];
+		byte >>= (n & 1) << 2;
+		byte &= 0x0F;
+		return { (uint8_t)(byte & 0x07), (uint8_t)(byte >> 3) };
+	}
+
+	void set(uint8_t n, uint8_t p) {
+		if (n & 1) {
+			bits[n >> 1] &= 0x0F;
+			bits[n >> 1] |= p << 4;
+		}
+		else {
+			bits[n >> 1] &= 0xF0;
+			bits[n >> 1] |= p;
+		}
+	}
 };
 
 class Position {
