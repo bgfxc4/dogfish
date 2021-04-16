@@ -582,3 +582,27 @@ void Board::move(Move move) {
 void Board::get_moves_raw(int x, int y, std::vector<Move>& res) {
 	return bc.get(x, y).get_moves_raw(*this, x, y, res);
 }
+
+// to initialize this as init-time, use a lambda
+static char pieces_chars[8] = { 0 };
+static int pieces_chars_dummy = []() {
+	pieces_chars[(int)Pieces::Empty] = ' ';
+	pieces_chars[(int)Pieces::King] = 'k';
+	pieces_chars[(int)Pieces::Pawn] = 'p';
+	pieces_chars[(int)Pieces::Knight] = 'n';
+	pieces_chars[(int)Pieces::Bishop] = 'b';
+	pieces_chars[(int)Pieces::Rook] = 'r';
+	pieces_chars[(int)Pieces::Queen] = 'q';
+	return 0;
+} ();
+
+void Board::print() {
+	for (int y = 0; y < 8; y++) {
+		for (int x = 0; x < 8; x++) {
+			Piece p = getPiece(x, y);
+			char pc = pieces_chars[(int)p.type];
+			putchar(pc);
+		}
+		putchar('\n');
+	}
+}

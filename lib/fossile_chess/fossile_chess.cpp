@@ -10,7 +10,7 @@
 #include "constants.hpp"
 
 #define CHECKMATE 1000000
-#define HIGHEST_VALUE (CHECKMATE+1)
+#define HIGHEST_VALUE (CHECKMATE * 2)
 
 static void print_progress(int done, int total) {
 	std::cout << "Progress: " << done * 100 / total << "%" << std::endl;
@@ -40,7 +40,7 @@ void MinimaxThread::run(int depth, HashBoard* board) {
 		HashBoard b(*board);
 		b.move(next_move);
 
-		int eval = master->minimax(&b, depth, -HIGHEST_VALUE, HIGHEST_VALUE, true);
+		int eval = master->minimax(&b, depth, true);
 		if (eval < best_move_eval) {
 			best_move = next_move;
 			best_move_eval = eval;
@@ -154,16 +154,55 @@ BoardEvaluation* lookup_eval(AtomicHashmap<BoardEvaluation>* map, uint64_t hash)
 	});
 }
 
-int FossileChess::minimax(HashBoard* board, int depth, int alpha, int beta, bool maximizing_player) {
-	if (depth == 0 || board->gameState != GameState::playing) {
+int FossileChess::minimax(HashBoard* board, int depth, bool maximizing_player) {
+	return minimax(board, depth, -HIGHEST_VALUE, HIGHEST_VALUE, maximizing_player);
+}
+
+int FossileChess::minimax(HashBoard* board, int depth,
+		int alpha, int beta, bool maximizing_player)
+{
+	// either evaluate directly if leaf, or recurse with iterative deepening
+	if (depth <= 0 || board->gameState != GameState::playing) {
 		return evaluate_board(board, depth);
 	}
 
-	int top_eval = HIGHEST_VALUE * (maximizing_player? -1 : 1);
+	// prepare vector for iterative deepening
+	std::vector<MoveEval> moves;
+	moves.reserve(board->all_possible_moves.size());
 
-	for (Move m : board->all_possible_moves) {
+	for (Move& m : board->all_possible_moves) {
+		moves.emplace_back(m, 0); // value doesn't matter as it is reset anyways
+	}
+
+	// only do iterative deepening if depth >= 3
+	if (depth <= 2) {
+		minimax(moves, board, depth, alpha, beta, maximizing_player);
+	}
+	else {
+		for (int d = 2; d <= depth; d++) {
+			minimax(moves, board, d, alpha, beta, maximizing_player);
+		}
+	}
+	return moves.front().eval;
+}
+
+void FossileChess::minimax(
+	std::vector<MoveEval>& moves,
+	HashBoard* board,
+	int depth,
+	int alpha,
+	int beta,
+	bool maximizing_player)
+{
+	// reset all move evals since we won't be going over all of them if we ab-cutoff
+	int worst_value = HIGHEST_VALUE * (maximizing_player? -1 : 1);
+	for (MoveEval& me : moves) {
+		me.eval = worst_value;
+	}
+
+	for (MoveEval& me : moves) {
 		HashBoard b = *board;
-		b.move(m);
+		b.move(me.m);
 
 		BoardEvaluation* ev = lookup_eval(eval_cache, b.hash);
 		int eval;
@@ -175,12 +214,12 @@ int FossileChess::minimax(HashBoard* board, int depth, int alpha, int beta, bool
 			eval_cache->insert(b.hash, b.hash, eval, depth);
 		}
 
+		me.eval = eval;
+
 		if (maximizing_player) {
-			top_eval = std::max(top_eval, eval);
 			alpha = std::max(alpha, eval);
 		}
 		else {
-			top_eval = std::min(top_eval, eval);
 			beta = std::min(beta, eval);
 		}
 		if (beta <= alpha) {
@@ -188,10 +227,13 @@ int FossileChess::minimax(HashBoard* board, int depth, int alpha, int beta, bool
 		}
 	}
 
-	return top_eval;
+	if (!maximizing_player)
+		std::sort(moves.begin(), moves.end());
+	else
+		std::sort(moves.rbegin(), moves.rend());
 }
 
-// generator the zobrist table statically so we don't have to worry about it
+// generate the zobrist table statically so we don't have to worry about it
 // at runtime
 static constexpr uint64_t do_xorshift(uint64_t x) {
 	x ^= x << 13;

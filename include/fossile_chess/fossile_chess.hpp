@@ -10,6 +10,14 @@
 class FossileChess;
 class HashBoard;
 
+struct MoveEval {
+	Move m;
+	int eval;
+
+	MoveEval(const Move& _m, int _eval) : m(_m), eval(_eval) {}
+	bool operator<(const MoveEval& other) { return eval < other.eval; }
+};
+
 class BoardEvaluation {
 	public:
 	uint64_t hash;
@@ -43,7 +51,12 @@ class FossileChess {
 
 	Move get_best_move(Board* board, int depth, int threads_to_use);
 	static int evaluate_board(Board* board, int depth_left);
+	int minimax(HashBoard* board, int depth, bool maximizing_player);
+
+	private:
 	int minimax(HashBoard* board, int depth, int alpha, int beta, bool maximizing_player);
+	void minimax(std::vector<MoveEval>& moves, HashBoard* board,
+			int depth, int alpha, int beta, bool maximizing_player);
 };
 
 class HashBoard : public Board {

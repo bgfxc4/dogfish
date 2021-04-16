@@ -86,6 +86,10 @@ public:
 	uint8_t white_castle_long : 1;
 	uint8_t black_castle_short : 1;
 	uint8_t black_castle_long : 1;
+
+	// order of these fields is important for alignment. total size should be 36 bytes
+	BoardContent bc;
+	uint8_t _en_passant_pos : 7;
 	
 	uint8_t attacked_tiles[8] = {0};
 	std::vector<Position> pinned_pieces;
@@ -119,9 +123,7 @@ public:
 	void move_raw(int from_x, int from_y, int to_x, int to_y); // semi-private; don't use
 	void move(Move move);
 
-	// order of these fields is important for alignment. total size should be 36 bytes
-	BoardContent bc;
-	uint8_t _en_passant_pos : 7;
+	void print();
 	
 	private:
 	uint8_t num_half_moves;
