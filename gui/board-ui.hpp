@@ -7,7 +7,7 @@
 #include "piece.hpp"
 #include "constants.hpp"
 #include "board.hpp"
-#include "fossile_chess.hpp"
+#include "dogfish.hpp"
 
 enum UI_state {
 	in_game,
@@ -18,7 +18,7 @@ enum UI_state {
 class BoardUI {
 	public:
 	
-	FossileChess engine;
+	Dogfish engine;
 	Move* engineMove = nullptr;
 	std::thread engineThread;
 	int threads;

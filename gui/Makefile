@@ -3,11 +3,11 @@ OBJECTS := main.o board-ui.o graphics.o parse_opts.o
 CXXFLAGS ?= -Wall -Wextra
 CXXFLAGS += -std=c++2a
 CXX ?= g++
-INCLUDES := -I ../include -I ../include/fossile_chess
+INCLUDES := -I ../include -I ../include/dogfish
 
 BOARD_LIB := ../lib/board.a
 
-HEADERS := board-ui.hpp graphics.hpp parse_opts.hpp ../include/board.hpp ../include/piece.hpp ../include/constants.hpp ../include/fossile_chess/fossile_chess.hpp
+HEADERS := board-ui.hpp graphics.hpp parse_opts.hpp ../include/board.hpp ../include/piece.hpp ../include/constants.hpp ../include/dogfish/dogfish.hpp
 EXECUTABLE := main
 
 debug : CXXFLAGS += -Og -g -pg

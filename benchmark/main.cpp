@@ -2,11 +2,11 @@
 #include <iostream>
 
 #include "board.hpp"
-#include "fossile_chess.hpp"
+#include "dogfish.hpp"
 
 int main() {
 	Board board;
-	FossileChess engine;
+	Dogfish engine;
 
 	Move m(0, 6, 0, 5);
 

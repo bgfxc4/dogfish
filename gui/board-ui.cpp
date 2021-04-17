@@ -267,7 +267,7 @@ void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
 	if (playingAgainstEngine != -1 && playingAgainstEngine != board.white_to_move) makeEngineMove(board);
 }
 
-void spawn_engine(FossileChess* engine, Board* board, Move** out, int threads_to_use, int engine_depth) {
+void spawn_engine(Dogfish* engine, Board* board, Move** out, int threads_to_use, int engine_depth) {
 	Move* out_local = new Move(-1, -1, -1, -1);
 	*out_local = engine->get_best_move(board, engine_depth, threads_to_use - 1);
 	__atomic_store_n(out, out_local, __ATOMIC_SEQ_CST);

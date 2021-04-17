@@ -7,7 +7,7 @@ INCLUDES := -I ../include -I ../include/fossile_chess
 
 BOARD_LIB := ../lib/board.a
 
-HEADERS := ../include/board.hpp ../include/piece.hpp ../include/constants.hpp ../include/fossile_chess/fossile_chess.hpp
+HEADERS := ../include/board.hpp ../include/piece.hpp ../include/constants.hpp ../include/dogfish/dogfish.hpp
 EXECUTABLE := main
 
 $(EXECUTABLE): $(OBJECTS) $(HEADERS) $(BOARD_LIB)

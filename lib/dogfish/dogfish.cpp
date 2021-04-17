@@ -5,7 +5,7 @@
 #include <thread>
 
 #include "board.hpp"
-#include "fossile_chess.hpp"
+#include "dogfish.hpp"
 #include "atomic_hashmap.hpp"
 #include "constants.hpp"
 
@@ -52,7 +52,7 @@ static void run_minimax_thread(MinimaxThread* t, int depth, HashBoard* board) {
 	t->run(depth, board);
 }
 
-Move FossileChess::get_best_move(Board* board, int depth, int threads_to_use) {
+Move Dogfish::get_best_move(Board* board, int depth, int threads_to_use) {
 	eval_cache = new AtomicHashmap<BoardEvaluation>(depth * 3 + 3);
 
 	HashBoard b(*board);
@@ -111,7 +111,7 @@ static int get_piece_value(const Piece& p) {
 	return mod * pieces_values[(int)p.type];
 }
 
-int FossileChess::evaluate_board(Board* board, int depth_left) { // evaluates from whites perspective
+int Dogfish::evaluate_board(Board* board, int depth_left) { // evaluates from whites perspective
 	//TODO: better evaluation (e.g. points for rook on open file etc)
 	int eval = 0;
 
@@ -154,11 +154,11 @@ BoardEvaluation* lookup_eval(AtomicHashmap<BoardEvaluation>* map, uint64_t hash)
 	});
 }
 
-int FossileChess::minimax(HashBoard* board, int depth, bool maximizing_player) {
+int Dogfish::minimax(HashBoard* board, int depth, bool maximizing_player) {
 	return minimax(board, depth, -HIGHEST_VALUE, HIGHEST_VALUE, maximizing_player);
 }
 
-int FossileChess::minimax(HashBoard* board, int depth,
+int Dogfish::minimax(HashBoard* board, int depth,
 		int alpha, int beta, bool maximizing_player)
 {
 	// either evaluate directly if leaf, or recurse with iterative deepening
@@ -186,7 +186,7 @@ int FossileChess::minimax(HashBoard* board, int depth,
 	return moves.front().eval;
 }
 
-void FossileChess::minimax(
+void Dogfish::minimax(
 	std::vector<MoveEval>& moves,
 	HashBoard* board,
 	int depth,

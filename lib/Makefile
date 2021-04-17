@@ -1,10 +1,10 @@
 CXXFLAGS ?= -Wall -Wextra -std=c++17
 LDFLAGS ?=
 CXX ?= g++
-INCLUDES := -I ../include -I ../include/fossile_chess
+INCLUDES := -I ../include -I ../include/dogfish
 
-OBJECTS := board.o piece.o fossile_chess/fossile_chess.o
-HEADERS := ../include/board.hpp ../include/piece.hpp ../include/fossile_chess/fossile_chess.hpp ../include/fossile_chess/atomic_hashmap.hpp ../include/constants.hpp
+OBJECTS := board.o piece.o dogfish/dogfish.o
+HEADERS := ../include/board.hpp ../include/piece.hpp ../include/dogfish/dogfish.hpp ../include/dogfish/atomic_hashmap.hpp ../include/constants.hpp
 LIBRARY := board.a
 
 debug : CXXFLAGS += -Og -g -pg

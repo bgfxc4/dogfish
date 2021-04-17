@@ -7,7 +7,7 @@
 #include "board.hpp"
 #include "atomic_hashmap.hpp"
 
-class FossileChess;
+class Dogfish;
 class HashBoard;
 
 struct MoveEval {
@@ -30,24 +30,24 @@ class BoardEvaluation {
 
 class MinimaxThread {
 	public:
-	FossileChess* master;
+	Dogfish* master;
 	Move best_move = Move(-1, -1, -1, -1);
 	int best_move_eval = 999999999;
 
-	MinimaxThread(FossileChess* _master) : master(_master) {}
+	MinimaxThread(Dogfish* _master) : master(_master) {}
 
 	void run(int depth, HashBoard* board);
 };
 
-class FossileChess {
+class Dogfish {
 	public:
 	std::mutex move_lock;
 	std::vector<Move> moves_left;
 	AtomicHashmap<BoardEvaluation>* eval_cache = nullptr;
 	int num_moves_total;
 
-	FossileChess() {}
-	FossileChess(const FossileChess& other) = delete;
+	Dogfish() {}
+	Dogfish(const Dogfish& other) = delete;
 
 	Move get_best_move(Board* board, int depth, int threads_to_use);
 	static int evaluate_board(Board* board, int depth_left);
