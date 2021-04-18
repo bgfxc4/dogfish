@@ -3,7 +3,7 @@ OBJECTS := main.o
 CXXFLAGS ?= -Wall -Wextra -O3
 CXXFLAGS += -std=c++2a
 CXX ?= g++
-INCLUDES := -I ../include -I ../include/fossile_chess
+INCLUDES := -I ../include -I ../include/dogfish
 
 BOARD_LIB := ../lib/board.a
 
