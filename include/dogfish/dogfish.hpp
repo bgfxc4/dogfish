@@ -23,9 +23,11 @@ class BoardEvaluation {
 	uint64_t hash;
 	int eval;
 	int depth;
+	int alpha;
+	int beta;
 
-	BoardEvaluation(uint64_t _hash, int _eval, int _depth)
-		: hash(_hash), eval(_eval), depth(_depth) {}
+	BoardEvaluation(uint64_t _hash, int _eval, int _depth, int _alpha, int _beta)
+		: hash(_hash), eval(_eval), depth(_depth), alpha(_alpha), beta(_beta) {}
 };
 
 class MinimaxThread {

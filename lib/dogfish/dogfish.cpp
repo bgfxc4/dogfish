@@ -206,12 +206,14 @@ void Dogfish::minimax(
 
 		BoardEvaluation* ev = lookup_eval(eval_cache, b.hash);
 		int eval;
-		if (ev != nullptr && ev->depth >= depth) {
+		if (ev != nullptr && ev->depth >= depth
+				&& ev->alpha >= alpha && ev->beta <= beta)
+		{
 			eval = ev->eval;
 		}
 		else {
 			eval = minimax(&b, depth - 1, alpha, beta, !maximizing_player);
-			eval_cache->insert(b.hash, b.hash, eval, depth);
+			eval_cache->insert(b.hash, b.hash, eval, depth, alpha, beta);
 		}
 
 		me.eval = eval;
