@@ -1,4 +1,4 @@
-LDFLAGS += -lsfml-graphics -lsfml-audio -lsfml-window -lsfml-system -pthread
+LDFLAGS += -lsfml-graphics -lsfml-window -lsfml-system -pthread
 OBJECTS := main.o board-ui.o graphics.o parse_opts.o
 CXXFLAGS ?= -Wall -Wextra
 CXXFLAGS += -std=c++2a
