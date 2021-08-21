@@ -53,7 +53,7 @@ static void run_minimax_thread(MinimaxThread* t, int depth, HashBoard* board) {
 }
 
 Move Dogfish::get_best_move(Board* board, int depth, int threads_to_use) {
-	// eval_cache = new AtomicHashmap<BoardEvaluation>(depth * 3 + 3);
+	eval_cache = new AtomicHashmap<BoardEvaluation>(depth * 3 + 3);
 
 	HashBoard b(*board);
 	moves_left = b.all_possible_moves;
@@ -87,7 +87,7 @@ Move Dogfish::get_best_move(Board* board, int depth, int threads_to_use) {
 	// also tell the user that we're done :)
 	print_progress(1, 1);
 
-	// delete eval_cache;
+	delete eval_cache;
 
 	return best_res->best_move;
 }
@@ -204,17 +204,17 @@ void Dogfish::minimax(
 		HashBoard b = *board;
 		b.move(me.m);
 
-		// BoardEvaluation* ev = lookup_eval(eval_cache, b.hash);
-		BoardEvaluation* ev = nullptr;
+		BoardEvaluation* ev = lookup_eval(eval_cache, b.hash);
+		// BoardEvaluation* ev = nullptr;
 		int eval;
 		if (ev != nullptr && ev->depth >= depth
-				&& ev->alpha >= alpha && ev->beta <= beta)
+				&& ev->alpha > alpha && ev->beta < beta)
 		{
 			eval = ev->eval;
 		}
 		else {
 			eval = minimax(&b, depth - 1, alpha, beta, !maximizing_player);
-			// eval_cache->insert(b.hash, b.hash, eval, depth, alpha, beta);
+			eval_cache->insert(b.hash, b.hash, eval, depth, alpha, beta);
 		}
 
 		me.eval = eval;
