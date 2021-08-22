@@ -1,5 +1,5 @@
 LDFLAGS += -pthread
-OBJECTS := main.o
+OBJECTS := main.o parse_opts.o
 CXXFLAGS ?= -Wall -Wextra
 CXXFLAGS += -std=c++2a
 CXX ?= g++

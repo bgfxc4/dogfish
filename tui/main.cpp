@@ -1,8 +1,16 @@
+#include <chrono>
 #include <iostream>
 #include <ostream>
 #include <string>
+#include <thread>
 
 #include "board.hpp"
+#include "parse_opts.hpp"
+#include "dogfish.hpp"
+
+Dogfish engine;
+Move* engine_move = nullptr;
+std::thread engine_thread;
 
 char piece_to_char(Piece p) {
 	char c = ' ';
@@ -85,22 +93,65 @@ bool is_move_legal(Board* board, Move move) {
 	return false;
 }
 
-int main() {
+void spawn_engine(Dogfish* engine, Board* board, Move** out, int threads_to_use, int engine_depth) {
+	Move* out_local = new Move(-1, -1, -1, -1);
+	*out_local = engine->get_best_move(board, engine_depth, threads_to_use - 1);
+	__atomic_store_n(out, out_local, __ATOMIC_SEQ_CST);
+}
+
+void make_engine_move(Board* board, int threads_to_use, int engine_depth) {
+	engine_thread = std::thread(spawn_engine, &engine, board, &engine_move, threads_to_use, engine_depth);
+	engine_thread.detach();
+
+	Move* atomic_move = nullptr;
+	while (atomic_move == nullptr) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		atomic_move = __atomic_load_n(&engine_move, __ATOMIC_SEQ_CST);
+	}
+	board->move(*atomic_move);
+	delete engine_move;
+	engine_move = nullptr;
+}
+
+void make_human_move(Board* board)  {
+	std::string move_str;
+	print_current_board(board);
+	std::cout << std::endl << (board->white_to_move ? "White" : "Black") << " to move. Please enter your move (eg a1a2 or e2e4):" << std::endl;
+	std::cin >> move_str;
+	
+	Move move = Move(-1, -1, -1, -1);
+	move = input_to_move(move_str);
+	while (!is_move_legal(board, move)) {
+		std::cout << "That move is not legal. Please enter your move (eg a1a2 or e2e4):" << std::endl;
+		std::cin >> move_str;
+		move = input_to_move(move_str);
+	}
+	board->move(move);
+}
+
+int main(int argc, char** argv) {
+	struct opts opt;
+	parse_opts(argc, argv, &opt);
+
+	if (opt.help) return 0;
+
+	if (opt.threads == -1) {
+		opt.threads = std::thread::hardware_concurrency();
+	}
+
+	if (opt.depth == -1) {
+		opt.depth = 5;
+	}
+
+	if (opt.threads < 1) error("The engine needs at least one thread to work!", 1);
+	if (opt.depth < 1) error("The engine can at least search to depth one!", 1);
+
 	Board board;
 
 	while (1) {
-		std::string move_str;
-		print_current_board(&board);
-		std::cout << std::endl << (board.white_to_move ? "White" : "Black") << " to move. Please enter your move (eg a1a2 or e2e4):" << std::endl;
-		std::cin >> move_str;
-		
-		Move move = Move(-1, -1, -1, -1);
-		move = input_to_move(move_str);
-		while (!is_move_legal(&board, move)) {
-			std::cout << "That move is not legal. Please enter your move (eg a1a2 or e2e4):" << std::endl;
-			std::cin >> move_str;
-			move = input_to_move(move_str);
-		}
-		board.move(move);
+		if (opt.engine && !board.white_to_move)
+			make_engine_move(&board, opt.threads, opt.depth);
+		else
+			make_human_move(&board);
 	}
 }
