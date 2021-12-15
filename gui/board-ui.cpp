@@ -69,7 +69,7 @@ void BoardUI::renderBoard(sf::RenderWindow& window, Board& boardToRender) {
 	
 	Move* atomicMove = __atomic_load_n(&engineMove, __ATOMIC_SEQ_CST);
 	if (atomicMove != nullptr) {
-		tryMove(boardToRender, atomicMove->from_x, atomicMove->from_y, atomicMove->to_x, atomicMove->to_y);
+		tryMove(boardToRender, *atomicMove);
 		delete engineMove;
 		engineMove = nullptr;
 	}
@@ -204,7 +204,7 @@ void BoardUI::endMouseClickNormalState(sf::Vector2i mousePos, Board& board) {
 		return;
 	}
 	if (playingAgainstEngine == board.white_to_move || playingAgainstEngine == -1) {
-		tryMove(board, dragStartPos.x, dragStartPos.y, mousePos.x / 75, mousePos.y / 75);
+		tryMove(board, Move(dragStartPos.x, dragStartPos.y, mousePos.x / 75, mousePos.y / 75));
 	}
 	dragStartPos = { -1, -1 };
 }
@@ -223,26 +223,24 @@ void BoardUI::endMouseClickPromoteState(sf::Vector2i mousePos, Board& board) {
 	if (playingAgainstEngine != -1 && playingAgainstEngine != board.white_to_move) makeEngineMove(board);
 }
 
-void BoardUI::tryMove(Board& board, int fromX, int fromY, int toX, int toY) {
-	std::vector<Move> possibleMoves = board.get_moves(fromX, fromY);
-	Move move(-1, -1, -1, -1);
-
+void BoardUI::tryMove(Board& board, Move move) {
+	std::vector<Move> possibleMoves = board.get_moves(move.from_x, move.from_y);
+	
+	int found = false;
 	for (Move possibleMove : possibleMoves) {
-		if (possibleMove.to_x == toX && possibleMove.to_y == toY) {
-			move = possibleMove;
-			break;
+		if (possibleMove.to_x == move.to_x && possibleMove.to_y == move.to_y) {
+			found = true;
 		}
 	}
-
-	if (move.to_x == -1 || move.to_y == -1) return;
+	if (!found) return;
 	
 	if (move.promote_to != Pieces::Empty && 
 		(playingAgainstEngine == board.white_to_move || playingAgainstEngine == -1)) 
 	{
-		promotingPositionFrom.x = fromX;
-		promotingPositionFrom.y = fromY;
-		promotingPosition.x = toX;
-		promotingPosition.y = toY;
+		promotingPositionFrom.x = move.from_x;
+		promotingPositionFrom.y = move.from_y;
+		promotingPosition.x = move.to_x;
+		promotingPosition.y = move.to_y;
 		ui_state = (board.white_to_move) ? UI_state::white_choosing_promotion : UI_state::black_choosing_promotion;
 		return;
 	}

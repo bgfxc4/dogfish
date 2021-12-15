@@ -72,7 +72,7 @@ class BoardUI {
 	void endMouseClickNormalState(sf::Vector2i mousePos, Board& board);
 	void endMouseClickPromoteState(sf::Vector2i mousePos, Board& board);
 
-	void tryMove(Board& board, int fromX, int fromY, int toX, int toY);
+	void tryMove(Board& board, Move move);
 
 	void makeEngineMove(Board& board);
 };
