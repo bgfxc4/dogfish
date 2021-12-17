@@ -119,9 +119,9 @@ public:
 	BoardContent bc;
 	uint8_t _en_passant_pos : 7;
 	
-	uint8_t attacked_tiles[8] = {0};
+	uint64_t attacked_tiles = 0;
 	std::vector<Position> pinned_pieces;
-	uint8_t attacked_tiles_ign_king[8] = {0};
+	uint64_t attacked_tiles_ign_king = 0;
 	std::vector<Move> all_possible_moves;
 	std::vector<BoardLite> whole_game;
 

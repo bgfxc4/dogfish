@@ -305,19 +305,13 @@ void Board::find_kings() {
 
 void Board::calculate_all_attacked_tiles() {
 	calculate_pinned_pieces();
-	memset(attacked_tiles, 0, 8);
-	memset(attacked_tiles_ign_king, 0, 8);
-	std::vector<Position> tiles;
+	attacked_tiles = 0;
+	attacked_tiles_ign_king = 0;
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
 			Piece p = bc.get(x, y);
 			if (p.type == (int)Pieces::Empty || (p.is_white == white_to_move)) continue;
-			p.get_attacked_tiles(*this, x, y, tiles);
-			for (Position pos : tiles) {
-				int i = pos.x * 8 + pos.y;
-				attacked_tiles[i / 8] |= 1 << (i % 8);
-				if (p.type != (int)Pieces::King) attacked_tiles_ign_king[i / 8] |= 1 << (i % 8);
-			}
+			attacked_tiles |= p.get_attacked_tiles(*this, x, y);
 		}
 	}
 }
@@ -423,15 +417,15 @@ void Board::calculate_all_possible_moves() {
 
 bool Board::tile_is_attacked(int x, int y) {
 	int i = x * 8 + y;
-	return (attacked_tiles[i / 8] & (1 << (i % 8))) != 0;
+	return (attacked_tiles & (1 << i)) != 0;
 }
 // overload to ignore a specific piece
 bool Board::tile_is_attacked(int x, int y, bool ignoreKings) { 
 	int i = x * 8 + y;
 	if (ignoreKings)
-		return (attacked_tiles_ign_king[i / 8] & (1 << (i % 8))) != 0;
+		return (attacked_tiles_ign_king & (1 << i)) != 0;
 	else 
-		return (attacked_tiles[i / 8] & (1 << (i % 8))) != 0;
+		return (attacked_tiles & (1 << i)) != 0;
 }
 
 bool Board::is_same_position(BoardLite& board) {

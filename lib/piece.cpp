@@ -4,9 +4,8 @@
 #include "board.hpp"
 #include "constants.hpp"
 
-static void add_rook_moves(Board& board, int x, int y,
-		std::vector<Move>& res)
-{
+static void add_rook_moves(Board& board, int x, int y, bool is_white,
+		std::vector<Move>& res) {
 	for (int _x = x - 1; _x >= 0; _x--) {
 		res.push_back(Move(x, y, _x, y));
 		if (board.getPiece(_x, y).type != (uint8_t)Pieces::Empty) break;
@@ -25,30 +24,42 @@ static void add_rook_moves(Board& board, int x, int y,
 	}
 }
 
-static void add_rook_attacked_tiles(Board& board, int x, int y,
-		std::vector<Position>& res)
-{
+static void add_rook_moves(Board& board, int x, int y,
+		std::vector<Move>& res) {
+	add_rook_moves(board, x, y, board.getPiece(x, y).is_white, res);
+}
+
+static uint64_t get_rook_attacked_tiles(Board& board, int x, int y, bool is_white) {
+	uint64_t ret = 0;
 	for (int _x = x - 1; _x >= 0; _x--) {
-		res.push_back(Position(_x, y));
+		int i = _x * 8 + y;
+		ret |= 1 << i;
 		if (board.getPiece(_x, y).type != (uint8_t)Pieces::Empty) break;
 	}
 	for (int _x = x + 1; _x < 8; _x++) {
-		res.push_back(Position(_x, y));
+		int i = _x * 8 + y;
+		ret |= 1 << i;
 		if (board.getPiece(_x, y).type != (uint8_t)Pieces::Empty) break;
 	}
 	for (int _y = y - 1; _y >= 0; _y--) {
-		res.push_back(Position(x, _y));
+		int i = x * 8 + _y;
+		ret |= 1 << i;
 		if (board.getPiece(x, _y).type != (uint8_t)Pieces::Empty) break;
 	}
 	for (int _y = y + 1; _y < 8; _y++) {
-		res.push_back(Position(x, _y));
+		int i = x * 8 + _y;
+		ret |= 1 << i;
 		if (board.getPiece(x, _y).type != (uint8_t)Pieces::Empty) break;
 	}
+	return ret;
+}
+
+static uint64_t get_rook_attacked_tiles(Board& board, int x, int y) {
+	return get_rook_attacked_tiles(board, x, y, board.getPiece(x, y).is_white);
 }
 
 static void add_bishop_moves(Board& board, int x, int y,
-		std::vector<Move>& res)
-{
+		bool is_white, std::vector<Move>& res) {
 	std::array<Position, 4> mods({ Position(-1, -1), Position(-1, 1), Position(1, -1), Position(1, 1)});
 
 	for (Position mod : mods) {
@@ -63,10 +74,14 @@ static void add_bishop_moves(Board& board, int x, int y,
 	}
 }
 
-static void add_bishop_attacked_tiles(Board& board, int x, int y,
-		std::vector<Position>& res)
-{
+static void add_bishop_moves(Board& board, int x, int y,
+		std::vector<Move>& res) {
+	add_bishop_moves(board, x, y, board.getPiece(x, y).is_white, res);
+}
+
+static uint64_t get_bishop_attacked_tiles(Board& board, int x, int y, bool is_white) {
 	std::array<Position, 4> mods({ Position(-1, -1), Position(-1, 1), Position(1, -1), Position(1, 1)});
+	uint64_t ret = 0;
 
 	for (Position mod : mods) {
 		int dx = mod.x, dy = mod.y;
@@ -74,14 +89,19 @@ static void add_bishop_attacked_tiles(Board& board, int x, int y,
 				_y >= 0 && _y < 8 && _x >= 0 && _x < 8;
 				_y += dy, _x += dx)
 		{
-			res.push_back(Position(_x, _y));
+			int i = _x * 8 + _y;
+			ret |= 1 << i;
 			if (board.getPiece(_x, _y).type != (uint8_t)Pieces::Empty) break;
 		}
 	}
+	return ret;
 }
 
-static void add_knight_moves(int x, int y, std::vector<Move>& res)
-{
+static uint64_t get_bishop_attacked_tiles(Board& board, int x, int y) {
+	return get_bishop_attacked_tiles(board, x, y, board.getPiece(x, y).is_white);
+}
+
+static void add_knight_moves(int x, int y, std::vector<Move>& res) {
 	std::array<Position, 8> moves({ Position(2, 1), Position(2, -1), Position(-2, 1), Position(-2, -1), 
 												Position(1, 2), Position(1, -2), Position(-1, 2), Position(-1, -2)});
 	for (Position move : moves) {
@@ -90,17 +110,20 @@ static void add_knight_moves(int x, int y, std::vector<Move>& res)
 	}
 }
 
-static void add_knight_attacked_tiles(int x, int y, std::vector<Position>& res)
-{
+static uint64_t get_knight_attacked_tiles(int x, int y) {
+	uint64_t ret = 0;
 	std::array<Position, 8> moves({ Position(2, 1), Position(2, -1), Position(-2, 1), Position(-2, -1), 
 												Position(1, 2), Position(1, -2), Position(-1, 2), Position(-1, -2)});
 	for (Position move : moves) {
-		if (x + move.x > 7 || x + move.x < 0 || y + move.y > 7 || y + move.y < 0) continue;
-		res.push_back(Position(x + move.x, y + move.y));
+		if (x + move.x > 7 || x + move.x < 0 || y + move.y > 7 || y + move.y < 0) 
+			continue;
+		int i = (x + move.x) * 8 + (y + move.y);
+		ret |= 1 << i;
 	}
+	return ret;
 }
 
-static void add_pawn_moves(Board& board, int x, int y, std::vector<Move>& res) {
+static void add_pawn_moves(Board& board, int x, int y, bool is_white, std::vector<Move>& res) {
 	int mod = (board.getPiece(x, y).is_white) ? -1 : 1;
 	if ((mod == -1 && y <= 0) || (mod == 1 && y >= 7)) return;
 	if (board.getPiece(x, y + mod).type == (int)Pieces::Empty) { // Push pawn one tile
@@ -160,19 +183,32 @@ static void add_pawn_moves(Board& board, int x, int y, std::vector<Move>& res) {
 	}
 }
 
-static void add_pawn_attacked_tiles(Board& board, int x, int y, std::vector<Position>& res) {
+static void add_pawn_moves(Board& board, int x, int y,
+		std::vector<Move>& res) {
+	add_pawn_moves(board, x, y, board.getPiece(x, y).is_white, res);
+}
+
+static uint64_t get_pawn_attacked_tiles(Board& board, int x, int y, bool is_white) {
+	uint64_t ret = 0;
 	Piece p = board.getPiece(x, y);
 	int mod = (p.is_white) ? -1 : 1;
 
 	if (x <= 6) {
-		res.push_back(Position(x + 1, y + mod));
+		int i = (x + 1) * 8 + (y + mod);
+		ret |= 1 << i;
 	}
 	if (x >= 1) {
-		res.push_back(Position(x - 1, y + mod));
+		int i = (x - 1) * 8 + (y + mod);
+		ret |= 1 << i;
 	}
+	return ret;
 }
 
-static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
+static uint64_t get_pawn_attacked_tiles(Board& board, int x, int y) {
+	return get_pawn_attacked_tiles(board, x, y, board.getPiece(x, y).is_white);
+}
+
+static void add_king_moves(Board& board, int x, int y, bool is_white, std::vector<Move>& res) {
 	std::vector<Position> mods = {
 		Position(-1, -1), Position(-1, 0), Position(-1, 1),
 		Position(0, -1),          Position{ 0, 1},
@@ -240,7 +276,12 @@ static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
 	}
 }
 
-static void add_king_attacked_tiles(int x, int y, std::vector<Position>& res) {
+static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
+	add_king_moves(board, x, y, board.getPiece(x, y).is_white, res);
+}
+
+static uint64_t get_king_attacked_tiles(int x, int y) {
+	uint64_t ret = 0;
 	std::vector<Position> mods = {
 		Position(-1, -1), Position(-1, 0), Position(-1, 1),
 		Position(0, -1),          Position{ 0, 1},
@@ -252,9 +293,11 @@ static void add_king_attacked_tiles(int x, int y, std::vector<Position>& res) {
 		int _x = x + dx, _y = y + dy;
 
 		if (_x >= 0 && _x < 8 && _y >= 0 && _y < 8) {
-			res.push_back(Position(_x, _y));
+			int i = _x * 8 + _y;
+			ret |= 1 << i;
 		}
 	}
+	return ret;
 }
 
 void Piece::get_moves_raw(Board& board, int x, int y, std::vector<Move>& res) {
@@ -290,35 +333,43 @@ void Piece::get_moves_raw(Board& board, int x, int y, std::vector<Move>& res) {
 	}
 }
 
-void Piece::get_attacked_tiles(Board& board, int x, int y, std::vector<Position>& res) {
-	res.clear();
+uint64_t Piece::get_attacked_tiles(Board& board, int x, int y) {
+	uint64_t ret = 0;
 	switch ((Pieces)type) {
 	case Pieces::Pawn:
-		add_pawn_attacked_tiles(board, x, y, res);
+		ret |= get_pawn_attacked_tiles(board, x, y);
 		break;
 
 	case Pieces::Knight:
-		add_knight_attacked_tiles(x, y, res);
+		ret |= get_knight_attacked_tiles(x, y);
 		break;
 
 	case Pieces::Bishop:
-		add_bishop_attacked_tiles(board, x, y, res);
+		ret |= get_bishop_attacked_tiles(board, x, y);
 		break;
 
 	case Pieces::Rook:
-		add_rook_attacked_tiles(board, x, y, res);
+		ret |= get_rook_attacked_tiles(board, x, y);
 		break;
 
 	case Pieces::Queen:
-		add_rook_attacked_tiles(board, x, y, res);
-		add_bishop_attacked_tiles(board, x, y, res);
+		ret |= get_rook_attacked_tiles(board, x, y);
+		ret |= get_bishop_attacked_tiles(board, x, y);
 		break;
 
 	case Pieces::King: 
-		add_king_attacked_tiles(x, y, res);
+		ret |= get_king_attacked_tiles(x, y);
 		break;
 
 	default:
 		break;
 	}
+	return ret;
+}
+
+uint64_t Piece::get_king_attackers(Board& board, bool is_white) {
+	Position king_pos = is_white ? board.white_king : board.black_king;
+	uint64_t ret = 0;
+
+	return ret;
 }
