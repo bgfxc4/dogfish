@@ -10,19 +10,6 @@
 #include "board-ui.hpp"
 #include "graphics.hpp"
 
-int* tileNameToPosition(const std::string& tileName) {
-	static int ret[2] = { -1, -1 };
-
-	if (tileName.size() != 2) {
-		std::cout << "[ERROR] tileName must be 2 characters long!" << std::endl;
-		return ret;
-	}
-	ret[0] = tileName[0] - 'a';
-	ret[1] = '8' - tileName[1];
-
-	return ret;
-}
-
 void BoardUI::loadTextures() {
 	selectedTileWhiteTexture.loadFromFile("images/selectedTileWhite.png");
 	selectedTileBlackTexture.loadFromFile("images/selectedTileBlack.png");
