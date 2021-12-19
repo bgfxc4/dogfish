@@ -20,5 +20,5 @@ public:
 
 	void get_moves_raw(Board& board, int x, int y, std::vector<Move>& res);
 	uint64_t get_attacked_tiles(Board& board, int x, int y);
-	uint64_t get_king_attackers(Board& board, bool is_white);
+	static uint64_t get_king_attackers(Board& board, bool is_white);
 };

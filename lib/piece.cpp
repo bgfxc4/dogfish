@@ -4,8 +4,7 @@
 #include "board.hpp"
 #include "constants.hpp"
 
-static void add_rook_moves(Board& board, int x, int y, bool is_white,
-		std::vector<Move>& res) {
+void add_rook_moves(Board& board, int x, int y, std::vector<Move>& res) {
 	for (int _x = x - 1; _x >= 0; _x--) {
 		res.push_back(Move(x, y, _x, y));
 		if (board.getPiece(_x, y).type != (uint8_t)Pieces::Empty) break;
@@ -24,42 +23,56 @@ static void add_rook_moves(Board& board, int x, int y, bool is_white,
 	}
 }
 
-static void add_rook_moves(Board& board, int x, int y,
-		std::vector<Move>& res) {
-	add_rook_moves(board, x, y, board.getPiece(x, y).is_white, res);
-}
-
-static uint64_t get_rook_attacked_tiles(Board& board, int x, int y, bool is_white) {
+template<bool only_specific_piece = false, Pieces to_check_for = Pieces::Empty>
+uint64_t get_rook_attacked_tiles(Board& board, int x, int y, bool is_white) {
 	uint64_t ret = 0;
 	for (int _x = x - 1; _x >= 0; _x--) {
-		int i = _x * 8 + y;
-		ret |= 1 << i;
+		if (!only_specific_piece || (board.getPiece(_x, y).type == (uint8_t)to_check_for
+				&& board.getPiece(_x, y).is_white != is_white)) {
+			int i = _x * 8 + y;
+			ret |= (uint64_t)1 << i;
+		}
 		if (board.getPiece(_x, y).type != (uint8_t)Pieces::Empty) break;
 	}
 	for (int _x = x + 1; _x < 8; _x++) {
-		int i = _x * 8 + y;
-		ret |= 1 << i;
+		if (!only_specific_piece || (board.getPiece(_x, y).type == (uint8_t)to_check_for
+				&& board.getPiece(_x, y).is_white != is_white)) {
+			int i = _x * 8 + y;
+			ret |= (uint64_t)1 << i;
+		}
 		if (board.getPiece(_x, y).type != (uint8_t)Pieces::Empty) break;
 	}
 	for (int _y = y - 1; _y >= 0; _y--) {
-		int i = x * 8 + _y;
-		ret |= 1 << i;
+		if (!only_specific_piece || (board.getPiece(x, _y).type == (uint8_t)to_check_for
+				&& board.getPiece(x, _y).is_white != is_white)) {
+			int i = x * 8 + _y;
+			ret |= (uint64_t)1 << i;
+		}
 		if (board.getPiece(x, _y).type != (uint8_t)Pieces::Empty) break;
 	}
 	for (int _y = y + 1; _y < 8; _y++) {
-		int i = x * 8 + _y;
-		ret |= 1 << i;
+		if (!only_specific_piece || (board.getPiece(x, _y).type == (uint8_t)to_check_for
+				&& board.getPiece(x, _y).is_white != is_white)) {
+			int i = x * 8 + _y;
+			ret |= (uint64_t)1 << i;
+		}
 		if (board.getPiece(x, _y).type != (uint8_t)Pieces::Empty) break;
 	}
 	return ret;
 }
+template uint64_t get_rook_attacked_tiles<false, Pieces::Empty>(Board&, int, int, bool);
+template uint64_t get_rook_attacked_tiles<false, Pieces::Pawn>(Board&, int, int, bool);
+template uint64_t get_rook_attacked_tiles<false, Pieces::Knight>(Board&, int, int, bool);
+template uint64_t get_rook_attacked_tiles<false, Pieces::Bishop>(Board&, int, int, bool);
+template uint64_t get_rook_attacked_tiles<false, Pieces::Rook>(Board&, int, int, bool);
+template uint64_t get_rook_attacked_tiles<false, Pieces::Queen>(Board&, int, int, bool);
+template uint64_t get_rook_attacked_tiles<false, Pieces::King>(Board&, int, int, bool);
 
-static uint64_t get_rook_attacked_tiles(Board& board, int x, int y) {
+uint64_t get_rook_attacked_tiles(Board& board, int x, int y) {
 	return get_rook_attacked_tiles(board, x, y, board.getPiece(x, y).is_white);
 }
 
-static void add_bishop_moves(Board& board, int x, int y,
-		bool is_white, std::vector<Move>& res) {
+void add_bishop_moves(Board& board, int x, int y, std::vector<Move>& res) {
 	std::array<Position, 4> mods({ Position(-1, -1), Position(-1, 1), Position(1, -1), Position(1, 1)});
 
 	for (Position mod : mods) {
@@ -74,12 +87,8 @@ static void add_bishop_moves(Board& board, int x, int y,
 	}
 }
 
-static void add_bishop_moves(Board& board, int x, int y,
-		std::vector<Move>& res) {
-	add_bishop_moves(board, x, y, board.getPiece(x, y).is_white, res);
-}
-
-static uint64_t get_bishop_attacked_tiles(Board& board, int x, int y, bool is_white) {
+template<bool only_specific_piece = false, Pieces to_check_for = Pieces::Empty>
+uint64_t get_bishop_attacked_tiles(Board& board, int x, int y, bool is_white) {
 	std::array<Position, 4> mods({ Position(-1, -1), Position(-1, 1), Position(1, -1), Position(1, 1)});
 	uint64_t ret = 0;
 
@@ -89,19 +98,29 @@ static uint64_t get_bishop_attacked_tiles(Board& board, int x, int y, bool is_wh
 				_y >= 0 && _y < 8 && _x >= 0 && _x < 8;
 				_y += dy, _x += dx)
 		{
-			int i = _x * 8 + _y;
-			ret |= 1 << i;
+			if (!only_specific_piece || (board.getPiece(_x, _y).type == (uint8_t)to_check_for
+					&& board.getPiece(_x, _y).is_white != is_white)) {
+				int i = _x * 8 + _y;
+				ret |= (uint64_t)1 << i;
+			}
 			if (board.getPiece(_x, _y).type != (uint8_t)Pieces::Empty) break;
 		}
 	}
 	return ret;
 }
+template uint64_t get_bishop_attacked_tiles<false, Pieces::Empty>(Board&, int, int, bool);
+template uint64_t get_bishop_attacked_tiles<false, Pieces::Pawn>(Board&, int, int, bool);
+template uint64_t get_bishop_attacked_tiles<false, Pieces::Knight>(Board&, int, int, bool);
+template uint64_t get_bishop_attacked_tiles<false, Pieces::Bishop>(Board&, int, int, bool);
+template uint64_t get_bishop_attacked_tiles<false, Pieces::Rook>(Board&, int, int, bool);
+template uint64_t get_bishop_attacked_tiles<false, Pieces::Queen>(Board&, int, int, bool);
+template uint64_t get_bishop_attacked_tiles<false, Pieces::King>(Board&, int, int, bool);
 
-static uint64_t get_bishop_attacked_tiles(Board& board, int x, int y) {
+uint64_t get_bishop_attacked_tiles(Board& board, int x, int y) {
 	return get_bishop_attacked_tiles(board, x, y, board.getPiece(x, y).is_white);
 }
 
-static void add_knight_moves(int x, int y, std::vector<Move>& res) {
+void add_knight_moves(int x, int y, std::vector<Move>& res) {
 	std::array<Position, 8> moves({ Position(2, 1), Position(2, -1), Position(-2, 1), Position(-2, -1), 
 												Position(1, 2), Position(1, -2), Position(-1, 2), Position(-1, -2)});
 	for (Position move : moves) {
@@ -110,21 +129,37 @@ static void add_knight_moves(int x, int y, std::vector<Move>& res) {
 	}
 }
 
-static uint64_t get_knight_attacked_tiles(int x, int y) {
+template<bool only_specific_piece = false, Pieces to_check_for = Pieces::Empty>
+uint64_t get_knight_attacked_tiles(Board& board, int x, int y, bool is_white) {
 	uint64_t ret = 0;
 	std::array<Position, 8> moves({ Position(2, 1), Position(2, -1), Position(-2, 1), Position(-2, -1), 
 												Position(1, 2), Position(1, -2), Position(-1, 2), Position(-1, -2)});
 	for (Position move : moves) {
 		if (x + move.x > 7 || x + move.x < 0 || y + move.y > 7 || y + move.y < 0) 
 			continue;
-		int i = (x + move.x) * 8 + (y + move.y);
-		ret |= 1 << i;
+		if (!only_specific_piece || (board.getPiece(x+move.x, y+move.y).type == (uint8_t)to_check_for
+				&& board.getPiece(x+move.x, y+move.y).is_white != is_white)) {
+			int i = (x + move.x) * 8 + (y + move.y);
+			ret |= (uint64_t)1 << i;
+		}
 	}
 	return ret;
 }
+template uint64_t get_knight_attacked_tiles<false, Pieces::Empty>(Board&, int, int, bool);
+template uint64_t get_knight_attacked_tiles<false, Pieces::Pawn>(Board&, int, int, bool);
+template uint64_t get_knight_attacked_tiles<false, Pieces::Knight>(Board&, int, int, bool);
+template uint64_t get_knight_attacked_tiles<false, Pieces::Bishop>(Board&, int, int, bool);
+template uint64_t get_knight_attacked_tiles<false, Pieces::Rook>(Board&, int, int, bool);
+template uint64_t get_knight_attacked_tiles<false, Pieces::Queen>(Board&, int, int, bool);
+template uint64_t get_knight_attacked_tiles<false, Pieces::King>(Board&, int, int, bool);
 
-static void add_pawn_moves(Board& board, int x, int y, bool is_white, std::vector<Move>& res) {
-	int mod = (board.getPiece(x, y).is_white) ? -1 : 1;
+
+uint64_t get_knight_attacked_tiles(Board& board, int x, int y) {
+	return get_knight_attacked_tiles(board, x, y, board.getPiece(x, y).is_white);
+}
+
+void add_pawn_moves(Board& board, int x, int y, bool is_white, std::vector<Move>& res) {
+	int mod = is_white ? -1 : 1;
 	if ((mod == -1 && y <= 0) || (mod == 1 && y >= 7)) return;
 	if (board.getPiece(x, y + mod).type == (int)Pieces::Empty) { // Push pawn one tile
 		int is_promotion_white = (mod == -1) ? 1 : 0;
@@ -167,7 +202,7 @@ static void add_pawn_moves(Board& board, int x, int y, bool is_white, std::vecto
 	}
 	if (x >= 1) {
 		if ((board.getPiece(x - 1, y + mod).type != (int)Pieces::Empty &&
-			board.getPiece(x - 1, y + mod).is_white != board.getPiece(x, y).is_white)
+			board.getPiece(x - 1, y + mod).is_white != is_white)
 			|| (enPassantPos.x == x - 1 && enPassantPos.y == y + mod))
 		{
 			int is_promotion_white = (mod == -1) ? 1 : 0;
@@ -183,32 +218,50 @@ static void add_pawn_moves(Board& board, int x, int y, bool is_white, std::vecto
 	}
 }
 
-static void add_pawn_moves(Board& board, int x, int y,
+void add_pawn_moves(Board& board, int x, int y,
 		std::vector<Move>& res) {
 	add_pawn_moves(board, x, y, board.getPiece(x, y).is_white, res);
 }
 
-static uint64_t get_pawn_attacked_tiles(Board& board, int x, int y, bool is_white) {
+template<bool only_specific_piece = false, Pieces to_check_for = Pieces::Empty>
+uint64_t get_pawn_attacked_tiles(Board& board, int x, int y, bool is_white) {
 	uint64_t ret = 0;
-	Piece p = board.getPiece(x, y);
-	int mod = (p.is_white) ? -1 : 1;
+	int mod = is_white ? -1 : 1;
+	
+	if (is_white && y == 0)
+		return 0;
+	else if (!is_white && y == 7)
+		return 0;
 
 	if (x <= 6) {
-		int i = (x + 1) * 8 + (y + mod);
-		ret |= 1 << i;
+		if (!only_specific_piece || (board.getPiece(x+1, y+mod).type == (uint8_t)to_check_for
+				&& (bool)board.getPiece(x+1, y+mod).is_white != is_white)) {
+			int i = (x + 1) * 8 + (y + mod);
+			ret |= (uint64_t)1 << i;
+		}
 	}
 	if (x >= 1) {
-		int i = (x - 1) * 8 + (y + mod);
-		ret |= 1 << i;
+		if (!only_specific_piece || (board.getPiece(x-1, y+mod).type == (uint8_t)to_check_for
+				&& (bool)board.getPiece(x-1, y+mod).is_white != is_white)) {
+			int i = (x - 1) * 8 + (y + mod);
+			ret |= (uint64_t)1 << i;
+		}
 	}
 	return ret;
 }
+template uint64_t get_pawn_attacked_tiles<false, Pieces::Empty>(Board&, int, int, bool);
+template uint64_t get_pawn_attacked_tiles<false, Pieces::Pawn>(Board&, int, int, bool);
+template uint64_t get_pawn_attacked_tiles<false, Pieces::Knight>(Board&, int, int, bool);
+template uint64_t get_pawn_attacked_tiles<false, Pieces::Bishop>(Board&, int, int, bool);
+template uint64_t get_pawn_attacked_tiles<false, Pieces::Rook>(Board&, int, int, bool);
+template uint64_t get_pawn_attacked_tiles<false, Pieces::Queen>(Board&, int, int, bool);
+template uint64_t get_pawn_attacked_tiles<false, Pieces::King>(Board&, int, int, bool);
 
-static uint64_t get_pawn_attacked_tiles(Board& board, int x, int y) {
-	return get_pawn_attacked_tiles(board, x, y, board.getPiece(x, y).is_white);
+uint64_t get_pawn_attacked_tiles(Board& board, int x, int y) {
+	return get_pawn_attacked_tiles(board, x, y, (bool)board.getPiece(x, y).is_white);
 }
 
-static void add_king_moves(Board& board, int x, int y, bool is_white, std::vector<Move>& res) {
+void add_king_moves(Board& board, int x, int y, bool is_white, std::vector<Move>& res) {
 	std::vector<Position> mods = {
 		Position(-1, -1), Position(-1, 0), Position(-1, 1),
 		Position(0, -1),          Position{ 0, 1},
@@ -224,8 +277,7 @@ static void add_king_moves(Board& board, int x, int y, bool is_white, std::vecto
 		}
 	}
 	
-	Piece p = board.getPiece(x, y);
-	if (p.is_white) {
+	if (is_white) {
 		if (board.white_castle_long) {
 			// three pieces to the left of the king are empty
 			if (board.getPiece(1, 7).type + board.getPiece(2, 7).type + board.getPiece(3, 7).type == (int)Pieces::Empty) {
@@ -276,11 +328,12 @@ static void add_king_moves(Board& board, int x, int y, bool is_white, std::vecto
 	}
 }
 
-static void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
+void add_king_moves(Board& board, int x, int y, std::vector<Move>& res) {
 	add_king_moves(board, x, y, board.getPiece(x, y).is_white, res);
 }
 
-static uint64_t get_king_attacked_tiles(int x, int y) {
+template<bool only_specific_piece = false, Pieces to_check_for = Pieces::Empty>
+uint64_t get_king_attacked_tiles(Board& board, int x, int y, bool is_white) {
 	uint64_t ret = 0;
 	std::vector<Position> mods = {
 		Position(-1, -1), Position(-1, 0), Position(-1, 1),
@@ -293,11 +346,26 @@ static uint64_t get_king_attacked_tiles(int x, int y) {
 		int _x = x + dx, _y = y + dy;
 
 		if (_x >= 0 && _x < 8 && _y >= 0 && _y < 8) {
-			int i = _x * 8 + _y;
-			ret |= 1 << i;
+			if (!only_specific_piece || (board.getPiece(_x, _y).type == (uint8_t)to_check_for
+					&& board.getPiece(_x, _y).is_white != is_white)) {
+				int i = _x * 8 + _y;
+				ret |= (uint64_t)1 << i;
+			}
 		}
 	}
 	return ret;
+}
+template uint64_t get_king_attacked_tiles<false, Pieces::Empty>(Board&, int, int, bool);
+template uint64_t get_king_attacked_tiles<false, Pieces::Pawn>(Board&, int, int, bool);
+template uint64_t get_king_attacked_tiles<false, Pieces::Knight>(Board&, int, int, bool);
+template uint64_t get_king_attacked_tiles<false, Pieces::Bishop>(Board&, int, int, bool);
+template uint64_t get_king_attacked_tiles<false, Pieces::Rook>(Board&, int, int, bool);
+template uint64_t get_king_attacked_tiles<false, Pieces::Queen>(Board&, int, int, bool);
+template uint64_t get_king_attacked_tiles<false, Pieces::King>(Board&, int, int, bool);
+
+
+uint64_t get_king_attacked_tiles(Board& board, int x, int y) {
+	return get_king_attacked_tiles(board, x, y, board.getPiece(x, y).is_white);
 }
 
 void Piece::get_moves_raw(Board& board, int x, int y, std::vector<Move>& res) {
@@ -341,7 +409,7 @@ uint64_t Piece::get_attacked_tiles(Board& board, int x, int y) {
 		break;
 
 	case Pieces::Knight:
-		ret |= get_knight_attacked_tiles(x, y);
+		ret |= get_knight_attacked_tiles(board, x, y);
 		break;
 
 	case Pieces::Bishop:
@@ -358,7 +426,7 @@ uint64_t Piece::get_attacked_tiles(Board& board, int x, int y) {
 		break;
 
 	case Pieces::King: 
-		ret |= get_king_attacked_tiles(x, y);
+		ret |= get_king_attacked_tiles(board, x, y);
 		break;
 
 	default:
@@ -370,6 +438,14 @@ uint64_t Piece::get_attacked_tiles(Board& board, int x, int y) {
 uint64_t Piece::get_king_attackers(Board& board, bool is_white) {
 	Position king_pos = is_white ? board.white_king : board.black_king;
 	uint64_t ret = 0;
+	
+	ret |= get_pawn_attacked_tiles<true, Pieces::Pawn>(board, king_pos.x, king_pos.y, is_white);
+	ret |= get_knight_attacked_tiles<true, Pieces::Knight>(board, king_pos.x, king_pos.y, is_white);
+	ret |= get_bishop_attacked_tiles<true, Pieces::Bishop>(board, king_pos.x, king_pos.y, is_white);
+	ret |= get_rook_attacked_tiles<true, Pieces::Rook>(board, king_pos.x, king_pos.y, is_white);
+	ret |= get_rook_attacked_tiles<true, Pieces::Queen>(board, king_pos.x, king_pos.y, is_white); //check bishop and rook moves again but with queen in template
+	ret |= get_bishop_attacked_tiles<true, Pieces::Queen>(board, king_pos.x, king_pos.y, is_white);
+	ret |= get_king_attacked_tiles<true, Pieces::King>(board, king_pos.x, king_pos.y, is_white);
 
 	return ret;
 }

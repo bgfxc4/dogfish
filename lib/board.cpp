@@ -44,7 +44,6 @@ Board::Board(const std::string& fenString) {
 
 	parseFenString(fenString);
 	find_kings();
-	calculate_all_attacked_tiles();
 	calculate_all_possible_moves();
 }
 
@@ -220,9 +219,7 @@ std::vector<Move> Board::get_moves(int x, int y) {
 }
 
 bool Board::is_check() {
-	Position king_pos(-1, -1);
-	(white_to_move) ? king_pos = white_king : king_pos = black_king;
-	return tile_is_attacked(king_pos.x, king_pos.y);
+	return king_attackers != 0;
 }
 
 bool Board::is_check_slow() {
@@ -304,7 +301,7 @@ void Board::find_kings() {
 }
 
 void Board::calculate_all_attacked_tiles() {
-	calculate_pinned_pieces();
+	pinned_pieces = calculate_pinned_pieces();
 	attacked_tiles = 0;
 	attacked_tiles_ign_king = 0;
 	for (int x = 0; x < 8; x++) {
@@ -316,10 +313,10 @@ void Board::calculate_all_attacked_tiles() {
 	}
 }
 
-void Board::calculate_pinned_pieces() {
+uint64_t Board::calculate_pinned_pieces() {
 	Position king_pos(-1, -1);
 	(white_to_move) ? king_pos = white_king : king_pos = black_king;
-	pinned_pieces.clear();
+	uint64_t ret = 0;
 	std::vector<Position> mods = { Position(1, 1), Position(1, -1), Position(-1, 1), Position(-1, -1),
 									Position(0, 1), Position(1, 0), Position(0, -1), Position(-1, 0)};
 	
@@ -344,10 +341,16 @@ void Board::calculate_pinned_pieces() {
 				else break;
 			} else {
 				if (dx * dy == 0 && (p.type == (int)Pieces::Rook || p.type == (int)Pieces::Queen)) {
-					if (friendly_pieces_count == 1) pinned_pieces.push_back(potentially_pinned_piece);
+					if (friendly_pieces_count == 1) {
+						int i = potentially_pinned_piece.x * 8 + potentially_pinned_piece.y;
+						ret |= (uint64_t)1 << i;
+					}
 					break;
 				} else if (dx * dy != 0 && (p.type == (int)Pieces::Bishop || p.type == (int)Pieces::Queen)) {
-					if (friendly_pieces_count == 1) pinned_pieces.push_back(potentially_pinned_piece);
+					if (friendly_pieces_count == 1) {
+						int i = potentially_pinned_piece.x * 8 + potentially_pinned_piece.y;
+						ret |= (uint64_t)1 << i;
+					}
 					break;
 				} else {
 					break;
@@ -355,10 +358,22 @@ void Board::calculate_pinned_pieces() {
 			}
 		}
 	}
+	return ret;
+}
+
+int count_bits_in_bitmap(uint64_t in) {
+	int count = 0;
+	while (in) {
+		in &= (in - 1);
+		count++;
+	}
+	return count;
 }
 
 void Board::calculate_all_possible_moves() {
 	all_possible_moves.clear();
+	pinned_pieces = calculate_pinned_pieces();
+	king_attackers = Piece::get_king_attackers(*this, white_to_move);
 
 	// the average branching factor is about 31, so reserve a little more than that
 	// to make reallocations unlikely
@@ -373,16 +388,14 @@ void Board::calculate_all_possible_moves() {
 				// quick return on degenerate cases
 				continue;
 			}
+
+			if (count_bits_in_bitmap(king_attackers) >= 2 && from.type != (uint8_t)Pieces::King) {
+				// in double-check the king has to move
+				continue;
+			}
 			get_moves_raw(x, y, raw_moves);
 
-			bool is_pinned_piece = false;
-				
-			for (Position p : pinned_pieces) {
-				if (x == p.x && y == p.y) {
-					is_pinned_piece = true;
-					break;
-				}
-			}
+			bool is_pinned_piece = (pinned_pieces & ((uint64_t)1 << (x * 8 + y))) != 0;
 
 			for (Move move : raw_moves) {
 				// skip moves that would be friendly fire
@@ -392,11 +405,10 @@ void Board::calculate_all_possible_moves() {
 					continue;
 
 				if (from.type == (int)Pieces::King) {
-					if (tile_is_attacked(move.to_x, move.to_y)) continue;
+					// if (tile_is_attacked(move.to_x, move.to_y)) continue;
 					Board tmp = *this;
 					tmp.move_raw(move.from_x, move.from_y, move.to_x, move.to_y);
-					tmp.calculate_all_attacked_tiles();
-					if (tmp.is_check()) continue;
+					if (Piece::get_king_attackers(tmp, tmp.white_to_move) != 0) continue;
 					all_possible_moves.push_back(move);
 					continue;
 				}
@@ -404,8 +416,7 @@ void Board::calculate_all_possible_moves() {
 				if (is_check() || is_pinned_piece) {
 					Board tmp = *this;
 					tmp.move_raw(move.from_x, move.from_y, move.to_x, move.to_y);
-					tmp.calculate_all_attacked_tiles();
-					if (tmp.is_check()) continue;
+					if (Piece::get_king_attackers(tmp, tmp.white_to_move) != 0) continue;
 					all_possible_moves.push_back(move);
 					continue; 
 				} 
@@ -417,15 +428,15 @@ void Board::calculate_all_possible_moves() {
 
 bool Board::tile_is_attacked(int x, int y) {
 	int i = x * 8 + y;
-	return (attacked_tiles & (1 << i)) != 0;
+	return (attacked_tiles & ((uint64_t)1 << i)) != 0;
 }
 // overload to ignore a specific piece
 bool Board::tile_is_attacked(int x, int y, bool ignoreKings) { 
 	int i = x * 8 + y;
 	if (ignoreKings)
-		return (attacked_tiles_ign_king & (1 << i)) != 0;
+		return (attacked_tiles_ign_king & ((uint64_t)1 << i)) != 0;
 	else 
-		return (attacked_tiles & (1 << i)) != 0;
+		return (attacked_tiles & ((uint64_t)1 << i)) != 0;
 }
 
 bool Board::is_same_position(BoardLite& board) {
@@ -559,7 +570,6 @@ void Board::move(Move move) {
 		gameState = GameState::draw;
 	}
 	
-	calculate_all_attacked_tiles();
 	calculate_all_possible_moves();
 
 	if (all_possible_moves.size() == 0) {

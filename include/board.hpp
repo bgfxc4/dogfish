@@ -120,8 +120,9 @@ public:
 	uint8_t _en_passant_pos : 7;
 	
 	uint64_t attacked_tiles = 0;
-	std::vector<Position> pinned_pieces;
+	uint64_t pinned_pieces = 0;
 	uint64_t attacked_tiles_ign_king = 0;
+	uint64_t king_attackers = 0;
 	std::vector<Move> all_possible_moves;
 	std::vector<BoardLite> whole_game;
 
@@ -143,7 +144,7 @@ public:
 	void find_kings();
 
 	void calculate_all_attacked_tiles();
-	void calculate_pinned_pieces();
+	uint64_t calculate_pinned_pieces();
 	void calculate_all_possible_moves();
 	
 	bool is_same_position(BoardLite& board);

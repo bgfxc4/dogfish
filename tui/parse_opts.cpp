@@ -70,6 +70,7 @@ extern void parse_opts(int argc, char** argv, struct opts* out) {
 			case 't':
 				if (!is_number(optarg)) return error("-t or --threads needs a number as an argument!", 1);
 				out->threads = std::stoi(optarg);
+				break;
 			case 'd':
 				if (!is_number(optarg)) return error("-d or --depth needs a number as an argument!", 1);
 				out->depth = std::stoi(optarg);
