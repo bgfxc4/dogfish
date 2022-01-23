@@ -4,6 +4,7 @@
 #include "graphics.hpp"
 #include "board-ui.hpp"
 #include "parse_opts.hpp"
+#include <iostream>
 
 void testing() {
 }
@@ -28,7 +29,9 @@ int main(int argc, char* argv[]) {
 	if (opt.depth < 1) error("The engine can at least search to depth one!", 1);
 
 	sf::RenderWindow& window = startGraphics();
+	//Board board("r1b1k1nr/p5pp/2p1pp2/1p6/8/P1Q2B2/3B1PqP/R3K2R b KQkq - 0 1");
 	Board board;
+	//Board board();
 	BoardUI boardUI = (opt.engine) ? BoardUI(opt.threads, opt.depth, 1) : BoardUI(opt.threads, opt.depth);
 
 	while (window.isOpen()) {

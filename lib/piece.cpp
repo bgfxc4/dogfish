@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 
 #include "piece.hpp"
 #include "board.hpp"
@@ -24,7 +25,7 @@ void add_rook_moves(Board& board, int x, int y, std::vector<Move>& res) {
 }
 
 template<bool only_specific_piece = false, Pieces to_check_for = Pieces::Empty>
-uint64_t get_rook_attacked_tiles(Board& board, int x, int y, bool is_white) {
+uint64_t get_rook_attacked_tiles(Board& board, int x, int y, bool is_white, int ignore_king) {
 	uint64_t ret = 0;
 	for (int _x = x - 1; _x >= 0; _x--) {
 		if (!only_specific_piece || (board.getPiece(_x, y).type == (uint8_t)to_check_for
@@ -32,7 +33,20 @@ uint64_t get_rook_attacked_tiles(Board& board, int x, int y, bool is_white) {
 			int i = _x * 8 + y;
 			ret |= (uint64_t)1 << i;
 		}
-		if (board.getPiece(_x, y).type != (uint8_t)Pieces::Empty) break;
+		Piece p = board.getPiece(_x, y);
+		if (ignore_king == 0) {
+			if (p.type != (uint8_t)Pieces::Empty && board.white_king.x != _x && board.white_king.y != y) {
+				break;
+			}
+		} else if (ignore_king == 1) {
+			if (p.type != (uint8_t)Pieces::Empty && board.black_king.x != _x && board.black_king.y != y) {
+				break;
+			}
+		} else {
+			if (p.type != (uint8_t)Pieces::Empty) {
+				break;
+			}
+		}
 	}
 	for (int _x = x + 1; _x < 8; _x++) {
 		if (!only_specific_piece || (board.getPiece(_x, y).type == (uint8_t)to_check_for
@@ -40,7 +54,20 @@ uint64_t get_rook_attacked_tiles(Board& board, int x, int y, bool is_white) {
 			int i = _x * 8 + y;
 			ret |= (uint64_t)1 << i;
 		}
-		if (board.getPiece(_x, y).type != (uint8_t)Pieces::Empty) break;
+		Piece p = board.getPiece(_x, y);
+		if (ignore_king == 0) {
+			if (p.type != (uint8_t)Pieces::Empty && board.white_king.x != _x && board.white_king.y != y) {
+				break;
+			}
+		} else if (ignore_king == 1) {
+			if (p.type != (uint8_t)Pieces::Empty && board.black_king.x != _x && board.black_king.y != y) {
+				break;
+			}
+		} else {
+			if (p.type != (uint8_t)Pieces::Empty) {
+				break;
+			}
+		}
 	}
 	for (int _y = y - 1; _y >= 0; _y--) {
 		if (!only_specific_piece || (board.getPiece(x, _y).type == (uint8_t)to_check_for
@@ -48,7 +75,20 @@ uint64_t get_rook_attacked_tiles(Board& board, int x, int y, bool is_white) {
 			int i = x * 8 + _y;
 			ret |= (uint64_t)1 << i;
 		}
-		if (board.getPiece(x, _y).type != (uint8_t)Pieces::Empty) break;
+		Piece p = board.getPiece(x, _y);
+		if (ignore_king == 0) {
+			if (p.type != (uint8_t)Pieces::Empty && board.white_king.x != x && board.white_king.y != _y) {
+				break;
+			}
+		} else if (ignore_king == 1) {
+			if (p.type != (uint8_t)Pieces::Empty && board.black_king.x != x && board.black_king.y != _y) {
+				break;
+			}
+		} else {
+			if (p.type != (uint8_t)Pieces::Empty) {
+				break;
+			}
+		}
 	}
 	for (int _y = y + 1; _y < 8; _y++) {
 		if (!only_specific_piece || (board.getPiece(x, _y).type == (uint8_t)to_check_for
@@ -56,20 +96,37 @@ uint64_t get_rook_attacked_tiles(Board& board, int x, int y, bool is_white) {
 			int i = x * 8 + _y;
 			ret |= (uint64_t)1 << i;
 		}
-		if (board.getPiece(x, _y).type != (uint8_t)Pieces::Empty) break;
+		Piece p = board.getPiece(x, _y);
+		if (ignore_king == 0) {
+			if (p.type != (uint8_t)Pieces::Empty && board.white_king.x != x && board.white_king.y != _y) {
+				break;
+			}
+		} else if (ignore_king == 1) {
+			if (p.type != (uint8_t)Pieces::Empty && board.black_king.x != x && board.black_king.y != _y) {
+				break;
+			}
+		} else {
+			if (p.type != (uint8_t)Pieces::Empty) {
+				break;
+			}
+		}
 	}
 	return ret;
 }
-template uint64_t get_rook_attacked_tiles<false, Pieces::Empty>(Board&, int, int, bool);
-template uint64_t get_rook_attacked_tiles<false, Pieces::Pawn>(Board&, int, int, bool);
-template uint64_t get_rook_attacked_tiles<false, Pieces::Knight>(Board&, int, int, bool);
-template uint64_t get_rook_attacked_tiles<false, Pieces::Bishop>(Board&, int, int, bool);
-template uint64_t get_rook_attacked_tiles<false, Pieces::Rook>(Board&, int, int, bool);
-template uint64_t get_rook_attacked_tiles<false, Pieces::Queen>(Board&, int, int, bool);
-template uint64_t get_rook_attacked_tiles<false, Pieces::King>(Board&, int, int, bool);
+template uint64_t get_rook_attacked_tiles<false, Pieces::Empty>(Board&, int, int, bool, int);
+template uint64_t get_rook_attacked_tiles<false, Pieces::Pawn>(Board&, int, int, bool, int);
+template uint64_t get_rook_attacked_tiles<false, Pieces::Knight>(Board&, int, int, bool, int);
+template uint64_t get_rook_attacked_tiles<false, Pieces::Bishop>(Board&, int, int, bool, int);
+template uint64_t get_rook_attacked_tiles<false, Pieces::Rook>(Board&, int, int, bool, int);
+template uint64_t get_rook_attacked_tiles<false, Pieces::Queen>(Board&, int, int, bool, int);
+template uint64_t get_rook_attacked_tiles<false, Pieces::King>(Board&, int, int, bool, int);
 
 uint64_t get_rook_attacked_tiles(Board& board, int x, int y) {
-	return get_rook_attacked_tiles(board, x, y, board.getPiece(x, y).is_white);
+	return get_rook_attacked_tiles(board, x, y, board.getPiece(x, y).is_white, -1);
+}
+
+uint64_t get_rook_attacked_tiles(Board& board, int x, int y, int ignore_king) {
+	return get_rook_attacked_tiles(board, x, y, board.getPiece(x, y).is_white, ignore_king);
 }
 
 void add_bishop_moves(Board& board, int x, int y, std::vector<Move>& res) {
@@ -88,7 +145,7 @@ void add_bishop_moves(Board& board, int x, int y, std::vector<Move>& res) {
 }
 
 template<bool only_specific_piece = false, Pieces to_check_for = Pieces::Empty>
-uint64_t get_bishop_attacked_tiles(Board& board, int x, int y, bool is_white) {
+uint64_t get_bishop_attacked_tiles(Board& board, int x, int y, bool is_white, int ignore_king) {
 	std::array<Position, 4> mods({ Position(-1, -1), Position(-1, 1), Position(1, -1), Position(1, 1)});
 	uint64_t ret = 0;
 
@@ -103,21 +160,38 @@ uint64_t get_bishop_attacked_tiles(Board& board, int x, int y, bool is_white) {
 				int i = _x * 8 + _y;
 				ret |= (uint64_t)1 << i;
 			}
-			if (board.getPiece(_x, _y).type != (uint8_t)Pieces::Empty) break;
+			Piece p = board.getPiece(_x, _y);
+			if (ignore_king == 0) {
+				if (p.type != (uint8_t)Pieces::Empty && board.white_king.x != _x && board.white_king.y != _y) {
+					break;
+				}
+			} else if (ignore_king == 1) {
+				if (p.type != (uint8_t)Pieces::Empty && board.black_king.x != _x && board.black_king.y != _y) {
+					break;
+				}
+			} else {
+				if (p.type != (uint8_t)Pieces::Empty) {
+					break;
+				}
+			}
 		}
 	}
 	return ret;
 }
-template uint64_t get_bishop_attacked_tiles<false, Pieces::Empty>(Board&, int, int, bool);
-template uint64_t get_bishop_attacked_tiles<false, Pieces::Pawn>(Board&, int, int, bool);
-template uint64_t get_bishop_attacked_tiles<false, Pieces::Knight>(Board&, int, int, bool);
-template uint64_t get_bishop_attacked_tiles<false, Pieces::Bishop>(Board&, int, int, bool);
-template uint64_t get_bishop_attacked_tiles<false, Pieces::Rook>(Board&, int, int, bool);
-template uint64_t get_bishop_attacked_tiles<false, Pieces::Queen>(Board&, int, int, bool);
-template uint64_t get_bishop_attacked_tiles<false, Pieces::King>(Board&, int, int, bool);
+template uint64_t get_bishop_attacked_tiles<false, Pieces::Empty>(Board&, int, int, bool, int);
+template uint64_t get_bishop_attacked_tiles<false, Pieces::Pawn>(Board&, int, int, bool, int);
+template uint64_t get_bishop_attacked_tiles<false, Pieces::Knight>(Board&, int, int, bool, int);
+template uint64_t get_bishop_attacked_tiles<false, Pieces::Bishop>(Board&, int, int, bool, int);
+template uint64_t get_bishop_attacked_tiles<false, Pieces::Rook>(Board&, int, int, bool, int);
+template uint64_t get_bishop_attacked_tiles<false, Pieces::Queen>(Board&, int, int, bool, int);
+template uint64_t get_bishop_attacked_tiles<false, Pieces::King>(Board&, int, int, bool, int);
 
 uint64_t get_bishop_attacked_tiles(Board& board, int x, int y) {
-	return get_bishop_attacked_tiles(board, x, y, board.getPiece(x, y).is_white);
+	return get_bishop_attacked_tiles(board, x, y, board.getPiece(x, y).is_white, -1);
+}
+
+uint64_t get_bishop_attacked_tiles(Board& board, int x, int y, int ignore_king) {
+	return get_bishop_attacked_tiles(board, x, y, board.getPiece(x, y).is_white, ignore_king);
 }
 
 void add_knight_moves(int x, int y, std::vector<Move>& res) {
@@ -221,6 +295,29 @@ void add_pawn_moves(Board& board, int x, int y, bool is_white, std::vector<Move>
 void add_pawn_moves(Board& board, int x, int y,
 		std::vector<Move>& res) {
 	add_pawn_moves(board, x, y, board.getPiece(x, y).is_white, res);
+}
+
+uint64_t get_pawn_pushing_tiles(Board& board, int x, int y, bool is_white) {	
+	uint64_t ret = 0;
+	int mod = is_white ? -1 : 1;
+	
+	if (is_white && y == 0)
+		return 0;
+	else if (!is_white && y == 7)
+		return 0;
+
+	if ((is_white && y == 6) || (!is_white && y == 1)) {
+		if (board.getPiece(x, y+2*mod).type == (uint8_t)Pieces::Empty) {
+			int i = x * 8 + (y + 2*mod);
+			ret |= (uint64_t)1 << i;
+		}
+	}
+
+	if (board.getPiece(x, y+mod).type == (uint8_t)Pieces::Empty) {
+		int i = x * 8 + (y + mod);
+		ret |= (uint64_t)1 << i;
+	}
+	return ret;
 }
 
 template<bool only_specific_piece = false, Pieces to_check_for = Pieces::Empty>
@@ -368,6 +465,40 @@ uint64_t get_king_attacked_tiles(Board& board, int x, int y) {
 	return get_king_attacked_tiles(board, x, y, board.getPiece(x, y).is_white);
 }
 
+uint64_t Piece::get_moves_raw_bit(Board& board, int x, int y) {
+	uint64_t ret = 0;
+	switch ((Pieces)type) {
+	case Pieces::Pawn:
+		ret = get_pawn_pushing_tiles(board, x, y, board.white_to_move);
+		break;
+
+	case Pieces::Knight:
+		ret = get_knight_attacked_tiles(board, x, y, board.white_to_move);
+		break;
+
+	case Pieces::Bishop:
+		ret = get_bishop_attacked_tiles(board, x, y, board.white_to_move);
+		break;
+
+	case Pieces::Rook:
+		ret = get_rook_attacked_tiles(board, x, y, board.white_to_move);
+		break;
+
+	case Pieces::Queen:
+		ret = get_rook_attacked_tiles(board, x, y, board.white_to_move);
+		ret |= get_bishop_attacked_tiles(board, x, y, board.white_to_move);
+		break;
+
+	case Pieces::King: 
+		ret = get_king_attacked_tiles(board, x, y, board.white_to_move);
+		break;
+
+	default:
+		return 0;
+	}
+	return ret;
+}
+
 void Piece::get_moves_raw(Board& board, int x, int y, std::vector<Move>& res) {
 	res.clear();
 	switch ((Pieces)type) {
@@ -402,6 +533,9 @@ void Piece::get_moves_raw(Board& board, int x, int y, std::vector<Move>& res) {
 }
 
 uint64_t Piece::get_attacked_tiles(Board& board, int x, int y) {
+	return get_attacked_tiles(board, x, y, false);
+}
+uint64_t Piece::get_attacked_tiles(Board& board, int x, int y, int ignore_king) { // include kings: -1, ignore white king: 0, ignore black king: 1
 	uint64_t ret = 0;
 	switch ((Pieces)type) {
 	case Pieces::Pawn:
@@ -413,16 +547,16 @@ uint64_t Piece::get_attacked_tiles(Board& board, int x, int y) {
 		break;
 
 	case Pieces::Bishop:
-		ret |= get_bishop_attacked_tiles(board, x, y);
+		ret |= get_bishop_attacked_tiles(board, x, y, ignore_king);
 		break;
 
 	case Pieces::Rook:
-		ret |= get_rook_attacked_tiles(board, x, y);
+		ret |= get_rook_attacked_tiles(board, x, y, ignore_king);
 		break;
 
 	case Pieces::Queen:
-		ret |= get_rook_attacked_tiles(board, x, y);
-		ret |= get_bishop_attacked_tiles(board, x, y);
+		ret |= get_rook_attacked_tiles(board, x, y, ignore_king);
+		ret |= get_bishop_attacked_tiles(board, x, y, ignore_king);
 		break;
 
 	case Pieces::King: 
@@ -441,11 +575,64 @@ uint64_t Piece::get_king_attackers(Board& board, bool is_white) {
 	
 	ret |= get_pawn_attacked_tiles<true, Pieces::Pawn>(board, king_pos.x, king_pos.y, is_white);
 	ret |= get_knight_attacked_tiles<true, Pieces::Knight>(board, king_pos.x, king_pos.y, is_white);
-	ret |= get_bishop_attacked_tiles<true, Pieces::Bishop>(board, king_pos.x, king_pos.y, is_white);
-	ret |= get_rook_attacked_tiles<true, Pieces::Rook>(board, king_pos.x, king_pos.y, is_white);
-	ret |= get_rook_attacked_tiles<true, Pieces::Queen>(board, king_pos.x, king_pos.y, is_white); //check bishop and rook moves again but with queen in template
-	ret |= get_bishop_attacked_tiles<true, Pieces::Queen>(board, king_pos.x, king_pos.y, is_white);
+	ret |= get_bishop_attacked_tiles<true, Pieces::Bishop>(board, king_pos.x, king_pos.y, is_white, -1);
+	ret |= get_rook_attacked_tiles<true, Pieces::Rook>(board, king_pos.x, king_pos.y, is_white, -1);
+	ret |= get_rook_attacked_tiles<true, Pieces::Queen>(board, king_pos.x, king_pos.y, is_white, -1); //check bishop and rook moves again but with queen in template
+	ret |= get_bishop_attacked_tiles<true, Pieces::Queen>(board, king_pos.x, king_pos.y, is_white, -1);
 	ret |= get_king_attacked_tiles<true, Pieces::King>(board, king_pos.x, king_pos.y, is_white);
 
+	return ret;
+}
+
+bool Piece::type_is_slider(uint8_t t) {
+	return t != (int)Pieces::Pawn && t != (int)Pieces::Knight;
+}
+
+
+uint64_t Piece::get_sliding_ray(Position from, Position to) {
+	uint64_t ret = 0;
+	if (from.x == to.x) { // on same file
+		if (from.y > to.y) {
+			for (int i = to.y + 1; i < from.y; i++) {
+				ret |= (uint64_t)1 << (from.x * 8 + i);
+			}
+		} else {
+			for (int i = from.y + 1; i < to.y; i++) {
+				ret |= (uint64_t)1 << (from.x * 8 + i);
+			}
+		}
+	} else if (from.y == to.y) { // on same rank
+		if (from.x > to.x) {
+			for (int i = to.x + 1; i < from.x; i++) {
+				ret |= (uint64_t)1 << (i * 8 + from.y);
+			}
+		} else {
+			for (int i = from.x + 1; i < to.x; i++) {
+				ret |= (uint64_t)1 << (i * 8 + from.y);
+			}
+		}
+	} else if (std::abs(from.x - to.x) == std::abs(from.y - to.y)) { // on same diagonal
+		if (from.x > to.x) { // diagonal to the left
+			if (from.y > to.y) { // diagonal to the top left
+				for (int i = 1; i < std::abs(from.x - to.x); i++) {
+					ret |= (uint64_t)1 << ((from.x - i) * 8 + (from.y - i));
+				}
+			} else { // diagonal to the bottom left
+				for (int i = 1; i < std::abs(from.x - to.x); i++) {
+					ret |= (uint64_t)1 << ((from.x - i) * 8 + (from.y + i));
+				}
+			}
+		} else { // diagonal to the right
+			if (from.y > to.y) { // to the top right
+				for (int i = 1; i < std::abs(from.x - to.x); i++) {
+					ret |= (uint64_t)1 << ((from.x + i) * 8 + (from.y - i));
+				}
+			} else { // to the bottom right
+				for (int i = 1; i < std::abs(from.x - to.x); i++) {
+					ret |= (uint64_t)1 << ((from.x + i) * 8 + (from.y + i));
+				}
+			}
+		}
+	}
 	return ret;
 }

@@ -300,19 +300,6 @@ void Board::find_kings() {
 	}
 }
 
-void Board::calculate_all_attacked_tiles() {
-	pinned_pieces = calculate_pinned_pieces();
-	attacked_tiles = 0;
-	attacked_tiles_ign_king = 0;
-	for (int x = 0; x < 8; x++) {
-		for (int y = 0; y < 8; y++) {
-			Piece p = bc.get(x, y);
-			if (p.type == (int)Pieces::Empty || (p.is_white == white_to_move)) continue;
-			attacked_tiles |= p.get_attacked_tiles(*this, x, y);
-		}
-	}
-}
-
 uint64_t Board::calculate_pinned_pieces() {
 	Position king_pos(-1, -1);
 	(white_to_move) ? king_pos = white_king : king_pos = black_king;
@@ -370,11 +357,32 @@ int count_bits_in_bitmap(uint64_t in) {
 	return count;
 }
 
+int get_first_set_bit(uint64_t in) {
+	for (int i = 0; i < 64; i++) {
+		if ((in & ((uint64_t)1 << i)) != 0)
+			return i;
+	}
+	return -1;
+}
+
+void print_bitboard(uint64_t in) {
+	std::cout << std::endl;
+	for (int y = 0; y < 8; y++) {
+		for (int x = 0; x < 8; x++) {
+			std::cout << (((in & (uint64_t)1<<(x*8+y)) != 0) ? 1 : 0) << " ";
+		}
+		std::cout << std::endl;
+	}
+}
+
 void Board::calculate_all_possible_moves() {
 	all_possible_moves.clear();
 	pinned_pieces = calculate_pinned_pieces();
 	king_attackers = Piece::get_king_attackers(*this, white_to_move);
-
+	int num_checkers = count_bits_in_bitmap(king_attackers);
+	int checker_square = 0;
+	if (num_checkers >= 1)
+		checker_square = get_first_set_bit(king_attackers);
 	// the average branching factor is about 31, so reserve a little more than that
 	// to make reallocations unlikely
 	std::vector<Move> raw_moves;
@@ -383,18 +391,60 @@ void Board::calculate_all_possible_moves() {
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
 			Piece from = bc.get(x, y);
-			
+
 			if (from.type == (uint8_t)Pieces::Empty || white_to_move != from.is_white) {
 				// quick return on degenerate cases
 				continue;
 			}
 
-			if (count_bits_in_bitmap(king_attackers) >= 2 && from.type != (uint8_t)Pieces::King) {
+			if (num_checkers >= 2 && from.type != (uint8_t)Pieces::King) {
 				// in double-check the king has to move
 				continue;
 			}
-			get_moves_raw(x, y, raw_moves);
 
+			if (from.type == (uint8_t)Pieces::King) {
+				uint64_t king_danger_tiles = get_king_danger_tiles(from.is_white);
+				uint64_t raw_moves_bit = get_moves_raw_bit(x, y); // bitmap with tiles that the piece on x, y can move to
+				raw_moves_bit &= (~king_danger_tiles);
+				for (int i = 0; i < 64; i++) {
+					if ((raw_moves_bit & ((uint64_t)1 << i)) != 0) {
+						all_possible_moves.push_back(Move(x, y, i / 8, i - 8*(i/8)));
+					}
+				}
+				continue;
+			}
+
+			if (num_checkers == 1 && from.type != (uint8_t)Pieces::King) {
+				//eval moves for single check
+				uint64_t raw_moves_bit = get_moves_raw_bit(x, y); // bitmap with tiles that the piece on x, y can move to
+				uint64_t capture_mask = king_attackers;
+				uint64_t push_mask = 0;
+
+				if (Piece::type_is_slider((uint8_t)getPiece(checker_square / 8, checker_square - 8*(checker_square/8)).type)) { // if checking piece is a slider you can block the check
+					push_mask = Piece::get_sliding_ray(Position(checker_square / 8, checker_square - 8*(checker_square/8)), (from.is_white) ? white_king : black_king);
+				} else {
+					push_mask = 0;
+				}
+	
+				if (from.type == (uint8_t)Pieces::Pawn) { // pawns do not push and capture the same way
+					capture_mask &= bc.get(x, y).get_attacked_tiles(*this, x, y);
+					raw_moves_bit &= push_mask;
+					raw_moves_bit |= capture_mask;
+				} else {
+					raw_moves_bit &= (capture_mask | push_mask);
+				}
+
+				
+				for (int i = 0; i < 64; i++) {
+					if ((raw_moves_bit & ((uint64_t)1 << i)) != 0) {
+						all_possible_moves.push_back(Move(x, y, i / 8, i - 8*(i/8)));
+					}
+				}
+				continue;
+			}
+
+			get_moves_raw(x, y, raw_moves);
+			
 			bool is_pinned_piece = (pinned_pieces & ((uint64_t)1 << (x * 8 + y))) != 0;
 
 			for (Move move : raw_moves) {
@@ -405,7 +455,6 @@ void Board::calculate_all_possible_moves() {
 					continue;
 
 				if (from.type == (int)Pieces::King) {
-					// if (tile_is_attacked(move.to_x, move.to_y)) continue;
 					Board tmp = *this;
 					tmp.move_raw(move.from_x, move.from_y, move.to_x, move.to_y);
 					if (Piece::get_king_attackers(tmp, tmp.white_to_move) != 0) continue;
@@ -413,7 +462,7 @@ void Board::calculate_all_possible_moves() {
 					continue;
 				}
 
-				if (is_check() || is_pinned_piece) {
+				if (num_checkers >= 1 || is_pinned_piece) {
 					Board tmp = *this;
 					tmp.move_raw(move.from_x, move.from_y, move.to_x, move.to_y);
 					if (Piece::get_king_attackers(tmp, tmp.white_to_move) != 0) continue;
@@ -583,8 +632,29 @@ void Board::move(Move move) {
 	add_position_to_whole_game();
 }
 
+uint64_t Board::get_king_danger_tiles(bool king_white) {
+	uint64_t ret = 0;
+	for (int x = 0; x < 8; x++) {
+		for (int y = 0; y < 8; y++) {
+			Piece p = bc.get(x, y);
+			if (p.type == (uint8_t)Pieces::Empty)
+				continue;
+			if (p.is_white == king_white) {
+				ret |= (uint64_t)1 << (x*8 + y);
+				continue;
+			}
+			ret |= p.get_attacked_tiles(*this, x, y, king_white ? 0 : 1);
+		}
+	}
+	return ret;
+}
+
 void Board::get_moves_raw(int x, int y, std::vector<Move>& res) {
 	return bc.get(x, y).get_moves_raw(*this, x, y, res);
+}
+
+uint64_t Board::get_moves_raw_bit(int x, int y) {
+	return bc.get(x, y).get_moves_raw_bit(*this, x, y);
 }
 
 // to initialize this as init-time, use a lambda

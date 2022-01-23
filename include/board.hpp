@@ -143,8 +143,8 @@ public:
 	void add_position_to_whole_game();
 	void find_kings();
 
-	void calculate_all_attacked_tiles();
 	uint64_t calculate_pinned_pieces();
+	uint64_t get_king_danger_tiles(bool is_white);
 	void calculate_all_possible_moves();
 	
 	bool is_same_position(BoardLite& board);
@@ -160,4 +160,5 @@ public:
 
 	int parseFenString(const std::string& fenString);
 	void get_moves_raw(int x, int y, std::vector<Move>& res);
+	uint64_t get_moves_raw_bit(int x, int y);
 };
