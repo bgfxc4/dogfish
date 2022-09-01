@@ -2,6 +2,9 @@
 **.a
 gui/main
 test/main
+tui/main
 benchmark/main
 **.data
 **.data.old
+.cache
+.vscode

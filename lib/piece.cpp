@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdlib>
+#include <array>
 
 #include "piece.hpp"
 #include "board.hpp"

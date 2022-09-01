@@ -3,6 +3,7 @@
 #include <string>
 #include <SFML/Graphics.hpp>
 #include <thread>
+#include <array>
 
 #include "piece.hpp"
 #include "constants.hpp"
